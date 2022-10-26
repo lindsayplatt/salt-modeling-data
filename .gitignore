@@ -37,3 +37,9 @@ vignettes/*.pdf
 
 # R Environment Variables
 .Renviron
+
+# Ignore pipeline output files
+_targets/*
+1_fetch/tmp/*
+1_fetch/out/*
+3_visualize/out/*
