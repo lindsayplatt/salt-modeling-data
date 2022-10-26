@@ -4,18 +4,11 @@ library(targets)
 options(tidyverse.quiet = TRUE)
 tar_option_set(packages = c(
   'arrow',
-  'dataRetrieval', 
-  'geofacet',
-  'ggdist',
-  'lubridate',
-  'nhdplusTools',
-  'sf',
+  'dataRetrieval',
   'tidyverse'
-), workspaces = c(''))
+))
 
-# 12 years of data was crashing my computer, so sticking with 5 for now
-# start_date <- '2010-01-01' 
-start_date <- '2017-01-01'
+start_date <- '2010-01-01'
 end_date <- '2021-12-31'
 
 list(
