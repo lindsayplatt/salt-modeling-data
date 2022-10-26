@@ -5,6 +5,11 @@ options(tidyverse.quiet = TRUE)
 tar_option_set(packages = c(
   'arrow',
   'dataRetrieval',
+  'geofacet',
+  'lubridate',
+  'maps',
+  'scico',
+  'sf',
   'tidyverse'
 ))
 
