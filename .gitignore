@@ -40,5 +40,6 @@ vignettes/*.pdf
 
 # Ignore pipeline output files
 _targets/*
-1_fetch/tmp/*.feather
-1_fetch/out/*.feather
+1_fetch/tmp/*
+1_fetch/out/*
+3_visualize/out/*
