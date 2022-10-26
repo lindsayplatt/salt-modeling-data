@@ -57,7 +57,7 @@ p3_targets <- list(
                 sprintf('From %s to %s, %s total sites',
                         start_date, end_date, nrow(conus_sc_sites_sf))) +
         theme_void() + coord_sf()
-      ggsave(out_file, p, height = 16, width = 10)
+      ggsave(out_file, p, height = 16, width = 10, bg="white")
       return(out_file)
     }, format="file"
   )
