@@ -6,6 +6,9 @@
 ##### Define the LSTM class & functions #####
 
 from torch import nn, optim
+import numpy as np
+import matplotlib as mpl
+import matplotlib.pyplot as plt
 
 class salinityLSTM(nn.Module):
     def __init__(self, input_size, hidden_size, num_layers, output_size):
