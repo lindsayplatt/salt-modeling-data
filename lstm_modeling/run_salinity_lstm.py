@@ -49,4 +49,25 @@ learning_rate = 0.0005
 
 train(lstm_model, num_epochs, train_data, valid_data, lr=learning_rate)
 
+##### Generate predictions using the trained model #####
+
+hs = None
+
+# Get predictions on training data
+train_preds, hs = model(train_data.unsqueeze(0), hs)
+train_preds = t_scaler.inverse_transform(train_preds.detach())
+train_time = data.index[1:-11]
+
+# Get predictions on validation data
+valid_preds, hs = model(valid_x.unsqueeze(0), hs)
+valid_preds = v_scaler.inverse_transform(valid_preds.detach())
+valid_time = data.index[-11:]
+
+##### Plot predictions and actual data #####
+
+plt.plot(train_time, train_preds.squeeze(), 'r--', label='Training Predictions', )
+plt.plot(valid_time, valid_preds.squeeze(), 'g--', label='Validation Predictions')
+plt.plot(data.index, data.passengers.to_numpy(), label='Actual')
+plt.xticks(np.arange(0,145,12))
+plt.legend()
 
