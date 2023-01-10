@@ -20,6 +20,20 @@ class salinityLSTM(nn.Module):
         
         return out, hs
 
+##### Define a function that will batch up the training data #####
+
+def get_batches(data, window):
+    """
+    Takes data with shape (n_samples, n_features) and creates mini-batches
+    with shape (1, window).
+    """
+
+    L = len(data)
+    for i in range(L - window):
+        x_sequence = data[i:i + window]
+        y_sequence = data[i+1: i + window + 1]
+        yield x_sequence, y_sequence
+
 ##### Define the function that will train the model #####
 
 def train(model, epochs, train_set, valid_data=None, lr=0.001, print_every=100):
