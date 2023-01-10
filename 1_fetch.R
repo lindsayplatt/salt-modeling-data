@@ -1,7 +1,7 @@
 
 p1_targets <- list(
   
-  ##### Inventory #####
+  ##### Inventory SC #####
   
   # Define spatial query
   tar_target(conus_state_abbr, state.abb[!state.abb %in% c('AK', 'HI')]),
@@ -69,7 +69,7 @@ p1_targets <- list(
            endDate = date_seq_end)
   }),
   
-  ##### Download #####
+  ##### Download SC #####
   
   # Actually download some data based on the download groups
   # across sites, services, and time
@@ -109,8 +109,122 @@ p1_targets <- list(
   tar_target(conus_sc_data, 
              purrr::map(conus_sc_data_clean_feather, read_feather) %>% 
                bind_rows()
-  )
+  ),
+  tar_target(conus_sc_data_csv, {
+    file_out <- '1_fetch/out/conus_sc.csv'
+    write_csv(conus_sc_data, file_out)
+    return(file_out)
+  }, format="file"),
   
   # TODO: Go back and download 'uv' data when a site didn't have any
   # 'dv' data. Use`conus_sc_availability` to figure this out.
+  
+  ##### Inventory Discharge #####
+  
+  # Dynamically branch over states to identify available data
+  tar_target(conus_q_sites,
+             whatNWISsites(stateCd = conus_state_abbr, 
+                           parameterCd = '00060',
+                           startDate = start_date,
+                           endDate = end_date),
+             pattern = map(conus_state_abbr)),
+  tar_target(conus_q_sites_surface,
+             filter(conus_q_sites, site_tp_cd %in% c('ST', 'LK'))),
+  tar_target(conus_q_availability,
+             whatNWISdata(siteNumber = conus_q_sites_surface$site_no, 
+                          parameterCd = '00060',
+                          startDate = start_date,
+                          endDate = end_date,
+                          service = c('dv'))),#skip uv for now, 'uv'))),
+  
+  # Use results from search for available data to create download groups of 
+  # sites based on service and chunks of sites. This is borrowed from Lauren 
+  # Koenig's (USGS) brilliant function at 
+  # https://github.com/USGS-R/ds-pipelines-targets-example-wqp/blob/main/2_download/src/fetch_wqp_data.R
+  tar_target(conus_q_download_info, {
+    max_results <- 250000
+    max_sites <- 2000
+    df_grouped <- conus_q_availability %>%
+      select(site_no, data_type_cd, count_nu) %>% 
+      group_by(data_type_cd) %>%
+      arrange(desc(count_nu), .by_group = TRUE) %>%
+      mutate(task_num_by_results = MESS::cumsumbinning(x = count_nu, 
+                                                       threshold = max_results, 
+                                                       maxgroupsize = max_sites), 
+             task_num_by_group = cur_group_id()) %>%
+      ungroup() %>% 
+      # Each group from before (which represents a different data type code 
+      # (uv or dv)) will have task numbers that start with "1", so now we create 
+      # a new column called `task_num` to create unique task numbers within
+      # each group and by splitting those based on max desired download sizes
+      group_by(task_num_by_group, task_num_by_results) %>% 
+      mutate(task_num = cur_group_id()) %>% 
+      ungroup()
+  }),
+  tar_target(conus_q_download_grps,
+             conus_q_download_info %>% 
+               select(site_no, data_type_cd, task_num) %>% 
+               group_by(task_num) %>% 
+               tar_group(),
+             iteration = "group"),
+  
+  ##### Download discharge #####
+  
+  # Actually download some data based on the download groups
+  # across sites, services, and time
+  tar_target(conus_q_data_raw_feather,{
+    out_file <- sprintf('1_fetch/tmp/daily_q_raw_%s_start_%s.feather', 
+                        unique(conus_q_download_grps$task_num),
+                        gsub("-","_",time_chunks$startDate))
+    readNWISdata(siteNumber = conus_q_download_grps$site_no,
+                 service = unique(conus_q_download_grps$data_type_cd),
+                 parameterCd = '00060',
+                 startDate = time_chunks$startDate,
+                 endDate = time_chunks$endDate) %>% 
+      arrow::write_feather(out_file)
+    return(out_file)
+  }, pattern = cross(conus_q_download_grps, time_chunks), format='file'),
+  
+  # Download site metadata & create state-site xwalk
+  tar_target(conus_q_site_metadata,
+             readNWISsite(unique(conus_q_download_info$site_no))),
+  tar_target(conus_q_site_state_xwalk,
+             conus_q_site_metadata %>%
+               mutate(state_abbr = dataRetrieval::stateCdLookup(state_cd)) %>%
+               select(site_no, state_abbr)),
+  
+  tar_target(conus_q_data_clean_feather, {
+    out_file <- gsub('tmp', 'out', gsub('raw_', '', conus_q_data_raw_feather))
+    read_feather(conus_q_data_raw_feather) %>% 
+      select(site_no, dateTime,  
+             mean_q = X_00060_00003) %>% 
+      left_join(conus_q_site_state_xwalk, by="site_no") %>% 
+      arrow::write_feather(out_file)
+    return(out_file)
+  }, pattern = map(conus_q_data_raw_feather), format = 'file'),
+  
+  tar_target(conus_q_data, 
+             purrr::map(conus_q_data_clean_feather, read_feather) %>% 
+               bind_rows()
+  ),
+  tar_target(conus_q_data_csv, {
+    file_out <- '1_fetch/out/conus_q.csv'
+    write_csv(conus_q_data, file_out)
+    return(file_out)
+  }, format="file"),
+  
+  ##### Gather Air Temperature #####
+  
+  # Rudimentary air temp so that we can try an initial LSTM model
+  tar_target(conus_air_temp_sites, 
+             whatNWISdata(siteNumbers = conus_sc_download_grps$site_no) %>% 
+               filter(parm_cd == "00020", data_type_cd == "dv") %>% 
+               pull(site_no),
+             pattern = map(conus_sc_download_grps)),
+  tar_target(conus_air_temp, 
+             readNWISdata(siteNumbers = conus_air_temp_sites, 
+                          parameterCd = "00020", service = "dv",
+                          startDate = start_date,
+                          endDate = end_date) %>% 
+               select(site_no, dateTime, mean_airtemp = X_00020_00003))
 )

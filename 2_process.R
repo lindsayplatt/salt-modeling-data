@@ -35,6 +35,17 @@ p2_targets <- list(
              conus_sc_data_plot_ready_daily_means_normalized %>% 
                mutate(yr = lubridate::year(dateTime)) %>% 
                group_by(state_abbr, site_no, yr) %>% 
-               summarize(annual_mean_sc_norm = mean(daily_mean_sc_norm, na.rm=TRUE), .keep="groups"))
+               summarize(annual_mean_sc_norm = mean(daily_mean_sc_norm, na.rm=TRUE), .keep="groups")),
+  
+  # Combine SC and Q for ML model
+  tar_target(conus_q_sc_airtemp_csv, {
+    file_out <- '2_process/out/conus_q_sc_airtemp.csv'
+    conus_sc_data %>% 
+      select(dateTime, site_no, spec_cond = mean_spec_cond) %>% 
+      inner_join(select(conus_q_data, dateTime, site_no, discharge = mean_q)) %>% 
+      inner_join(select(conus_air_temp, dateTime, site_no, airtemp = mean_airtemp)) %>% 
+      write_csv(file_out)
+    return(file_out)
+  }, format = 'file')
   
 )
