@@ -33,9 +33,7 @@ plt.figure(figsize=[12., 5.])
 plt.plot(data1.index, data1.passengers, 'b--', label='American', )
 plt.plot(data2.index, data2.passengers, 'r--', label='Delta', )
 
-#data_airlines = pd.concat([data1, data2])
-#TODO: revert this back to combining both airlines
-data_airlines = data1
+data_airlines = pd.concat([data1, data2])
 data_airlines['value'] = data_airlines.passengers.astype(np.float32) # Convert passenger data to float for PyTorch
 data_airlines.month = data_airlines.month.apply(lambda x: datetime.strptime(x, '%b').month) # Convert months into numeric
 
