@@ -63,7 +63,6 @@ train_data_salt, valid_data_salt = train_test_split(data_salt,
                                                     test_size = 0.25,
                                                     random_state = 19)
 
-
 ##### Change which dataset will be used #####
 
 # Flights example
@@ -73,8 +72,8 @@ train_data_salt, valid_data_salt = train_test_split(data_salt,
 
 # Salinity example
 data = data_salt
-train_data_df = train_data_salt
-valid_data_df = valid_data_salt
+train_data_df = train_data_salt.sort_index() # Randomly selected, so need to put back into time order
+valid_data_df = valid_data_salt.sort_index()
 
 ##### SHARED LSTM CODE #####
 
@@ -91,7 +90,10 @@ valid_data = v_scaler.fit_transform(valid_data)
 train_data = torch.tensor(train_data, dtype=torch.float32)
 valid_data = torch.tensor(valid_data, dtype=torch.float32)
 
-# Create validation set:
+# Create validation set (I don't really understand why there are separate
+# `valid_x` and `valid_y` that are shifted (so valid_x are all the values
+# except the last one and valid_y are all the values except the first one
+# which means that they both have one less value than the original valid data)
 valid_x = valid_data[:-1]
 valid_y = valid_data[1:]
 valid_data = (valid_x, valid_y)
@@ -107,7 +109,7 @@ lstm_model = salinity_lstm.salinityLSTM(input_size, hidden_size, num_layers, out
 
 ##### Train the model #####
 
-num_epochs = 50
+num_epochs = 20
 learning_rate = 0.0005
 print_rate = 10
 
@@ -125,10 +127,11 @@ train_time = train_data_df.index
 # Get predictions on validation data
 valid_preds, hs = lstm_model(valid_x.unsqueeze(0), hs)
 valid_preds = v_scaler.inverse_transform(valid_preds.detach())
-valid_time = valid_data_df.index
+valid_time = valid_data_df.index[:-1] # Keep all but the last one to match methods above
 
 ##### Plot predictions and actual data #####
 
+plt.figure(figsize=[12., 5.])
 plt.plot(train_time, train_preds, 'r--', label='Training Predictions', )
 plt.plot(valid_time, valid_preds.squeeze(), 'g--', label='Validation Predictions')
 plt.plot(data.index, data.value.to_numpy(), label='Actual')
