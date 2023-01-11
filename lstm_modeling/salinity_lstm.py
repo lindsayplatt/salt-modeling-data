@@ -8,6 +8,15 @@
 from torch import nn, optim
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
+
+# To account for categorical features, e.g. airline / gage, input
+# as a one-hot encoded variables. Using this helper function to
+# convert them to one-hot encoded that is borrowed from this blog:
+# https://towardsdatascience.com/building-rnn-lstm-and-gru-for-time-series-using-pytorch-a46e5b094e7b
+def onehot_encode_pd(df, col_name):
+    dummies = pd.get_dummies(df[col_name], prefix=col_name)
+    return pd.concat([df, dummies], axis=1).drop(columns=[col_name])
 
 class salinityLSTM(nn.Module):
     def __init__(self, input_size, hidden_size, num_layers, output_size):
@@ -17,7 +26,7 @@ class salinityLSTM(nn.Module):
         self.fc   = nn.Linear(hidden_size, output_size)
         
     def forward(self, x, hs):
-   
+
         out, hs = self.lstm(x, hs)           # out.shape = (batch_size, seq_len, hidden_size)
         out = out.view(-1, self.hidden_size) # out.shape = (seq_len, hidden_size)     
         out = self.fc(out)

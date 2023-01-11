@@ -11,11 +11,15 @@ import matplotlib.pyplot as plt
 from sklearn.preprocessing import MinMaxScaler
 from datetime import datetime
 import seaborn as sns
+import math
 
 # Load local functions
 import salinity_lstm
 
 ##### Load and process the data #####
+
+percent_train = 0.75
+percent_valid = 0.25
 
 ##### FLIGHT DATA EXAMPLE #####
 
@@ -37,22 +41,47 @@ data_airlines = pd.concat([data1, data2])
 data_airlines['value'] = data_airlines.passengers.astype(np.float32) # Convert passenger data to float for PyTorch
 data_airlines.month = data_airlines.month.apply(lambda x: datetime.strptime(x, '%b').month) # Convert months into numeric
 
-data_airlines = data_airlines.drop(columns=['year', 'passengers', 'airline'])
+# Try one-hot encoding for site ... not great luck
+#data_airlines = salinity_lstm.onehot_encode_pd(data_airlines, 'airline')
+#data_airlines = data_airlines.drop(columns=['year', 'passengers'])
+
+# Try multi index rather than site as a feature ... fails somewhere when .index is used
+# for plotting
+#cur_index = data_airlines.index
+#data_airlines = data_airlines.set_index([cur_index, 'airline'])
+#data_airlines = data_airlines.drop(columns=['year', 'passengers'])
+
+# Try column for each site with value of interest as the column's values
+data_airlines['ts_counter'] = data_airlines.index
+data_airlines=data_airlines.pivot(index = ['year', 'month'], columns = 'airline', values = 'value')
+data_airlines.reset_index(inplace=True)
 
 # Split data into test and training
+n_train = math.ceil(len(data_airlines)*percent_train)
+train_data_airlines = data_airlines[:n_train]
+valid_data_airlines = data_airlines[n_train:]
 
-train_data_airlines = data_airlines[:-12]
-valid_data_airlines = data_airlines[-12:]
+plt.figure(figsize=[12., 5.])
+plt.plot(train_data_airlines.index, train_data_airlines.american, 'blue', label='American, train', )
+plt.plot(valid_data_airlines.index, valid_data_airlines.american, 'b--', label='American, valid', )
+plt.plot(train_data_airlines.index, train_data_airlines.delta, 'red', label='Delta, train', )
+plt.plot(valid_data_airlines.index, valid_data_airlines.delta, 'r--', label='Delta, valid', )
 
 # Scale/transform columns
 
 # Define the scaling fxns
 value_scaler_train_airlines = MinMaxScaler(feature_range=(-1, 1))
 value_scaler_valid_airlines = MinMaxScaler(feature_range=(-1, 1))
+year_scaler_train_airlines = MinMaxScaler(feature_range=(0, len(data_airlines.year.unique())))
+year_scaler_valid_airlines = MinMaxScaler(feature_range=(0, len(data_airlines.year.unique())))
 
-# Then scale the data
-train_data_airlines.value = value_scaler_train_airlines.fit_transform(train_data_airlines.value.to_numpy().reshape(-1,1)).reshape(-1)
-valid_data_airlines.value = value_scaler_valid_airlines.fit_transform(valid_data_airlines.value.to_numpy().reshape(-1,1)).reshape(-1)
+# Then scale the data (use the same scalar for American and Delta)
+train_data_airlines.american = value_scaler_train_airlines.fit_transform(train_data_airlines.american.to_numpy().reshape(-1,1)).reshape(-1)
+valid_data_airlines.american = value_scaler_valid_airlines.fit_transform(valid_data_airlines.american.to_numpy().reshape(-1,1)).reshape(-1)
+train_data_airlines.delta = value_scaler_train_airlines.fit_transform(train_data_airlines.delta.to_numpy().reshape(-1,1)).reshape(-1)
+valid_data_airlines.delta = value_scaler_valid_airlines.fit_transform(valid_data_airlines.delta.to_numpy().reshape(-1,1)).reshape(-1)
+train_data_airlines.year = year_scaler_train_airlines.fit_transform(train_data_airlines.year.to_numpy().reshape(-1,1)).reshape(-1)
+valid_data_airlines.year = year_scaler_valid_airlines.fit_transform(valid_data_airlines.year.to_numpy().reshape(-1,1)).reshape(-1)
 
 ##### SALINITY TIMESERIES, one site #####
 
@@ -71,8 +100,8 @@ plt.plot(data_salt.index, data_salt.value, 'b--', label='Spec cond', )
 # Splitting data!
 from sklearn.model_selection import train_test_split
 train_data_salt, valid_data_salt = train_test_split(data_salt, 
-                                                    train_size = 0.75,
-                                                    test_size = 0.25,
+                                                    train_size = percent_train,
+                                                    test_size = percent_valid,
                                                     random_state = 19,
                                                     shuffle=False)
 
@@ -93,20 +122,20 @@ valid_data_salt.discharge = q_scaler_valid_salt.fit_transform(valid_data_salt.di
 ##### Change which dataset will be used #####
 
 # Flights example
-#data = data_airlines
-#train_data_df = train_data_airlines
-#valid_data_df = valid_data_airlines
-#value_scaler_train = value_scaler_train_airlines
-#value_scaler_valid = value_scaler_valid_airlines
+data = data_airlines
+train_data_df = train_data_airlines
+valid_data_df = valid_data_airlines
+value_scaler_train = value_scaler_train_airlines
+value_scaler_valid = value_scaler_valid_airlines
+vloc = [data.columns.get_loc('american'), data.columns.get_loc('delta')]
 
 # Salinity example
-data = data_salt
-train_data_df = train_data_salt.sort_index() # Randomly selected, so need to put back into time order
-valid_data_df = valid_data_salt.sort_index()
-value_scaler_train = value_scaler_train_salt
-value_scaler_valid = value_scaler_valid_salt
-
-vloc = data.columns.get_loc('value')
+#data = data_salt
+#train_data_df = train_data_salt.sort_index() # Randomly selected, so need to put back into time order
+#valid_data_df = valid_data_salt.sort_index()
+#value_scaler_train = value_scaler_train_salt
+#value_scaler_valid = value_scaler_valid_salt
+#vloc = data.columns.get_loc('value')
 
 ##### SHARED LSTM CODE #####
 
@@ -124,10 +153,10 @@ valid_data = (valid_x, valid_y)
 
 ##### Define model and its parameters #####
 
-input_size = 2
+input_size = len(data.columns)
 hidden_size = 100
 num_layers = 1
-output_size = 2 # training the model fails when this is != input_size
+output_size = len(data.columns) # training the model fails when this is != input_size
 
 lstm_model = salinity_lstm.salinityLSTM(input_size, hidden_size, num_layers, output_size)
 
@@ -143,7 +172,39 @@ salinity_lstm.train(lstm_model, num_epochs, train_data, valid_data, lr=learning_
 
 hs = None
 
-# Get predictions on training data
+# Get predictions on training data, then valid data
+
+# Plotting for flight example
+train_preds, hs = lstm_model(train_data.unsqueeze(0), hs)
+train_preds_american = train_preds[:,vloc[0]].reshape(-1,1)
+train_preds_american = value_scaler_train.inverse_transform(train_preds_american.detach())
+train_preds_delta = train_preds[:,vloc[1]].reshape(-1,1)
+train_preds_delta = value_scaler_train.inverse_transform(train_preds_delta.detach())
+train_time = train_data_df.index
+
+valid_preds, hs = lstm_model(valid_x.unsqueeze(0), hs)
+valid_preds_american = valid_preds[:,vloc[0]].reshape(-1,1)
+valid_preds_american = value_scaler_train.inverse_transform(valid_preds_american.detach())
+valid_preds_delta = valid_preds[:,vloc[1]].reshape(-1,1)
+valid_preds_delta = value_scaler_train.inverse_transform(valid_preds_delta.detach())
+valid_time = valid_data_df.index[:-1] # Keep all but the last one to match methods above
+
+# Flight fig
+plt.figure(figsize=[12., 5.])
+plt.plot(train_time, train_preds_delta, 'r--', label='Training Predictions, Delta', )
+plt.plot(valid_time, valid_preds_delta.squeeze(), 'g--', label='Validation Predictions, Delta')
+plt.plot(data.index, data.delta.to_numpy(), label='Actual, Delta')
+plt.xticks(np.arange(0,145,12))
+plt.legend()
+
+plt.figure(figsize=[12., 5.])
+plt.plot(train_time, train_preds_american, 'r--', label='Training Predictions, American', )
+plt.plot(valid_time, valid_preds_american.squeeze(), 'g--', label='Validation Predictions, American')
+plt.plot(data.index, data.american.to_numpy(), label='Actual, American')
+plt.xticks(np.arange(0,145,12))
+plt.legend()
+
+# Plotting for Salinity example
 train_preds, hs = lstm_model(train_data.unsqueeze(0), hs)
 train_preds = train_preds[:,vloc].reshape(-1,1) # Only keep the 'value' ones
 train_preds = value_scaler_train.inverse_transform(train_preds.detach())
@@ -157,6 +218,7 @@ valid_time = valid_data_df.index[:-1] # Keep all but the last one to match metho
 
 ##### Plot predictions and actual data #####
 
+# Salinity fig
 plt.figure(figsize=[12., 5.])
 plt.plot(train_time, train_preds, 'r--', label='Training Predictions', )
 plt.plot(valid_time, valid_preds.squeeze(), 'g--', label='Validation Predictions')
