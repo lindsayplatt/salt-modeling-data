@@ -30,12 +30,13 @@ data1 = sns.load_dataset("flights")
 data1['airline'] = 'american'
 data2 = sns.load_dataset("flights")
 data2['airline'] = 'delta'
-data2.passengers = data2.passengers + np.random.randint(-50,100,size=len(data2.passengers))
+data2.passengers = data2.passengers + np.random.randint(-400,400,size=len(data2.passengers))
 
 # Visualize this data
 plt.figure(figsize=[12., 5.])
 plt.plot(data1.index, data1.passengers, 'b--', label='American', )
 plt.plot(data2.index, data2.passengers, 'r--', label='Delta', )
+plt.legend()
 
 data_airlines = pd.concat([data1, data2])
 data_airlines['value'] = data_airlines.passengers.astype(np.float32) # Convert passenger data to float for PyTorch
