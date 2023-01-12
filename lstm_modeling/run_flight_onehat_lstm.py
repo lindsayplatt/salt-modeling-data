@@ -146,7 +146,7 @@ data_out_delta = data.query('airline_delta == 1')
 ##### Plot predictions and actual data #####
 
 fig, (ax1, ax2) = plt.subplots(2, figsize=[12., 5.])
-fig.suptitle('Vertically stacked subplots')
+fig.suptitle('Predictions from one-hat encoding approach to a multi-site LSTM')
 ax1.plot(train_preds_american.index, train_preds_american.preds, 'r--', label='Training Predictions, American', )
 ax2.plot(train_preds_delta.index, train_preds_delta.preds, 'r--', label='Training Predictions, Delta', )
 ax1.plot(valid_preds_american.index, valid_preds_american.preds, 'g--', label='Validation Predictions, American', )
