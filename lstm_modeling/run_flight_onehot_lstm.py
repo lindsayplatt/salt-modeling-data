@@ -152,7 +152,7 @@ ax2.plot(train_preds_delta.index, train_preds_delta.preds, 'r--', label='Trainin
 ax1.plot(valid_preds_american.index, valid_preds_american.preds, 'g--', label='Validation Predictions, American', )
 ax2.plot(valid_preds_delta.index, valid_preds_delta.preds, 'g--', label='Validation Predictions, Delta', )
 ax1.plot(data_out_american.index, data_out_american.value, label='Observations, American')
-ax2.plot(data_out_american.index, data_out_american.value, label='Observations, Delta')
+ax2.plot(data_out_delta.index, data_out_delta.value, label='Observations, Delta')
 plt.xticks(np.arange(0,145,12))
 ax1.legend()
 ax2.legend()
