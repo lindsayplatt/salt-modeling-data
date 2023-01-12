@@ -63,21 +63,21 @@ plt.legend()
 # Scale/transform columns
 
 # Define the scaling fxns
-value_scaler_train_sites = MinMaxScaler(feature_range=(-1, 1))
-value_scaler_valid_sites = MinMaxScaler(feature_range=(-1, 1))
+value_scaler_train_site1 = MinMaxScaler(feature_range=(-1, 1))
+value_scaler_valid_site1 = MinMaxScaler(feature_range=(-1, 1))
+value_scaler_train_site2 = MinMaxScaler(feature_range=(-1, 1))
+value_scaler_valid_site2 = MinMaxScaler(feature_range=(-1, 1))
 
 # Then scale the data (use the same scalar for American and Delta)
-train_df_sites['01104430'] = value_scaler_train_sites.fit_transform(train_df_sites['01104430'].to_numpy().reshape(-1,1)).reshape(-1)
-valid_df_sites['01104430'] = value_scaler_valid_sites.fit_transform(valid_df_sites['01104430'].to_numpy().reshape(-1,1)).reshape(-1)
-train_df_sites['01104480'] = value_scaler_train_sites.fit_transform(train_df_sites['01104480'].to_numpy().reshape(-1,1)).reshape(-1)
-valid_df_sites['01104480'] = value_scaler_valid_sites.fit_transform(valid_df_sites['01104480'].to_numpy().reshape(-1,1)).reshape(-1)
+train_df_sites['01104430'] = value_scaler_train_site1.fit_transform(train_df_sites['01104430'].to_numpy().reshape(-1,1)).reshape(-1)
+valid_df_sites['01104430'] = value_scaler_valid_site1.fit_transform(valid_df_sites['01104430'].to_numpy().reshape(-1,1)).reshape(-1)
+train_df_sites['01104480'] = value_scaler_train_site2.fit_transform(train_df_sites['01104480'].to_numpy().reshape(-1,1)).reshape(-1)
+valid_df_sites['01104480'] = value_scaler_valid_site2.fit_transform(valid_df_sites['01104480'].to_numpy().reshape(-1,1)).reshape(-1)
 
 # Set more generic names used further below
 data = df_sites
 train_data_df = train_df_sites
 valid_data_df = valid_df_sites
-value_scaler_train = value_scaler_train_sites
-value_scaler_valid = value_scaler_valid_sites
 vloc = [data.columns.get_loc('01104430'), data.columns.get_loc('01104480')]
 
 # Convert to a tensor
@@ -117,9 +117,9 @@ hs = None
 
 train_preds, hs = lstm_model(train_data.unsqueeze(0), hs)
 train_preds_site1 = train_preds[:,vloc[0]].reshape(-1,1)
-train_preds_site1 = value_scaler_train.inverse_transform(train_preds_site1.detach())
+train_preds_site1 = value_scaler_train_site1.inverse_transform(train_preds_site1.detach())
 train_preds_site2 = train_preds[:,vloc[1]].reshape(-1,1)
-train_preds_site2 = value_scaler_train.inverse_transform(train_preds_site2.detach())
+train_preds_site2 = value_scaler_train_site2.inverse_transform(train_preds_site2.detach())
 
 # Resetting to be able to use the regular index in plotting because
 # the dateTime column causes the second plot values to be squished for
@@ -130,9 +130,9 @@ train_out['preds_01104480'] = train_preds_site2
 
 valid_preds, hs = lstm_model(valid_x.unsqueeze(0), hs)
 valid_preds_site1 = valid_preds[:,vloc[0]].reshape(-1,1)
-valid_preds_site1 = value_scaler_valid.inverse_transform(valid_preds_site1.detach())
+valid_preds_site1 = value_scaler_valid_site1.inverse_transform(valid_preds_site1.detach())
 valid_preds_site2 = valid_preds[:,vloc[1]].reshape(-1,1)
-valid_preds_site2 = value_scaler_valid.inverse_transform(valid_preds_site2.detach())
+valid_preds_site2 = value_scaler_valid_site2.inverse_transform(valid_preds_site2.detach())
 
 valid_out = valid_data_df.reset_index(inplace=False)[:-1]
 valid_out['preds_01104430'] = valid_preds_site1
