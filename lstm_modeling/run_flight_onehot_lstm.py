@@ -43,7 +43,7 @@ data_airlines = pd.concat([data1, data2])
 data_airlines['value'] = data_airlines.passengers.astype(np.float32) # Convert passenger data to float for PyTorch
 data_airlines.month = data_airlines.month.apply(lambda x: datetime.strptime(x, '%b').month) # Convert months into numeric
 
-# Try one-hot encoding for site ... not great luck
+# Try one-hot encoding for site
 data_airlines = salinity_lstm.onehot_encode_pd(data_airlines, 'airline')
 data_airlines = data_airlines.drop(columns=['passengers'])
 
