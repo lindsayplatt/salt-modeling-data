@@ -136,9 +136,9 @@ train_time = train_data_df.index
 
 valid_preds, hs = lstm_model(valid_x.unsqueeze(0), hs)
 valid_preds_american = valid_preds[:,vloc[0]].reshape(-1,1)
-valid_preds_american = value_scaler_train.inverse_transform(valid_preds_american.detach())
+valid_preds_american = value_scaler_valid.inverse_transform(valid_preds_american.detach())
 valid_preds_delta = valid_preds[:,vloc[1]].reshape(-1,1)
-valid_preds_delta = value_scaler_train.inverse_transform(valid_preds_delta.detach())
+valid_preds_delta = value_scaler_valid.inverse_transform(valid_preds_delta.detach())
 valid_time = valid_data_df.index[:-1] # Keep all but the last one to match methods above
 
 ##### Plot predictions and actual data #####
