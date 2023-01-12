@@ -38,6 +38,9 @@ vignettes/*.pdf
 # R Environment Variables
 .Renviron
 
+# Ignore python build cache
+lstm_modeling/__pycache__
+
 # Ignore pipeline output files
 _targets/*
 1_fetch/tmp/*
