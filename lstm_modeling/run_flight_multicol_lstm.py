@@ -143,16 +143,14 @@ valid_time = valid_data_df.index[:-1] # Keep all but the last one to match metho
 
 ##### Plot predictions and actual data #####
 
-plt.figure(figsize=[12., 5.])
-plt.plot(train_time, train_preds_delta, 'r--', label='Training Predictions, Delta', )
-plt.plot(valid_time, valid_preds_delta.squeeze(), 'g--', label='Validation Predictions, Delta')
-plt.plot(data.index, data.delta.to_numpy(), label='Actual, Delta')
+fig, (ax1, ax2) = plt.subplots(2, figsize=[12., 5.])
+fig.suptitle('Predictions from one-value-column-per-site approach to a multi-site LSTM')
+ax1.plot(train_time, train_preds_american, 'r--', label='Training Predictions, American', )
+ax1.plot(valid_time, valid_preds_american.squeeze(), 'g--', label='Validation Predictions, American')
+ax1.plot(data.index, data.american.to_numpy(), label='Actual, American')
+ax2.plot(train_time, train_preds_delta, 'r--', label='Training Predictions, Delta', )
+ax2.plot(valid_time, valid_preds_delta.squeeze(), 'g--', label='Validation Predictions, Delta')
+ax2.plot(data.index, data.delta.to_numpy(), label='Observations, Delta')
 plt.xticks(np.arange(0,145,12))
-plt.legend()
-
-plt.figure(figsize=[12., 5.])
-plt.plot(train_time, train_preds_american, 'r--', label='Training Predictions, American', )
-plt.plot(valid_time, valid_preds_american.squeeze(), 'g--', label='Validation Predictions, American')
-plt.plot(data.index, data.american.to_numpy(), label='Actual, American')
-plt.xticks(np.arange(0,145,12))
-plt.legend()
+ax1.legend()
+ax2.legend()
