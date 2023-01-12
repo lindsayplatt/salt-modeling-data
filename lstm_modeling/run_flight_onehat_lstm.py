@@ -125,14 +125,34 @@ train_time = train_data_df.index
 
 valid_preds, hs = lstm_model(valid_x.unsqueeze(0), hs)
 valid_preds = valid_preds[:,vloc].reshape(-1,1)
-valid_preds = value_scaler_train.inverse_transform(valid_preds.detach())
+valid_preds = value_scaler_valid.inverse_transform(valid_preds.detach())
 valid_time = valid_data_df.index[:-1] # Keep all but the last one to match methods above
+
+# Separate by airline
+train_data_out = train_data_df
+train_data_out['preds'] = train_preds
+train_preds_american = train_data_out.query('airline_american == 1')
+train_preds_delta = train_data_out.query('airline_delta == 1')
+
+valid_data_out = valid_data_df[:-1]
+valid_data_out['preds'] = valid_preds
+valid_preds_american = valid_data_out.query('airline_american == 1')
+valid_preds_delta = valid_data_out.query('airline_delta == 1')
+
+data_out = data
+data_out_american = data.query('airline_american == 1')
+data_out_delta = data.query('airline_delta == 1')
 
 ##### Plot predictions and actual data #####
 
-plt.figure(figsize=[12., 5.])
-plt.plot(train_time, train_preds, 'r--', label='Training Predictions', )
-plt.plot(valid_time, valid_preds.squeeze(), 'g--', label='Validation Predictions')
-plt.plot(data.index, data.value.to_numpy(), label='Observations')
+fig, (ax1, ax2) = plt.subplots(2, figsize=[12., 5.])
+fig.suptitle('Vertically stacked subplots')
+ax1.plot(train_preds_american.index, train_preds_american.preds, 'r--', label='Training Predictions, American', )
+ax2.plot(train_preds_delta.index, train_preds_delta.preds, 'r--', label='Training Predictions, Delta', )
+ax1.plot(valid_preds_american.index, valid_preds_american.preds, 'g--', label='Validation Predictions, American', )
+ax2.plot(valid_preds_delta.index, valid_preds_delta.preds, 'g--', label='Validation Predictions, Delta', )
+ax1.plot(data_out_american.index, data_out_american.value, label='Observations, American')
+ax2.plot(data_out_american.index, data_out_american.value, label='Observations, Delta')
 plt.xticks(np.arange(0,145,12))
-plt.legend()
+ax1.legend()
+ax2.legend()
