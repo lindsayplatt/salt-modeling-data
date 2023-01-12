@@ -47,10 +47,14 @@ data_airlines.month = data_airlines.month.apply(lambda x: datetime.strptime(x, '
 data_airlines = salinity_lstm.onehot_encode_pd(data_airlines, 'airline')
 data_airlines = data_airlines.drop(columns=['passengers'])
 
-# Split data into test and training
-n_train = math.ceil(len(data_airlines)*percent_train)
-train_data_airlines = data_airlines[:n_train]
-valid_data_airlines = data_airlines[n_train:]
+# Split data into test and training, ensuring both sites
+# end up in the training and validation sets
+n_all = len(data_airlines); n_each_airline = math.ceil(n_all/2)
+n_train = math.ceil(n_each_airline*percent_train)
+train_data_airlines = pd.concat([data_airlines[:n_train], 
+                                data_airlines[n_each_airline:(n_each_airline+n_train)]])
+valid_data_airlines = pd.concat([data_airlines[n_train:n_each_airline], 
+                                data_airlines[n_each_airline+n_train:]])
 
 plt.figure(figsize=[12., 5.])
 plt.plot(train_data_airlines.index, train_data_airlines.value, 'b--', label='Train', )
