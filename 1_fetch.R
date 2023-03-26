@@ -230,11 +230,19 @@ p1_targets <- list(
   
   ##### Download transmissivity and depth-to-water table #####
   
-  # Load the transmissivity and depth-to-water table data and add to site info
-  # https://www.sciencebase.gov/catalog/item/60be54f6d34e86b9389117f9
-  tar_target(trans, read_csv('trans.csv', col_types = cols()) %>% 
+  # Download then load the transmissivity and depth-to-water table data from
+  # ScienceBase: https://www.sciencebase.gov/catalog/item/60be54f6d34e86b9389117f9
+  tar_target(trans_csv, format="file", 
+             item_file_download(sb_id = '60be54f6d34e86b9389117f9',
+                                names = 'trans.csv',
+                                destinations = '1_fetch/out/trans.csv')),
+  tar_target(trans, read_csv(trans_csv, col_types = cols()) %>% 
                select(COMID = comid, trans_MEAN = MEAN, trans250, tottrans250)),
-  tar_target(dtw, read_csv('dtw.csv', col_types = cols()) %>% 
+  tar_target(dtw_csv, format="file", 
+             item_file_download(sb_id = '60be54f6d34e86b9389117f9',
+                                names = 'dtw.csv',
+                                destinations = '1_fetch/out/dtw.csv')),
+  tar_target(dtw, read_csv(dtw_csv, col_types = cols()) %>% 
                select(COMID = comid, dtw_MEAN = MEAN, dtw250, totdtw250)),
   
   ##### Download NHD Data #####
