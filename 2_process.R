@@ -61,15 +61,6 @@ p2_targets <- list(
                left_join(distinct(conus_q_data), by = c("state_abbr", "site_no", "dateTime")) %>% 
                filter(!is.na(mean_spec_cond), !is.na(mean_q))),
   
-  # Identify the sites & find their matching COMIDs
-  tar_target(q_sc_sites_sf, readNWISsite(unique(q_sc_data$site_no)) %>% 
-               select(site_no, station_nm, state_cd, huc_cd, dec_long_va, dec_lat_va, drain_area_va) %>% 
-               st_as_sf(coords = c('dec_long_va', 'dec_lat_va'), crs = 4326) %>% 
-               # These sites caused an error in `get_flowline_index()` that I could not figure out
-               filter(!site_no %in% c("05075720", "01104420", "02290947", "02326993", "02326995",
-                                      "03353420", "07381324", "10172630", "295124089542100",
-                                      "410401112134801"))),
-  
   tar_target(q_sc_site_comid_xwalk, bind_cols(q_sc_sites_sf, q_sc_nhd_comid)),
   
   # Join the transmissivity and depth-to-watertable data by COMID
