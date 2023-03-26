@@ -226,5 +226,50 @@ p1_targets <- list(
                           parameterCd = "00020", service = "dv",
                           startDate = start_date,
                           endDate = end_date) %>% 
-               select(site_no, dateTime, mean_airtemp = X_00020_00003))
+               select(site_no, dateTime, mean_airtemp = X_00020_00003)),
+  
+  ##### Download transmissivity and depth-to-water table #####
+  
+  # Download then load the transmissivity and depth-to-water table data from
+  # ScienceBase: https://www.sciencebase.gov/catalog/item/60be54f6d34e86b9389117f9
+  tar_target(trans_csv, format="file", 
+             item_file_download(sb_id = '60be54f6d34e86b9389117f9',
+                                names = 'trans.csv',
+                                destinations = '1_fetch/out/trans.csv')),
+  tar_target(trans, read_csv(trans_csv, col_types = cols()) %>% 
+               select(COMID = comid, trans_MEAN = MEAN, trans250, tottrans250)),
+  tar_target(dtw_csv, format="file", 
+             item_file_download(sb_id = '60be54f6d34e86b9389117f9',
+                                names = 'dtw.csv',
+                                destinations = '1_fetch/out/dtw.csv')),
+  tar_target(dtw, read_csv(dtw_csv, col_types = cols()) %>% 
+               select(COMID = comid, dtw_MEAN = MEAN, dtw250, totdtw250)),
+  
+  ##### Download NHD Data #####
+  
+  # Identify the sites & find their matching COMIDs
+  tar_target(q_sc_sites_sf, readNWISsite(unique(q_sc_data$site_no)) %>% 
+               select(site_no, station_nm, state_cd, huc_cd, dec_long_va, dec_lat_va, drain_area_va) %>% 
+               st_as_sf(coords = c('dec_long_va', 'dec_lat_va'), crs = 4326) %>% 
+               # These sites caused an error in `get_flowline_index()` that I could not figure out
+               filter(!site_no %in% c("05075720", "01104420", "02290947", "02326993", "02326995",
+                                      "03353420", "07381324", "10172630", "295124089542100",
+                                      "410401112134801"))),
+  
+  tar_target(q_sc_nhd_comid, {
+    sf::sf_use_s2(FALSE)
+    q_sc_sites_sf %>%
+      mutate(row_num = row_number()) %>%
+      split(.$site_no) %>%
+      purrr::map(~{
+        if(.x$row_num%%50 == 0) {
+          # Print a message for every 50th site so I can see some progress
+          message('Starting flow index for ', .x$row_num, ' out of ', nrow(q_sc_sites_sf))
+        }
+        suppressMessages(get_flowline_index(.x, flines = "download_nhdplusv2"))
+      }) %>%
+      bind_rows() %>%
+      select(COMID, REACHCODE, REACH_meas)
+  })
+  
 )
