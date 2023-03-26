@@ -1,4 +1,6 @@
 
+source('2_process/src/groundwater_helpers.R')
+
 p2_targets <- list(
   
   tar_target(conus_sc_data_plot_ready,
@@ -46,6 +48,57 @@ p2_targets <- list(
       inner_join(select(conus_air_temp, dateTime, site_no, airtemp = mean_airtemp)) %>% 
       write_csv(file_out)
     return(file_out)
-  }, format = 'file')
+  }, format = 'file'),
+  
+  ##### Process sites data for trend exploration #####
+  
+  # Add percentiles to be able to show relative transmissivity/dtw
+  tar_target(trans_ecdf, ecdf(trans$trans_MEAN)),
+  tar_target(dtw_ecdf, ecdf(dtw$dtw_MEAN)),
+  
+  tar_target(q_sc_data, distinct(conus_sc_data) %>% 
+               dplyr::filter(state_abbr %in% north_states) %>% ##### CHANGE STATES HERE
+               left_join(distinct(conus_q_data), by = c("state_abbr", "site_no", "dateTime")) %>% 
+               filter(!is.na(mean_spec_cond), !is.na(mean_q))),
+  
+  # Identify the sites & find their matching COMIDs
+  tar_target(q_sc_sites_sf, readNWISsite(unique(q_sc_data$site_no)) %>% 
+               select(site_no, station_nm, state_cd, huc_cd, dec_long_va, dec_lat_va, drain_area_va) %>% 
+               st_as_sf(coords = c('dec_long_va', 'dec_lat_va'), crs = 4326) %>% 
+               # These sites caused an error in `get_flowline_index()` that I could not figure out
+               filter(!site_no %in% c("05075720", "01104420", "02290947", "02326993", "02326995",
+                                      "03353420", "07381324", "10172630", "295124089542100",
+                                      "410401112134801"))),
+  
+  tar_target(q_sc_site_comid_xwalk, bind_cols(q_sc_sites_sf, q_sc_nhd_comid)),
+  
+  # Join the transmissivity and depth-to-watertable data by COMID
+  tar_target(q_sc_sites_info, q_sc_site_comid_xwalk %>% 
+               filter(site_no %in% unique(q_sc_sites_sf$site_no)) %>% 
+               left_join(trans, by="COMID") %>% 
+               left_join(dtw, by="COMID") %>% 
+               mutate(trans_PERCENTILE = trans_ecdf(trans_MEAN)*100,
+                      dtw_PERCENTILE = 100-dtw_ecdf(dtw_MEAN)*100)),
+  
+  # Separate baseflow in case we want to use that
+  # Also, calculate flow-normalized SC
+  tar_target(q_sc_data_baseq, q_sc_data %>% 
+               mutate(date = as.Date(dateTime)) %>% 
+               dplyr::select(site_no, date, SpecCond = mean_spec_cond, Q = mean_q, state_abbr) %>% 
+               split(.$site_no) %>% 
+               purrr::map(separate_baseflow) %>%
+               bind_rows() %>% 
+               select(site_no, date, Q, Q_Base, Q_Storm, SpecCond, state_abbr) %>%
+               mutate(baseflow_only = Q_Storm == 0, 
+                      is_summer = lubridate::month(date) %in% 6:9,
+                      is_spring = lubridate::month(date) %in% 3:5,
+                      is_fall = lubridate::month(date) %in% 10:11) %>%
+               left_join(q_sc_sites_info) %>% 
+               mutate(Ts = trans_MEAN, DTW = dtw_MEAN) %>% 
+               # Add this trivial amt to avoid dividing by 0
+               mutate(SC_flow_normalized = SpecCond / (Q+0.000000001))),
+  
+  tar_target(sc_trend_data_lm, add_trends(q_sc_data_baseq, trend_method = "LM")),
+  tar_target(sc_trend_data_ma, add_trends(q_sc_data_baseq, trend_method = "MA"))
   
 )

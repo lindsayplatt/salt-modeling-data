@@ -226,5 +226,33 @@ p1_targets <- list(
                           parameterCd = "00020", service = "dv",
                           startDate = start_date,
                           endDate = end_date) %>% 
-               select(site_no, dateTime, mean_airtemp = X_00020_00003))
+               select(site_no, dateTime, mean_airtemp = X_00020_00003)),
+  
+  ##### Download transmissivity and depth-to-water table #####
+  
+  # Load the transmissivity and depth-to-water table data and add to site info
+  # https://www.sciencebase.gov/catalog/item/60be54f6d34e86b9389117f9
+  tar_target(trans, read_csv('trans.csv', col_types = cols()) %>% 
+               select(COMID = comid, trans_MEAN = MEAN, trans250, tottrans250)),
+  tar_target(dtw, read_csv('dtw.csv', col_types = cols()) %>% 
+               select(COMID = comid, dtw_MEAN = MEAN, dtw250, totdtw250)),
+  
+  ##### Download NHD Data #####
+  
+  tar_target(q_sc_nhd_comid, {
+    sf::sf_use_s2(FALSE)
+    q_sc_sites_sf %>%
+      mutate(row_num = row_number()) %>%
+      split(.$site_no) %>%
+      purrr::map(~{
+        if(.x$row_num%%50 == 0) {
+          # Print a message for every 50th site so I can see some progress
+          message('Starting flow index for ', .x$row_num, ' out of ', nrow(q_sc_sites_sf))
+        }
+        suppressMessages(get_flowline_index(.x, flines = "download_nhdplusv2"))
+      }) %>%
+      bind_rows() %>%
+      select(COMID, REACHCODE, REACH_meas)
+  })
+  
 )

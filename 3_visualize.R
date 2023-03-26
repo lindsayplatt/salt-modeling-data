@@ -1,4 +1,6 @@
 
+source('3_visualize/src/gw_sc_trend_plots.R')
+
 p3_targets <- list(
   tar_target(conus_sc_ts_annual_normalized_png, {
     out_file <- "3_visualize/out/sc_ts_annual_normalized.png"
@@ -60,5 +62,17 @@ p3_targets <- list(
       ggsave(out_file, p, height = 16, width = 10, bg="white")
       return(out_file)
     }, format="file"
-  )
+  ),
+  
+  ##### Plots for groundwater SC trends #####
+  
+  tar_target(lm_plots_ls, calc_and_plot_trend(sc_trend_data_lm, "LM", subtitle_caveat = "Northern states")),
+  tar_target(ma_plots_ls, calc_and_plot_trend(sc_trend_data_ma, "MA", subtitle_caveat = "Northern states")),
+  
+  tar_target(trend_plots_compare_1_2, cowplot::plot_grid(lm_plots_ls[[1]], ma_plots_ls[[1]], 
+                                                         lm_plots_ls[[2]], ma_plots_ls[[2]], nrow = 2)),
+  tar_target(trend_plots_compare_3_4, cowplot::plot_grid(lm_plots_ls[[3]], ma_plots_ls[[3]],
+                                                         lm_plots_ls[[4]], ma_plots_ls[[4]], nrow = 2)),
+  tar_target(trend_plots_compare_5, cowplot::plot_grid(lm_plots_ls[[5]], ma_plots_ls[[5]], nrow = 1))
+  
 )
