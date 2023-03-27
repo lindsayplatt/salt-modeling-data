@@ -278,6 +278,13 @@ p1_targets <- list(
     nhd_comid_xwalk <- bind_cols(q_sc_site_df, nhd_info)
     
     return(nhd_comid_xwalk)
-  })
+  }),
+  
+  tar_target(nhd_huc04_site_xwalk, 
+             q_sc_nhd_comid %>%
+               mutate(HUC04 = substr(REACHCODE, 1, 4)) %>% 
+               select(site_no, HUC04)),
+  tar_target(nhd_huc04s, unique(nhd_huc04_site_xwalk$HUC04)),
+  tar_target(nhd_huc04s_sf, get_huc(id = nhd_huc04s, type = "huc04"))
   
 )
