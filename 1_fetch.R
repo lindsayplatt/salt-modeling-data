@@ -258,7 +258,8 @@ p1_targets <- list(
   
   tar_target(q_sc_nhd_comid, {
     sf::sf_use_s2(FALSE)
-    q_sc_sites_sf %>%
+    # Fetch NHD COMIDs for each site
+    nhd_info <- q_sc_sites_sf %>%
       mutate(row_num = row_number()) %>%
       split(.$site_no) %>%
       purrr::map(~{
@@ -267,9 +268,23 @@ p1_targets <- list(
           message('Starting flow index for ', .x$row_num, ' out of ', nrow(q_sc_sites_sf))
         }
         suppressMessages(get_flowline_index(.x, flines = "download_nhdplusv2"))
-      }) %>%
-      bind_rows() %>%
+      }) %>% bind_rows() %>%
       select(COMID, REACHCODE, REACH_meas)
-  })
+    
+    # Immediately bind site numbers to their corresponding COMIDs
+    q_sc_site_df <- q_sc_sites_sf %>% 
+      st_drop_geometry() %>% 
+      select(site_no)
+    nhd_comid_xwalk <- bind_cols(q_sc_site_df, nhd_info)
+    
+    return(nhd_comid_xwalk)
+  }),
+  
+  tar_target(nhd_huc04_site_xwalk, 
+             q_sc_nhd_comid %>%
+               mutate(HUC04 = substr(REACHCODE, 1, 4)) %>% 
+               select(site_no, HUC04)),
+  tar_target(nhd_huc04s, unique(nhd_huc04_site_xwalk$HUC04)),
+  tar_target(nhd_huc04s_sf, get_huc(id = nhd_huc04s, type = "huc04"))
   
 )
