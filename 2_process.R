@@ -62,10 +62,8 @@ p2_targets <- list(
                left_join(distinct(conus_q_data), by = c("state_abbr", "site_no", "dateTime")) %>% 
                filter(!is.na(mean_spec_cond), !is.na(mean_q))),
   
-  tar_target(q_sc_site_comid_xwalk, bind_cols(q_sc_sites_sf, q_sc_nhd_comid)),
-  
   # Join the transmissivity and depth-to-watertable data by COMID
-  tar_target(q_sc_sites_info, q_sc_site_comid_xwalk %>% 
+  tar_target(q_sc_sites_info, q_sc_nhd_comid %>% 
                filter(site_no %in% unique(q_sc_sites_sf$site_no)) %>% 
                left_join(trans, by="COMID") %>% 
                left_join(dtw, by="COMID") %>% 
