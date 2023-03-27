@@ -57,7 +57,8 @@ p2_targets <- list(
   tar_target(dtw_ecdf, ecdf(dtw$dtw_MEAN)),
   
   tar_target(q_sc_data, distinct(conus_sc_data) %>% 
-               dplyr::filter(state_abbr %in% north_states) %>% ##### CHANGE STATES HERE
+               # Remove states without salt application info per Dugan et al., 2017
+               dplyr::filter(!state_abbr %in% states_to_exclude) %>% 
                left_join(distinct(conus_q_data), by = c("state_abbr", "site_no", "dateTime")) %>% 
                filter(!is.na(mean_spec_cond), !is.na(mean_q))),
   

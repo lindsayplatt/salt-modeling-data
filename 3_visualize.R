@@ -66,8 +66,8 @@ p3_targets <- list(
   
   ##### Plots for groundwater SC trends #####
   
-  tar_target(lm_plots_ls, calc_and_plot_trend(sc_trend_data_lm, "LM", subtitle_caveat = "Northern states")),
-  tar_target(ma_plots_ls, calc_and_plot_trend(sc_trend_data_ma, "MA", subtitle_caveat = "Northern states")),
+  tar_target(lm_plots_ls, calc_and_plot_trend(sc_trend_data_lm, "LM", subtitle_caveat = "Dugan et al., 2017 salt states")),
+  tar_target(ma_plots_ls, calc_and_plot_trend(sc_trend_data_ma, "MA", subtitle_caveat = "Dugan et al., 2017 salt states")),
   
   tar_target(trend_plots_compare_1_2, cowplot::plot_grid(lm_plots_ls[[1]], ma_plots_ls[[1]], 
                                                          lm_plots_ls[[2]], ma_plots_ls[[2]], nrow = 2)),
