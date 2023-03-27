@@ -19,9 +19,15 @@ tar_option_set(packages = c(
 start_date <- '2010-01-01'
 end_date <- '2021-12-31'
 
-north_states <- c("CT", "DE", "IL", "IN", "IA", "KS", "ME", "MD", "MA", "MI", 
-                  "MN", "MO", "NE", "NH", "NJ", "NY", "ND", "OH", "PA", "RI", 
-                  "SD", "VT", "VA", "WV", "WI")
+# Exclude these states because they are either missing or have zero 
+# reported salt application rates as determined by Dugan et al., 2017
+states_to_exclude <- c(
+  # No data states 
+  "MT", "WY", "UT", "AZ", "AR", "LA",
+  "MS", "AL", "KY", "TN", "GA", "SC",
+  # States with salt application rate = 0
+  "WA", "OR", "ID", "NM", "TX", "FL", "NC"
+)
 
 source('1_fetch.R')
 source('2_process.R')
