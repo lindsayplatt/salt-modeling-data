@@ -13,7 +13,8 @@ tar_option_set(packages = c(
   'sbtools',
   'scico',
   'sf',
-  'tidyverse'
+  'tidyverse',
+  'usmap'
 ))
 
 start_date <- '2010-01-01'

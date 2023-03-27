@@ -73,6 +73,32 @@ p3_targets <- list(
                                                          lm_plots_ls[[2]], ma_plots_ls[[2]], nrow = 2)),
   tar_target(trend_plots_compare_3_4, cowplot::plot_grid(lm_plots_ls[[3]], ma_plots_ls[[3]],
                                                          lm_plots_ls[[4]], ma_plots_ls[[4]], nrow = 2)),
-  tar_target(trend_plots_compare_5, cowplot::plot_grid(lm_plots_ls[[5]], ma_plots_ls[[5]], nrow = 1))
+  tar_target(trend_plots_compare_5, cowplot::plot_grid(lm_plots_ls[[5]], ma_plots_ls[[5]], nrow = 1)),
+  
+  # Plot HUCs and sites
+  tar_target(map_sites_huc04s, {
+    sites_sf <- st_transform(q_sc_sites_sf, usmap_crs())
+    huc04s_sf <- st_transform(nhd_huc04s_sf, usmap_crs())
+    
+    # States with salt application rates data 
+    conus_salt_sf <- usmap::us_map(exclude = c(states_to_exclude, "AK", "HI")) %>% 
+      st_as_sf(coords = c('x', 'y'), crs = usmap::usmap_crs()) %>% 
+      group_by(group, abbr) %>% 
+      summarise(geometry = st_combine(geometry), .groups="keep") %>%
+      st_cast("POLYGON")
+    # States without salt application rates data 
+    conus_nosalt_sf <- usmap::us_map(include = states_to_exclude) %>% 
+      st_as_sf(coords = c('x', 'y'), crs = usmap::usmap_crs()) %>% 
+      group_by(group, abbr) %>% 
+      summarise(geometry = st_combine(geometry), .groups="keep") %>%
+      st_cast("POLYGON")
+    
+    ggplot() +
+      geom_sf(data=conus_nosalt_sf, fill='#b8b8b8', color=NA) +
+      geom_sf(data=conus_salt_sf, fill='#f4f4f4', color='#898989') +
+      geom_sf(data=huc04s_sf, fill='#daeaf3', color='#38799f', size=3, alpha = 0.65) +
+      geom_sf(data=sites_sf, color='#d08b2c', shape=17) +
+      theme_void()
+  })
   
 )
