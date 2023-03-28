@@ -98,7 +98,7 @@ p3_targets <- list(
       geom_sf(data=conus_nosalt_sf, fill='#b8b8b8', color=NA) +
       geom_sf(data=conus_salt_sf, fill='#f4f4f4', color='#898989') +
       geom_sf(data=huc04s_sf, aes(fill=salt_max), color='black') +
-      scale_fill_scico(palette = 'davos', name = 'Salt applied in 2015 (lbs)') +
+      scale_fill_scico(palette = 'davos', begin=0.20, end=0.90, name = 'Salt applied in 2015 (lbs)') +
       theme_void() 
   })
   
