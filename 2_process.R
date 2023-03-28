@@ -50,7 +50,34 @@ p2_targets <- list(
     return(file_out)
   }, format = 'file'),
   
-  ##### Process sites data for trend exploration #####
+  ##### Process sites data for groundwater trend exploration #####
+  
+  # Load and reproject road salt raster data
+  tar_target(road_salt_2015_raster, {
+    r <- raster(road_salt_2015_tif)
+    rtransf <- projectRaster(r, crs = st_crs(nhd_huc04s_sf)$proj4string)
+    return(rtransf)
+  }),
+  
+  # For each HUC, crop the raster to the polygon
+  tar_target(nhd_hucs, nhd_huc04s_sf$huc4),
+  tar_target(road_salt_2015_raster_huc_list, {
+    # Mask the CONUS raster to each HUC
+    huc04_mask <- filter(nhd_huc04s_sf, huc4 == nhd_hucs)
+    huc04_salt_raster <- mask(road_salt_2015_raster, huc04_mask)
+    list(huc04 = nhd_hucs, road_salt_raster = huc04_salt_raster)
+  }, pattern = map(nhd_hucs), iteration='list'),
+  
+  # Summarize each HUC's raster into a tibble
+  tar_target(road_salt_2015_huc_summary, {
+    huc_r <- road_salt_2015_raster_huc_list$road_salt_raster
+    tibble(HUC04 = road_salt_2015_raster_huc_list$huc04,
+           salt_min = cellStats(huc_r, stat='min', na.rm=TRUE),
+           salt_p25 = unname(quantile(huc_r, probs=0.25, na.rm=TRUE)),
+           salt_mean = cellStats(huc_r, stat='mean', na.rm=TRUE),
+           salt_p75 = unname(quantile(huc_r, probs=0.75, na.rm=TRUE)),
+           salt_max = cellStats(huc_r, stat='max', na.rm=TRUE))
+  }, pattern = map(road_salt_2015_raster_huc_list)),
   
   # Add percentiles to be able to show relative transmissivity/dtw
   tar_target(trans_ecdf, ecdf(trans$trans_MEAN)),
