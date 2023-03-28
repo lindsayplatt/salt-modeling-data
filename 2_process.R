@@ -119,17 +119,18 @@ p2_targets <- list(
   # Separate baseflow in case we want to use that
   # Also, calculate flow-normalized SC
   tar_target(q_sc_data_baseq, q_sc_data %>% 
+               st_drop_geometry() %>% 
                mutate(date = as.Date(dateTime)) %>% 
                dplyr::select(site_no, date, SpecCond = mean_spec_cond, Q = mean_q, state_abbr) %>% 
                split(.$site_no) %>% 
                purrr::map(separate_baseflow) %>%
                bind_rows() %>% 
                select(site_no, date, Q, Q_Base, Q_Storm, SpecCond, state_abbr) %>%
-               mutate(baseflow_only = Q_Storm == 0, 
-                      is_summer = lubridate::month(date) %in% 6:9,
+               mutate(is_summer = lubridate::month(date) %in% 6:9,
                       is_spring = lubridate::month(date) %in% 3:5,
-                      is_fall = lubridate::month(date) %in% 10:11) %>%
-               left_join(q_sc_sites_info) %>% 
+                      is_fall = lubridate::month(date) %in% 10:11,
+                      is_winter = lubridate::month(date) %in% c(1:2, 12)) %>%
+               left_join(q_sc_sites_info, by = 'site_no') %>% 
                mutate(Ts = trans_MEAN, DTW = dtw_MEAN) %>% 
                # Add this trivial amt to avoid dividing by 0
                mutate(SC_flow_normalized = SpecCond / (Q+0.000000001))),

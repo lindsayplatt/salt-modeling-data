@@ -4,9 +4,9 @@ calc_and_plot_trend <- function(trend_data, trend_method, subtitle_caveat) {
   
   # Plot patterns
   trend_plot_data <- trend_data %>% 
-    select(site_no, Ts, DTW, Ts_plot, DTW_plot, starts_with("trend_SC")) %>% 
-    pivot_longer(cols=starts_with("trend_SC"), names_to = "trend_calc", values_to = "trend") %>% 
-    mutate(trend_calc = gsub("trend_SC_", "", trend_calc)) %>% 
+    select(site_no, Ts, DTW, Ts_plot, DTW_plot, hydro_cond, season, trend) %>% 
+    mutate(hydro_cond = sprintf('flow: %s', hydro_cond),
+           season = sprintf('season: %s', season)) %>% 
     mutate(alpha_val = ifelse(trend == "positive", 1, 0.5))
   
   p1 <- ggplot(trend_plot_data, aes(x = DTW_plot, y = Ts_plot, color = trend, alpha = alpha_val)) +
@@ -14,7 +14,7 @@ calc_and_plot_trend <- function(trend_data, trend_method, subtitle_caveat) {
     scale_alpha_identity() +
     scale_color_manual(values = c(negative = "#F8766D", positive = "#00BA38", zero = "#619CFF")) +
     geom_hline(yintercept = 50) + geom_vline(xintercept = 50) +
-    facet_wrap(vars(trend_calc)) +
+    facet_grid(season ~ hydro_cond) +
     xlim(c(0,100)) + ylim(c(0,100)) + 
     theme_bw() +
     theme(panel.grid.major = element_blank(), 
@@ -28,7 +28,7 @@ calc_and_plot_trend <- function(trend_data, trend_method, subtitle_caveat) {
     geom_point(size=2,shape=16) +
     scale_alpha_identity() +
     scale_color_manual(values = c(negative = "#F8766D", positive = "#00BA38", zero = "#619CFF")) +
-    facet_wrap(vars(trend_calc)) +
+    facet_grid(season ~ hydro_cond) + 
     theme_bw() +
     theme(panel.grid.major = element_blank(), 
           panel.grid.minor = element_blank()) +
@@ -42,7 +42,7 @@ calc_and_plot_trend <- function(trend_data, trend_method, subtitle_caveat) {
     ggplot(aes(x = log(Ts), color = trend)) +
     stat_ecdf(geom="step") +
     scale_color_manual(values = c(negative = "#F8766D", positive = "#00BA38", zero = "#619CFF")) +
-    facet_wrap(vars(trend_calc)) + 
+    facet_grid(season ~ hydro_cond) + 
     theme_bw() +
     theme(panel.grid.major = element_blank(), 
           panel.grid.minor = element_blank()) +
@@ -56,7 +56,7 @@ calc_and_plot_trend <- function(trend_data, trend_method, subtitle_caveat) {
     ggplot(aes(x = -log(DTW), color = trend)) +
     stat_ecdf(geom="step") +
     scale_color_manual(values = c(negative = "#F8766D", positive = "#00BA38", zero = "#619CFF")) +
-    facet_wrap(vars(trend_calc)) + 
+    facet_grid(season ~ hydro_cond) + 
     theme_bw() +
     theme(panel.grid.major = element_blank(), 
           panel.grid.minor = element_blank()) +
@@ -71,13 +71,13 @@ calc_and_plot_trend <- function(trend_data, trend_method, subtitle_caveat) {
     mutate(GW_Connectivity = factor(sprintf('%s, %s', Ts_cond, DTW_cond), ordered = TRUE,
                                     levels = c('Ts-low, DTW-deep', 'Ts-low, DTW-shallow', 'Ts-high, DTW-deep', 'Ts-high, DTW-shallow'))) %>% 
     filter(!is.na(trend), !is.na(Ts_cond)) %>% 
-    group_by(GW_Connectivity, trend_calc, trend) %>%
+    group_by(GW_Connectivity, hydro_cond, season, trend) %>%
     tally() %>%
     ggplot(aes(x = GW_Connectivity, y = n, fill = trend)) +
     # geom_bar(stat="identity", position="dodge", width=0.5) +
     geom_col(position = position_dodge2(width = 0.9, preserve = "single")) +
     scale_fill_manual(values = c(negative = "#F8766D", positive = "#00BA38", zero = "#619CFF")) +
-    facet_wrap(vars(trend_calc)) +
+    facet_grid(season ~ hydro_cond) +
     theme_bw() +
     theme(axis.text.x = element_text(angle=45,hjust=1)) +
     xlab('Groundwater connectivity (low --> high)') +
