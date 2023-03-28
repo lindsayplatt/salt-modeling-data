@@ -10,6 +10,7 @@ tar_option_set(packages = c(
   'lubridate',
   'maps',
   'nhdplusTools',
+  'raster',
   'sbtools',
   'scico',
   'sf',

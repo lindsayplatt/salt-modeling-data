@@ -245,6 +245,23 @@ p1_targets <- list(
   tar_target(dtw, read_csv(dtw_csv, col_types = cols()) %>% 
                select(COMID = comid, dtw_MEAN = MEAN, dtw250, totdtw250)),
   
+  ##### Download road salt data #####
+  
+  tar_target(road_salt_all_zip, format="file", 
+             item_file_download(sb_id = '5b15a50ce4b092d9651e22b9',
+                                names = '1992_2015.zip',
+                                destinations = '1_fetch/out/road_salt_all.zip')),
+  # Extract only the 2015 data
+  tar_target(road_salt_2015_tif, {
+    file_out <- '1_fetch/out/road_salt_2015.tif'
+    file_extracted <- '1_fetch/out/2015.tif'
+    zip::unzip(zipfile = road_salt_all_zip,
+               files = basename(file_extracted),
+               exdir = dirname(file_extracted))
+    file.rename(from = file_extracted, to = file_out)
+    return(file_out)
+  }, format = 'file'),
+  
   ##### Download NHD Data #####
   
   # Identify the sites & find their matching COMIDs
@@ -285,6 +302,24 @@ p1_targets <- list(
                mutate(HUC04 = substr(REACHCODE, 1, 4)) %>% 
                select(site_no, HUC04)),
   tar_target(nhd_huc04s, unique(nhd_huc04_site_xwalk$HUC04)),
-  tar_target(nhd_huc04s_sf, get_huc(id = nhd_huc04s, type = "huc04"))
+  tar_target(nhd_huc04s_sf, get_huc(id = nhd_huc04s, type = "huc04")),
+  
+  ##### Get US sf objects for plotting #####
+  
+  # States with salt application rates data
+  tar_target(conus_salt_sf, 
+             usmap::us_map(exclude = c(states_to_exclude, "AK", "HI")) %>% 
+               st_as_sf(coords = c('x', 'y'), crs = usmap::usmap_crs()) %>% 
+               group_by(group, abbr) %>% 
+               summarise(geometry = st_combine(geometry), .groups="keep") %>%
+               st_cast("POLYGON")),
+  
+  # States without salt application rates data 
+  tar_target(conus_nosalt_sf, 
+             usmap::us_map(include = states_to_exclude) %>% 
+               st_as_sf(coords = c('x', 'y'), crs = usmap::usmap_crs()) %>% 
+               group_by(group, abbr) %>% 
+               summarise(geometry = st_combine(geometry), .groups="keep") %>%
+               st_cast("POLYGON"))
   
 )
