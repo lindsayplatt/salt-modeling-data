@@ -6,6 +6,24 @@ separate_baseflow <- function(q_site) {
     mutate(Q_Storm = Q - Q_Base)
 }
 
+trend_filter_data <- function(in_data, hydro_cond, season) {
+  
+  in_data %>% {
+    if(hydro_cond == 'base') 
+      filter(., Q_Storm == 0)
+    else .
+  } %>% {
+    if(hydro_cond == 'storm') 
+      filter(., Q_Storm != 0)
+    else .
+  } %>% {
+    if(season != 'all') 
+      filter(., !!as.symbol(sprintf('is_%s', season)))
+    else .
+  }
+  
+}
+
 extract_trend <- function(values, min_date, method = c("LM", "MA", "DECOMP")) {
   if(length(values) < 3) return(as.character(NA))
   
@@ -63,20 +81,29 @@ extract_trend <- function(values, min_date, method = c("LM", "MA", "DECOMP")) {
 }
 
 add_trends <- function(qbase_sc_data, trend_method) {
-  qbase_sc_data %>%
+  
+  trend_combos <- expand.grid(
+    season = c('all', 'winter', 'spring', 'summer', 'fall'),
+    hydro_cond = c('all', 'base', 'storm')) %>%
+    # Remove factors
+    mutate(season = as.character(season),
+           hydro_cond = as.character(hydro_cond))
+  
+  qbase_sc_trends <- qbase_sc_data %>%
     group_by(site_no, Ts, DTW, trans_PERCENTILE, dtw_PERCENTILE) %>% 
-    summarize(trend_SC_all = extract_trend(SpecCond, min(date), method=trend_method), 
-              trend_SC_qnorm_all = extract_trend(SC_flow_normalized, min(date), method=trend_method),
-              trend_SC_base = extract_trend(SpecCond[baseflow_only], min(date[baseflow_only]), method=trend_method), 
-              trend_SC_qnorm_base = extract_trend(SC_flow_normalized[baseflow_only], min(date[baseflow_only]), method=trend_method),
-              trend_SC_summer = extract_trend(SpecCond[is_summer], min(date[is_summer]), method=trend_method), 
-              trend_SC_qnorm_summer = extract_trend(SC_flow_normalized[is_summer], min(date[is_summer]), method=trend_method),
-              trend_SC_summer_base = extract_trend(SpecCond[is_summer & baseflow_only], min(date[is_summer & baseflow_only]), method=trend_method), 
-              trend_SC_qnorm_summer_base = extract_trend(SC_flow_normalized[is_summer & baseflow_only], min(date[is_summer & baseflow_only]), method=trend_method),
-              trend_SC_summer_base = extract_trend(SpecCond[is_summer & baseflow_only], min(date[is_summer & baseflow_only]), method=trend_method), 
-              trend_SC_qnorm_summer_base = extract_trend(SC_flow_normalized[is_spring & baseflow_only], min(date[is_spring & baseflow_only]), method=trend_method),
-              trend_SC_spring_base = extract_trend(SpecCond[is_summer & baseflow_only], min(date[is_summer & baseflow_only]), method=trend_method), 
-              trend_SC_qnorm_spring_base = extract_trend(SC_flow_normalized[is_spring & baseflow_only], min(date[is_spring & baseflow_only]), method=trend_method)) %>% 
+    group_map(~ {
+      # Map over each of the possible trend combinations (there are 12)
+      trend_out <- purrr::map2_chr(trend_combos$hydro_cond, trend_combos$season, function(hydro_cond, season, grp_data) {
+        trend_data <- trend_filter_data(grp_data, hydro_cond, season)
+        extract_trend(trend_data$SC_flow_normalized, min(trend_data$date), method=trend_method)
+      }, grp_data = .x)
+      # Take the 12-row trend summary and combine with the data frame for
+      # the current site's info
+      trend_combos_out <- mutate(trend_combos, trend = trend_out)
+      bind_cols(.y, trend_combos_out)
+    }, .keep=TRUE) %>% bind_rows()
+  
+  qbase_sc_trends %>% 
     mutate(Ts_plot = trans_PERCENTILE, DTW_plot = dtw_PERCENTILE) %>% 
     mutate(Ts_high = Ts_plot >= 50, DTW_low = DTW_plot >= 50) %>% 
     ungroup()
