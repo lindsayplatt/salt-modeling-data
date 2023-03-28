@@ -80,19 +80,6 @@ p3_targets <- list(
     sites_sf <- st_transform(q_sc_sites_sf, usmap_crs())
     huc04s_sf <- st_transform(nhd_huc04s_sf, usmap_crs())
     
-    # States with salt application rates data 
-    conus_salt_sf <- usmap::us_map(exclude = c(states_to_exclude, "AK", "HI")) %>% 
-      st_as_sf(coords = c('x', 'y'), crs = usmap::usmap_crs()) %>% 
-      group_by(group, abbr) %>% 
-      summarise(geometry = st_combine(geometry), .groups="keep") %>%
-      st_cast("POLYGON")
-    # States without salt application rates data 
-    conus_nosalt_sf <- usmap::us_map(include = states_to_exclude) %>% 
-      st_as_sf(coords = c('x', 'y'), crs = usmap::usmap_crs()) %>% 
-      group_by(group, abbr) %>% 
-      summarise(geometry = st_combine(geometry), .groups="keep") %>%
-      st_cast("POLYGON")
-    
     ggplot() +
       geom_sf(data=conus_nosalt_sf, fill='#b8b8b8', color=NA) +
       geom_sf(data=conus_salt_sf, fill='#f4f4f4', color='#898989') +

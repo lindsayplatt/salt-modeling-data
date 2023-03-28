@@ -302,6 +302,24 @@ p1_targets <- list(
                mutate(HUC04 = substr(REACHCODE, 1, 4)) %>% 
                select(site_no, HUC04)),
   tar_target(nhd_huc04s, unique(nhd_huc04_site_xwalk$HUC04)),
-  tar_target(nhd_huc04s_sf, get_huc(id = nhd_huc04s, type = "huc04"))
+  tar_target(nhd_huc04s_sf, get_huc(id = nhd_huc04s, type = "huc04")),
+  
+  ##### Get US sf objects for plotting #####
+  
+  # States with salt application rates data
+  tar_target(conus_salt_sf, 
+             usmap::us_map(exclude = c(states_to_exclude, "AK", "HI")) %>% 
+               st_as_sf(coords = c('x', 'y'), crs = usmap::usmap_crs()) %>% 
+               group_by(group, abbr) %>% 
+               summarise(geometry = st_combine(geometry), .groups="keep") %>%
+               st_cast("POLYGON")),
+  
+  # States without salt application rates data 
+  tar_target(conus_nosalt_sf, 
+             usmap::us_map(include = states_to_exclude) %>% 
+               st_as_sf(coords = c('x', 'y'), crs = usmap::usmap_crs()) %>% 
+               group_by(group, abbr) %>% 
+               summarise(geometry = st_combine(geometry), .groups="keep") %>%
+               st_cast("POLYGON"))
   
 )
