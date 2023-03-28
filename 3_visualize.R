@@ -86,6 +86,23 @@ p3_targets <- list(
       geom_sf(data=huc04s_sf, fill='#daeaf3', color='#38799f', size=3, alpha = 0.65) +
       geom_sf(data=sites_sf, color='#d08b2c', shape=17) +
       theme_void()
+  }),
+  
+  # Map road salt info per HUC
+  tar_target(map_huc04s_roadsalt, {
+    
+    huc04s_sf <- st_transform(nhd_huc04s_sf, usmap_crs()) %>% 
+      left_join(road_salt_2015_huc_summary, by = c('huc4' = 'HUC04')) %>% 
+      pivot_longer(cols = starts_with('salt_'), names_to = 'salt_var') %>% 
+      mutate(salt_var = gsub('salt_', '', salt_var))
+    
+    ggplot() +
+      geom_sf(data=conus_nosalt_sf, fill='#b8b8b8', color=NA) +
+      geom_sf(data=conus_salt_sf, fill='#f4f4f4', color='#898989') +
+      geom_sf(data=huc04s_sf, aes(fill=value), color='black') +
+      scale_fill_scico(palette = 'davos', name = 'Salt applied in 2015 (lbs)') +
+      theme_void() + 
+      facet_wrap(vars(salt_var), ncol = 2)
   })
   
 )
