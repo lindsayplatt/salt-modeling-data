@@ -245,6 +245,23 @@ p1_targets <- list(
   tar_target(dtw, read_csv(dtw_csv, col_types = cols()) %>% 
                select(COMID = comid, dtw_MEAN = MEAN, dtw250, totdtw250)),
   
+  ##### Download road salt data #####
+  
+  tar_target(road_salt_all_zip, format="file", 
+             item_file_download(sb_id = '5b15a50ce4b092d9651e22b9',
+                                names = '1992_2015.zip',
+                                destinations = '1_fetch/out/road_salt_all.zip')),
+  # Extract only the 2015 data
+  tar_target(road_salt_2015_tif, {
+    file_out <- '1_fetch/out/road_salt_2015.tif'
+    file_extracted <- '1_fetch/out/2015.tif'
+    zip::unzip(zipfile = road_salt_all_zip,
+               files = basename(file_extracted),
+               exdir = dirname(file_extracted))
+    file.rename(from = file_extracted, to = file_out)
+    return(file_out)
+  }, format = 'file'),
+  
   ##### Download NHD Data #####
   
   # Identify the sites & find their matching COMIDs
