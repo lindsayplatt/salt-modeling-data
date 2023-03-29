@@ -4,6 +4,7 @@ library(targets)
 options(tidyverse.quiet = TRUE)
 tar_option_set(packages = c(
   'arrow',
+  'cowplot',
   'dataRetrieval',
   'geofacet',
   'grwat', # devtools::install_github('tsamsonov/grwat')

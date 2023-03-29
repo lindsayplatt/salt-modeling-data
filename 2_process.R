@@ -137,6 +137,11 @@ p2_targets <- list(
   
   tar_target(sc_trend_data_lm, add_trends(q_sc_data_baseq, trend_method = "LM")),
   tar_target(sc_trend_data_ma, add_trends(q_sc_data_baseq, trend_method = "MA")),
-  tar_target(sc_trend_data_mk, add_trends(q_sc_data_baseq, trend_method = "MK"))
+  tar_target(sc_trend_data_mk, add_trends(q_sc_data_baseq, trend_method = "MK")),
   # TODO: COME BACK TO THE NA ONES: sum(is.na(sc_trend_data_mk$trend)) --> 416
+  
+  tar_target(sc_trends_with_site_info, 
+             sc_trend_data_mk %>% 
+               left_join(nhd_huc04_site_xwalk, by="site_no") %>% 
+               left_join(road_salt_2015_huc_summary, by="HUC04"))
 )

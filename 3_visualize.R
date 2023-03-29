@@ -66,6 +66,7 @@ p3_targets <- list(
   
   ##### Plots for groundwater SC trends #####
   
+  # TODO: Turn bars into something more useful - like single values or ratios of +/- rather than bar heights
   tar_target(lm_plots_ls, calc_and_plot_trend(sc_trend_data_lm, "LM", subtitle_caveat = "Dugan et al., 2017 salt states")),
   tar_target(ma_plots_ls, calc_and_plot_trend(sc_trend_data_ma, "MA", subtitle_caveat = "Dugan et al., 2017 salt states")),
   tar_target(mk_plots_ls, calc_and_plot_trend(sc_trend_data_mk, "MK", subtitle_caveat = "Dugan et al., 2017 salt states")),
@@ -131,6 +132,33 @@ p3_targets <- list(
       geom_sf(data=huc04s_sf, aes(fill=salt_max), color='black') +
       scale_fill_scico(palette = 'davos', begin=0.20, end=0.90, name = 'Salt applied in 2015 (lbs)') +
       theme_void() + ggtitle('Max value per HUC04')
+  }),
+  
+  tar_target(plot_saltapp_vs_gwconnect, {
+    
+    trend_data <- sc_trends_with_site_info %>% 
+      filter(trend %in% c('positive', 'negative'))
+    
+    p_ts <- ggplot(trend_data, aes(x=trans_PERCENTILE, y = salt_mean,
+                          color = trend)) +
+      geom_point() + 
+      facet_grid(trend ~ hydro_cond) +
+      xlab("Transmissivity, %ile") +
+      ylab("Mean salt application, lbs") 
+    
+    p_dtw <- ggplot(trend_data, aes(x=dtw_PERCENTILE, y = salt_mean,
+                           color = trend)) +
+      geom_point() + 
+      facet_grid(trend ~ hydro_cond) +
+      xlab("Depth to water table, %ile") +
+      ylab("Mean salt application, lbs")
+    
+    cowplot::plot_grid(
+      p_ts + theme(legend.position="none"), 
+      p_dtw + theme(legend.position="none", 
+                    axis.title.y = element_blank()), 
+      get_legend(p_dtw),
+      nrow=1, rel_widths = c(3, 3, 0.5))
   })
   
 )
