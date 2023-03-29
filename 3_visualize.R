@@ -89,6 +89,36 @@ p3_targets <- list(
       theme_void()
   }),
   
+  # Plot sites Ts data
+  tar_target(map_sites_trans, {
+    sites_sf <- st_transform(q_sc_sites_sf, usmap_crs()) %>% 
+      left_join(q_sc_sites_info, by = 'site_no')
+    # huc04s_sf <- st_transform(nhd_huc04s_sf, usmap_crs())
+    
+    ggplot() +
+      geom_sf(data=conus_nosalt_sf, fill='#b8b8b8', color=NA) +
+      geom_sf(data=conus_salt_sf, fill='#f4f4f4', color='#898989') +
+      # geom_sf(data=huc04s_sf, fill='#daeaf3', color='#38799f', size=3, alpha = 0.65) +
+      geom_sf(data=sites_sf, aes(color=trans_PERCENTILE), shape=17) +
+      scico::scale_color_scico(palette = 'batlow', direction=-1) +
+      theme_void()
+  }),
+  
+  # Plot sites DTW data
+  tar_target(map_sites_dtw, {
+    sites_sf <- st_transform(q_sc_sites_sf, usmap_crs()) %>% 
+      left_join(q_sc_sites_info, by = 'site_no')
+    # huc04s_sf <- st_transform(nhd_huc04s_sf, usmap_crs())
+    
+    ggplot() +
+      geom_sf(data=conus_nosalt_sf, fill='#b8b8b8', color=NA) +
+      geom_sf(data=conus_salt_sf, fill='#f4f4f4', color='#898989') +
+      # geom_sf(data=huc04s_sf, fill='#daeaf3', color='#38799f', size=3, alpha = 0.65) +
+      geom_sf(data=sites_sf, aes(color=dtw_PERCENTILE), shape=17) +
+      scico::scale_color_scico(palette = 'batlow', direction=-1) +
+      theme_void()
+  }),
+  
   # Map road salt info per HUC
   tar_target(map_huc04s_roadsalt, {
     
