@@ -136,6 +136,7 @@ p2_targets <- list(
                mutate(SC_flow_normalized = SpecCond / (Q+0.000000001))),
   
   tar_target(sc_trend_data_lm, add_trends(q_sc_data_baseq, trend_method = "LM")),
-  tar_target(sc_trend_data_ma, add_trends(q_sc_data_baseq, trend_method = "MA"))
-  
+  tar_target(sc_trend_data_ma, add_trends(q_sc_data_baseq, trend_method = "MA")),
+  tar_target(sc_trend_data_mk, add_trends(q_sc_data_baseq, trend_method = "MK"))
+  # TODO: COME BACK TO THE NA ONES: sum(is.na(sc_trend_data_mk$trend)) --> 416
 )

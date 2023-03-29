@@ -24,7 +24,7 @@ trend_filter_data <- function(in_data, hydro_cond, season) {
   
 }
 
-extract_trend <- function(values, min_date, method = c("LM", "MA", "DECOMP")) {
+extract_trend <- function(values, min_date, method = c("LM", "MA", "DECOMP", "MK")) {
   if(length(values) < 3) return(as.character(NA))
   
   data <- ts(values, start = c(lubridate::year(min_date), lubridate::month(min_date)), frequency = 365)
@@ -73,8 +73,26 @@ extract_trend <- function(values, min_date, method = c("LM", "MA", "DECOMP")) {
       trend <- "negative"
     } else {
       trend <- "zero"
-    }
+    } 
     
+  } else if(method == 'MK') {
+    
+    ##### Option 4: Perform MannKendall test #####
+    trend <- Kendall::MannKendall(data)
+    
+    pval <- capture.output(summary(trend))[3] %>% 
+      str_split_1("pvalue =") %>% tail(1)
+    # Drop the '<' that can sometimes be present for
+    # super small numbers.
+    pval <- as.numeric(gsub('< ', '', pval))
+    
+    if(pval >= 0.05 | trend$S == 0) {
+      trend <- "zero"
+    } else if(trend$S < 0) {
+      trend <- "negative"
+    } else if(trend$S > 0) {
+      trend <- "positive"
+    }
   }
   
   return(trend)
