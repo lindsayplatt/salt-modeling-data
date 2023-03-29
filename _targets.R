@@ -7,6 +7,7 @@ tar_option_set(packages = c(
   'dataRetrieval',
   'geofacet',
   'grwat', # devtools::install_github('tsamsonov/grwat')
+  'Kendall',
   'lubridate',
   'maps',
   'nhdplusTools',
