@@ -95,8 +95,29 @@ p2_targets <- list(
            salt_p25 = unname(quantile(huc_r, probs=0.25, na.rm=TRUE)),
            salt_mean = cellStats(huc_r, stat='mean', na.rm=TRUE),
            salt_p75 = unname(quantile(huc_r, probs=0.75, na.rm=TRUE)),
-           salt_max = cellStats(huc_r, stat='max', na.rm=TRUE))
+           salt_max = cellStats(huc_r, stat='max', na.rm=TRUE),
+           salt_sum = cellStats(huc_r, stat='sum', na.rm=TRUE))
   }, pattern = map(road_salt_2015_raster_huc_list)),
+  
+  # For each specific site, find the road salt application rate for 
+  # that area (sum a certain buffer of cells around it)
+  tar_target(road_salt_2015_site_summary, {
+    values_around_each_site <- raster::extract(
+      road_salt_2015_raster, 
+      st_coordinates(q_sc_sites_sf), 
+      buffer=1000, # In meters, but only seems to go vertically
+      df=TRUE) %>% as_tibble()
+    
+    aggregate_value_per_site <- values_around_each_site %>% 
+      group_by(ID) %>%
+      summarize(road_salt_2015_aggr = sum(road_salt_2015))
+    
+    # Combine with the corresponding site numbers
+    q_sc_sites_sf %>% 
+      st_drop_geometry() %>% 
+      bind_cols(aggregate_value_per_site) %>% 
+      select(site_no, road_salt_2015_aggr)
+  }),
   
   # Add percentiles to be able to show relative transmissivity/dtw
   tar_target(trans_ecdf, ecdf(trans$trans_MEAN)),

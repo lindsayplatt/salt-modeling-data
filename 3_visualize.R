@@ -90,6 +90,20 @@ p3_targets <- list(
       theme_void()
   }),
   
+  # Plot site salt values
+  tar_target(map_sites_salt, {
+    sites_sf <- st_transform(q_sc_sites_sf, usmap_crs()) %>% 
+      left_join(road_salt_2015_site_summary, by = "site_no") %>% 
+      rename(salt_1km = road_salt_2015_aggr) %>% 
+      filter(salt_1km > 0)
+    
+    ggplot() +
+      geom_sf(data=conus_nosalt_sf, fill='#b8b8b8', color=NA) +
+      geom_sf(data=conus_salt_sf, fill='#f4f4f4', color='#898989') +
+      geom_sf(data=sites_sf, aes(color = salt_1km), shape=17) +
+      theme_void()
+  }),
+  
   # Plot sites Ts data
   tar_target(map_sites_trans, {
     sites_sf <- st_transform(q_sc_sites_sf, usmap_crs()) %>% 
@@ -129,9 +143,9 @@ p3_targets <- list(
     ggplot() +
       geom_sf(data=conus_nosalt_sf, fill='#b8b8b8', color=NA) +
       geom_sf(data=conus_salt_sf, fill='#f4f4f4', color='#898989') +
-      geom_sf(data=huc04s_sf, aes(fill=salt_max), color='black') +
+      geom_sf(data=huc04s_sf, aes(fill=salt_sum), color='black') +
       scale_fill_scico(palette = 'davos', begin=0.20, end=0.90, name = 'Salt applied in 2015 (lbs)') +
-      theme_void() + ggtitle('Max value per HUC04')
+      theme_void() + ggtitle('Sum of application values per HUC04')
   }),
   
   tar_target(plot_saltapp_vs_gwconnect, {
