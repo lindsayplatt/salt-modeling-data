@@ -393,6 +393,13 @@ p1_targets <- list(
                st_as_sf(coords = c('x', 'y'), crs = usmap::usmap_crs()) %>% 
                group_by(group, abbr) %>% 
                summarise(geometry = st_combine(geometry), .groups="keep") %>%
-               st_cast("POLYGON"))
+               st_cast("POLYGON")),
+  
+  ##### Load Hare et al dataset #####
+  
+  tar_target(hare_et_al_xlsx, 'hare_et_al/sourcedatafigs1,2and3.xlsx', format="file"),
+  tar_target(hare_et_al,
+             readxl::read_excel(hare_et_al_xlsx) %>%
+               rename(site_no = SW_ID))
   
 )

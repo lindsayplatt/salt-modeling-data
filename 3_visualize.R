@@ -183,6 +183,29 @@ p3_targets <- list(
                     axis.title.y = element_blank()), 
       get_legend(p_dtw),
       nrow=1, rel_widths = c(3, 3, 0.5))
+  }),
+  
+  tar_target(map_sites_gwsig_png, {
+    
+    sites_to_plot <- conus_sc_sites_sf %>% 
+      # Filter to only sites with salt applied in 2015
+      filter(site_no %in% sites_with_salt$site_no) %>%
+      # Further filter only to sites that have a GW category from Hare et al
+      left_join(hare_et_al, by="site_no") %>% 
+      filter(!is.na(GW_cat)) %>% 
+      mutate(GW_cat = gsub(' Signature', '', GW_cat))
+    
+    conus_sf <- sf::st_as_sf(maps::map("state", plot = FALSE, fill = TRUE))
+    p<-ggplot(sites_to_plot) +
+      geom_sf(data = conus_sf, fill="#e9e9e9", color = "white") +
+      geom_sf(aes(fill = GW_cat), alpha=0.65, size=2.5, shape=21, color="#b8b8b8") +
+      scico::scale_fill_scico_d(palette = 'berlin', begin = 0.15, end = 0.85, 
+                                name = 'Groundwater\nsignature') +
+      # ggtitle('',
+      #         sprintf('Dominant groundwater signature per Hare et al 2021; %s total sites',
+      #                 length(unique(sites_to_plot$site_no)))) +
+      theme_void() + coord_sf()
+    ggsave('3_visualize/out/gwsig_map.png', p, height = 5.5, width = 10, bg="white")
   })
   
 )
