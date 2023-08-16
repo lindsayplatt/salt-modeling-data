@@ -109,13 +109,36 @@ p1_targets <- list(
   
   tar_target(conus_sc_data_clean_feather, {
     out_file <- gsub('tmp', 'out', gsub('raw_', '', conus_sc_data_raw_feather))
-    read_feather(conus_sc_data_raw_feather) %>% 
-      select(site_no, dateTime, 
-             max_spec_cond = X_00095_00001, 
-             min_spec_cond = X_00095_00002, 
-             mean_spec_cond = X_00095_00003) %>% 
+    
+    # Setup desired column structures
+    sc_cols <- tibble(max_spec_cond = as.numeric(NA),
+                      min_spec_cond = as.numeric(NA),
+                      mean_spec_cond = as.numeric(NA))
+    rename_xwalk <- c(
+      max_spec_cond = "X_00095_00001",
+      min_spec_cond = "X_00095_00002",
+      mean_spec_cond = "X_00095_00003"
+    )
+    
+    raw_data <- read_feather(conus_sc_data_raw_feather)
+    
+    if(any(names(raw_data) %in% rename_xwalk)) {
+      prepped_data <- raw_data %>% 
+        # Some of the raw data do not have all of the stat code columns,
+        # so need to add a column of NAs when it doesn't exist. The `rename()`
+        # followed by the `full_join()` will accomplish this.
+        rename(any_of(rename_xwalk)) %>% 
+        full_join(sc_cols)
+    } else {
+      # This will catch empty data frames missing all SC cols
+      prepped_data <- raw_data %>% cross_join(sc_cols)
+    }
+    
+    prepped_data %>% 
+      select(site_no, dateTime, max_spec_cond, min_spec_cond, mean_spec_cond) %>% 
       left_join(conus_sc_site_state_xwalk, by="site_no") %>% 
       arrow::write_feather(out_file)
+    
     return(out_file)
   }, pattern = map(conus_sc_data_raw_feather), format = 'file'),
   
@@ -221,9 +244,33 @@ p1_targets <- list(
   
   tar_target(conus_q_data_clean_feather, {
     out_file <- gsub('tmp', 'out', gsub('raw_', '', conus_q_data_raw_feather))
-    read_feather(conus_q_data_raw_feather) %>% 
-      select(site_no, dateTime,  
-             mean_q = X_00060_00003) %>% 
+    raw_data <- read_feather(conus_q_data_raw_feather) 
+    
+    # Setup desired column structures
+    q_cols <- tibble(max_q = as.numeric(NA),
+                      min_q = as.numeric(NA),
+                      mean_q = as.numeric(NA))
+    rename_xwalk <- c(
+      max_q = "X_00060_00001",
+      min_q = "X_00060_00002",
+      mean_q = "X_00060_00003"
+    )
+    
+    if(any(names(raw_data) %in% rename_xwalk)) {
+      # Keep mean, min, and max daily stat codes but insert NAs when they don't exist
+      prepped_data <- raw_data %>% 
+        # Some of the raw data do not have all of the stat code columns,
+        # so need to add a column of NAs when it doesn't exist. The `rename()`
+        # followed by the `full_join()` will accomplish this.
+        rename(any_of(rename_xwalk)) %>% 
+        full_join(q_cols)
+    } else {
+      # Sometimes there is no data, which can cause issues with selecting columns
+      # and joining other data, and so needs to be handled separately
+      prepped_data <- raw_data %>% cross_join(q_cols)
+    }
+    prepped_data %>% 
+      select(site_no, dateTime, max_q, min_q, mean_q) %>% 
       left_join(conus_q_site_state_xwalk, by="site_no") %>% 
       arrow::write_feather(out_file)
     return(out_file)
