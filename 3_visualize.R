@@ -206,6 +206,53 @@ p3_targets <- list(
       #                 length(unique(sites_to_plot$site_no)))) +
       theme_void() + coord_sf()
     ggsave('3_visualize/out/gwsig_map.png', p, height = 5.5, width = 10, bg="white")
+  }),
+  
+  tar_target(timeseries_random_sites_png, {
+    
+    # Select 10 random sites from those with a lot of records
+    # to create timeseries charts for
+    sites_longest_record <- conus_sc_data_plot_ready_daily_means_normalized %>% 
+      group_by(site_no) %>% 
+      tally() %>% 
+      arrange(desc(n)) %>% 
+      head(50) 
+    
+    set.seed(14)
+    random_sites <- sites_longest_record %>% 
+      sample_n(10) %>% 
+      pull(site_no)
+    
+    site_info <- conus_sc_site_metadata %>% 
+      filter(site_no %in% random_sites) %>% 
+      dplyr::select(site_no, drain_area_va)
+    
+    # Calculate a 90-day rolling avg 
+    conus_sc_data_rollmeans <- conus_sc_data_plot_ready_daily_means_normalized %>% 
+      filter(site_no %in% random_sites) %>% 
+      left_join(site_info, by = c("site_no")) %>% 
+      arrange(state_abbr, site_no, drain_area_va) %>% 
+      mutate(facet_label = sprintf("USGS Site %s\nState: %s\nCatchment area (sq mi): %s",
+                                   site_no, state_abbr, drain_area_va)) %>% 
+      mutate(facet_label = factor(facet_label, ordered = TRUE, labels = unique(.$facet_label))) %>% 
+      group_by(site_no, facet_label) %>% 
+      mutate(mean_sc_90day = zoo::rollmean(specific_conductance, k=90,
+                                           fill = NA, align = "left"))
+    
+    # Plot the 90-day rolling average
+    p <- ggplot(conus_sc_data_rollmeans, 
+                aes(x = dateTime, y = mean_sc_90day)) + 
+      geom_point(size=0.25) + 
+      facet_grid(facet_label ~ ., scales = "free_y") + 
+      ylab("Specific\nconductance\n(μS/cm @ 25°C)")+
+      xlab('Date') +
+      # ggtitle('Rolling 90-day mean specific conductance') + 
+      theme_bw() +
+      theme(axis.title.y = element_text(angle = 0, vjust = 0.5),
+            strip.text.y.right = element_text(angle = 0, vjust = 0.5))
+    
+    ggsave("3_visualize/out/sc_timeseries.png", p, units = 'px', height = 1000, 
+           width = 1200, dpi = 100)  
   })
   
 )
