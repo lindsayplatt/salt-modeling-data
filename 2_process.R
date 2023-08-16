@@ -105,7 +105,7 @@ p2_targets <- list(
     values_around_each_site <- raster::extract(
       road_salt_2015_raster, 
       st_coordinates(q_sc_sites_sf), 
-      buffer=1000, # In meters, but only seems to go vertically
+      buffer=5000, # In meters, but only seems to go vertically
       df=TRUE) %>% as_tibble()
     
     aggregate_value_per_site <- values_around_each_site %>% 
@@ -118,6 +118,9 @@ p2_targets <- list(
       bind_cols(aggregate_value_per_site) %>% 
       select(site_no, road_salt_2015_aggr)
   }),
+  tar_target(sites_with_salt, 
+             road_salt_2015_site_summary %>% 
+               filter(road_salt_2015_aggr > 0)),
   
   # Add percentiles to be able to show relative transmissivity/dtw
   tar_target(trans_ecdf, ecdf(trans$trans_MEAN)),

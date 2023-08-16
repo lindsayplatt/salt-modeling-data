@@ -92,18 +92,27 @@ p3_targets <- list(
   }),
   
   # Plot site salt values
-  tar_target(map_sites_salt, {
+  tar_target(map_sites_salt_png, {
     sites_sf <- st_transform(q_sc_sites_sf, usmap_crs()) %>% 
-      left_join(road_salt_2015_site_summary, by = "site_no") %>% 
-      rename(salt_1km = road_salt_2015_aggr) %>% 
-      filter(salt_1km > 0)
+      left_join(sites_with_salt, by = "site_no") %>% 
+      rename(salt_5km = road_salt_2015_aggr) %>% 
+      filter(!is.na(salt_5km)) %>% 
+      # According to the data release it is in pounds, so let's change to tons.
+      mutate(salt_5km_kg = salt_5km*0.4536) # lbs --> kg 
     
-    ggplot() +
+    out_file <- '3_visualize/out/salt_applied_map.png'
+    p <- ggplot() +
       geom_sf(data=conus_nosalt_sf, fill='#b8b8b8', color=NA) +
-      geom_sf(data=conus_salt_sf, fill='#f4f4f4', color='#898989') +
-      geom_sf(data=sites_sf, aes(color = salt_1km), shape=17) +
-      theme_void()
-  }),
+      geom_sf(data=conus_salt_sf, fill='#f4f4f4', color='#b8b8b8') +
+      geom_sf(data=sites_sf, aes(color = log10(salt_5km_kg)), shape=17, size=2, alpha=0.75) +
+      scico::scale_color_scico(name = 'Salt applied\nin 2015\n(logged kg)', palette = 'batlow') +
+      # ggtitle('NWIS specific conductance sites with road salt applied in 5 km radius.',
+      #         sprintf('%s sites', nrow(sites_sf))) +
+      theme_void() + 
+      coord_sf()
+    ggsave(out_file, p, height = 5.5, width = 10, bg="white")
+    return(out_file)
+  }, format = 'file'),
   
   # Plot sites Ts data
   tar_target(map_sites_trans, {
