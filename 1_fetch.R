@@ -11,16 +11,29 @@ p1_targets <- list(
              whatNWISsites(stateCd = conus_state_abbr, 
                            parameterCd = '00095',
                            startDate = start_date,
-                           endDate = end_date),
+                           endDate = end_date,
+                           siteType = site_type,
+                           service = data_service),
              pattern = map(conus_state_abbr)),
   tar_target(conus_sc_sites_surface,
-             filter(conus_sc_sites, site_tp_cd %in% c('ST', 'LK'))),
+             conus_sc_sites %>% 
+               # Remove any with ST-CA, ST-DCH, ST-TS
+               filter(site_tp_cd %in% c('ST')) %>% 
+               # Then filter to only those that also have flow data
+               # which meet the appropriate requirements (at least 10 yrs
+               # with some of it happening after Jan 1, 2000)
+               filter(site_no %in% conus_q_availability_all$site_no)),
   tar_target(conus_sc_availability,
              whatNWISdata(siteNumber = conus_sc_sites_surface$site_no, 
                           parameterCd = '00095',
                           startDate = start_date,
                           endDate = end_date,
-                          service = c('dv'))),#skip uv for now, 'uv'))),
+                          service = data_service) %>% 
+               # Filter to only those sites that have had
+               # data past 2010 and at least 10 years of it
+               mutate(years_running = as.numeric((end_date - begin_date)/365)) %>% 
+               filter(years_running >= record_min_yrs) %>% 
+               filter(end_date >= as.Date(recent_date))),
   
   # Use results from search for available data to create download groups of 
   # sites based on service and chunks of sites. This is borrowed from Lauren 
@@ -96,13 +109,36 @@ p1_targets <- list(
   
   tar_target(conus_sc_data_clean_feather, {
     out_file <- gsub('tmp', 'out', gsub('raw_', '', conus_sc_data_raw_feather))
-    read_feather(conus_sc_data_raw_feather) %>% 
-      select(site_no, dateTime, 
-             max_spec_cond = X_00095_00001, 
-             min_spec_cond = X_00095_00002, 
-             mean_spec_cond = X_00095_00003) %>% 
+    
+    # Setup desired column structures
+    sc_cols <- tibble(max_spec_cond = as.numeric(NA),
+                      min_spec_cond = as.numeric(NA),
+                      mean_spec_cond = as.numeric(NA))
+    rename_xwalk <- c(
+      max_spec_cond = "X_00095_00001",
+      min_spec_cond = "X_00095_00002",
+      mean_spec_cond = "X_00095_00003"
+    )
+    
+    raw_data <- read_feather(conus_sc_data_raw_feather)
+    
+    if(any(names(raw_data) %in% rename_xwalk)) {
+      prepped_data <- raw_data %>% 
+        # Some of the raw data do not have all of the stat code columns,
+        # so need to add a column of NAs when it doesn't exist. The `rename()`
+        # followed by the `full_join()` will accomplish this.
+        rename(any_of(rename_xwalk)) %>% 
+        full_join(sc_cols)
+    } else {
+      # This will catch empty data frames missing all SC cols
+      prepped_data <- raw_data %>% cross_join(sc_cols)
+    }
+    
+    prepped_data %>% 
+      select(site_no, dateTime, max_spec_cond, min_spec_cond, mean_spec_cond) %>% 
       left_join(conus_sc_site_state_xwalk, by="site_no") %>% 
       arrow::write_feather(out_file)
+    
     return(out_file)
   }, pattern = map(conus_sc_data_raw_feather), format = 'file'),
   
@@ -126,16 +162,29 @@ p1_targets <- list(
              whatNWISsites(stateCd = conus_state_abbr, 
                            parameterCd = '00060',
                            startDate = start_date,
-                           endDate = end_date),
+                           endDate = end_date,
+                           siteType = site_type,
+                           service = data_service),
              pattern = map(conus_state_abbr)),
   tar_target(conus_q_sites_surface,
-             filter(conus_q_sites, site_tp_cd %in% c('ST', 'LK'))),
-  tar_target(conus_q_availability,
+             # Remove any with ST-CA, ST-DCH, ST-TS
+             filter(conus_q_sites, site_tp_cd %in% c('ST'))),
+  tar_target(conus_q_availability_all,
              whatNWISdata(siteNumber = conus_q_sites_surface$site_no, 
                           parameterCd = '00060',
                           startDate = start_date,
                           endDate = end_date,
-                          service = c('dv'))),#skip uv for now, 'uv'))),
+                          service = data_service) %>% 
+               # Filter to only those sites that have had data past 2010
+               # and at least 10 years
+               mutate(years_running = as.numeric((end_date - begin_date)/365)) %>% 
+               filter(years_running >= record_min_yrs) %>% 
+               filter(end_date >= as.Date(recent_date))),
+  # Match Q sites back to those that have SC so that we only
+  # download what we need
+  tar_target(conus_q_availability, 
+             conus_q_availability_all %>% 
+               filter(site_no %in% conus_sc_availability$site_no)),
   
   # Use results from search for available data to create download groups of 
   # sites based on service and chunks of sites. This is borrowed from Lauren 
@@ -195,9 +244,33 @@ p1_targets <- list(
   
   tar_target(conus_q_data_clean_feather, {
     out_file <- gsub('tmp', 'out', gsub('raw_', '', conus_q_data_raw_feather))
-    read_feather(conus_q_data_raw_feather) %>% 
-      select(site_no, dateTime,  
-             mean_q = X_00060_00003) %>% 
+    raw_data <- read_feather(conus_q_data_raw_feather) 
+    
+    # Setup desired column structures
+    q_cols <- tibble(max_q = as.numeric(NA),
+                      min_q = as.numeric(NA),
+                      mean_q = as.numeric(NA))
+    rename_xwalk <- c(
+      max_q = "X_00060_00001",
+      min_q = "X_00060_00002",
+      mean_q = "X_00060_00003"
+    )
+    
+    if(any(names(raw_data) %in% rename_xwalk)) {
+      # Keep mean, min, and max daily stat codes but insert NAs when they don't exist
+      prepped_data <- raw_data %>% 
+        # Some of the raw data do not have all of the stat code columns,
+        # so need to add a column of NAs when it doesn't exist. The `rename()`
+        # followed by the `full_join()` will accomplish this.
+        rename(any_of(rename_xwalk)) %>% 
+        full_join(q_cols)
+    } else {
+      # Sometimes there is no data, which can cause issues with selecting columns
+      # and joining other data, and so needs to be handled separately
+      prepped_data <- raw_data %>% cross_join(q_cols)
+    }
+    prepped_data %>% 
+      select(site_no, dateTime, max_q, min_q, mean_q) %>% 
       left_join(conus_q_site_state_xwalk, by="site_no") %>% 
       arrow::write_feather(out_file)
     return(out_file)
@@ -320,6 +393,13 @@ p1_targets <- list(
                st_as_sf(coords = c('x', 'y'), crs = usmap::usmap_crs()) %>% 
                group_by(group, abbr) %>% 
                summarise(geometry = st_combine(geometry), .groups="keep") %>%
-               st_cast("POLYGON"))
+               st_cast("POLYGON")),
+  
+  ##### Load Hare et al dataset #####
+  
+  tar_target(hare_et_al_xlsx, 'hare_et_al/sourcedatafigs1,2and3.xlsx', format="file"),
+  tar_target(hare_et_al,
+             readxl::read_excel(hare_et_al_xlsx) %>%
+               rename(site_no = SW_ID))
   
 )
