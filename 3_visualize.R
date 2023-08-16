@@ -40,6 +40,7 @@ p3_targets <- list(
   tar_target(conus_sc_map_png, {
       out_file <- "3_visualize/out/mean_sc_map.png"
       site_mean_df <- conus_sc_data_plot_ready %>% 
+        filter(daily_stat == "mean") %>% 
         group_by(site_no, daily_stat) %>% 
         summarize(mean_site_sc = mean(specific_conductance, na.rm=TRUE)) %>% 
         ungroup() %>% 
@@ -50,16 +51,16 @@ p3_targets <- list(
         sf::st_as_sf()
       conus_sf <- sf::st_as_sf(maps::map("state", plot = FALSE, fill = TRUE))
       p <- ggplot(combined_data) +
-        geom_sf(data = conus_sf, fill="lightgrey") +
-        geom_sf(aes(color = sc_cat), alpha=0.75) +
-        scico::scale_color_scico_d(palette = 'imola', end = 0.98, 
+        geom_sf(data = conus_sf, fill="#e9e9e9", color = "white") +
+        geom_sf(aes(fill = sc_cat), shape=21, color = "#b8b8b8", alpha=0.75, size = 3) +
+        scico::scale_fill_scico_d(palette = 'imola', end = 0.90, 
                                    name = 'Specific\nconductance\n(μS/cm @ 25°C)') +
-        facet_grid(daily_stat ~ .) +
-        ggtitle('Mean spec conductivity for continuous NWIS sites',
-                sprintf('From %s to %s, %s total sites',
-                        start_date, end_date, nrow(conus_sc_sites_sf))) +
+        # facet_grid(daily_stat ~ .) +
+        # ggtitle('Mean specific conductance for NWIS sites with at least 10 years of continuous data',
+        #         sprintf('From %s to %s, %s total sites',
+        #                 start_date, end_date, length(unique(site_mean_df$site_no)))) +
         theme_void() + coord_sf()
-      ggsave(out_file, p, height = 16, width = 10, bg="white")
+      ggsave(out_file, p, height = 5.5, width = 10, bg="white")
       return(out_file)
     }, format="file"
   ),
