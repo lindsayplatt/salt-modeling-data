@@ -20,8 +20,13 @@ tar_option_set(packages = c(
   'usmap'
 ))
 
-start_date <- '2010-01-01'
-end_date <- '2021-12-31'
+# Set query criteria
+start_date <- '1950-01-01'
+end_date <- '2022-12-31'
+record_min_yrs <- 10
+recent_date <- '2000-01-01' # Date cutoff for being considered "active" and having "recent" data
+site_type <- 'ST'
+data_service <- 'dv'
 
 # Exclude these states because they are either missing or have zero 
 # reported salt application rates as determined by Dugan et al., 2017

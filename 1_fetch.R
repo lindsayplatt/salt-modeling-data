@@ -11,16 +11,29 @@ p1_targets <- list(
              whatNWISsites(stateCd = conus_state_abbr, 
                            parameterCd = '00095',
                            startDate = start_date,
-                           endDate = end_date),
+                           endDate = end_date,
+                           siteType = site_type,
+                           service = data_service),
              pattern = map(conus_state_abbr)),
   tar_target(conus_sc_sites_surface,
-             filter(conus_sc_sites, site_tp_cd %in% c('ST', 'LK'))),
+             conus_sc_sites %>% 
+               # Remove any with ST-CA, ST-DCH, ST-TS
+               filter(site_tp_cd %in% c('ST')) %>% 
+               # Then filter to only those that also have flow data
+               # which meet the appropriate requirements (at least 10 yrs
+               # with some of it happening after Jan 1, 2000)
+               filter(site_no %in% conus_q_availability_all$site_no)),
   tar_target(conus_sc_availability,
              whatNWISdata(siteNumber = conus_sc_sites_surface$site_no, 
                           parameterCd = '00095',
                           startDate = start_date,
                           endDate = end_date,
-                          service = c('dv'))),#skip uv for now, 'uv'))),
+                          service = data_service) %>% 
+               # Filter to only those sites that have had
+               # data past 2010 and at least 10 years of it
+               mutate(years_running = as.numeric((end_date - begin_date)/365)) %>% 
+               filter(years_running >= record_min_yrs) %>% 
+               filter(end_date >= as.Date(recent_date))),
   
   # Use results from search for available data to create download groups of 
   # sites based on service and chunks of sites. This is borrowed from Lauren 
@@ -126,16 +139,29 @@ p1_targets <- list(
              whatNWISsites(stateCd = conus_state_abbr, 
                            parameterCd = '00060',
                            startDate = start_date,
-                           endDate = end_date),
+                           endDate = end_date,
+                           siteType = site_type,
+                           service = data_service),
              pattern = map(conus_state_abbr)),
   tar_target(conus_q_sites_surface,
-             filter(conus_q_sites, site_tp_cd %in% c('ST', 'LK'))),
-  tar_target(conus_q_availability,
+             # Remove any with ST-CA, ST-DCH, ST-TS
+             filter(conus_q_sites, site_tp_cd %in% c('ST'))),
+  tar_target(conus_q_availability_all,
              whatNWISdata(siteNumber = conus_q_sites_surface$site_no, 
                           parameterCd = '00060',
                           startDate = start_date,
                           endDate = end_date,
-                          service = c('dv'))),#skip uv for now, 'uv'))),
+                          service = data_service) %>% 
+               # Filter to only those sites that have had data past 2010
+               # and at least 10 years
+               mutate(years_running = as.numeric((end_date - begin_date)/365)) %>% 
+               filter(years_running >= record_min_yrs) %>% 
+               filter(end_date >= as.Date(recent_date))),
+  # Match Q sites back to those that have SC so that we only
+  # download what we need
+  tar_target(conus_q_availability, 
+             conus_q_availability_all %>% 
+               filter(site_no %in% conus_sc_availability$site_no)),
   
   # Use results from search for available data to create download groups of 
   # sites based on service and chunks of sites. This is borrowed from Lauren 
