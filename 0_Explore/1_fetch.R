@@ -397,7 +397,7 @@ p1_targets <- list(
   
   ##### Load Hare et al dataset #####
   
-  tar_target(hare_et_al_xlsx, 'hare_et_al/sourcedatafigs1,2and3.xlsx', format="file"),
+  tar_target(hare_et_al_xlsx, '1_fetch/in/hare_et_al/sourcedatafigs1,2and3.xlsx', format="file"),
   tar_target(hare_et_al,
              readxl::read_excel(hare_et_al_xlsx) %>%
                rename(site_no = SW_ID))
