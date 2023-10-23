@@ -3,6 +3,7 @@ library(targets)
 
 options(tidyverse.quiet = TRUE)
 tar_option_set(packages = c(
+  'dataRetrieval',
   'tidyverse'
 ))
 
