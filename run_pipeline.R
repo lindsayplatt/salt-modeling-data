@@ -8,5 +8,5 @@ tar_make()
 setwd(wd)
 
 # RUN CURRENT PIPELINE, POST-PROPOSAL
-library(targets)
-tar_make()
+# library(targets)
+# tar_make()
