@@ -39,11 +39,12 @@ vignettes/*.pdf
 .Renviron
 
 # Ignore python build cache
-lstm_modeling/__pycache__
+0_Explore/lstm_modeling/__pycache__
 
 # Ignore pipeline output files
-_targets/*
-1_fetch/tmp/*
-1_fetch/out/*
-2_process/out/*
-3_visualize/out/*
+0_Explore/_targets/*
+0_Explore/1_fetch/tmp/*
+0_Explore/1_fetch/out/*
+0_Explore/2_process/out/*
+0_Explore/3_visualize/out/*
+!*.placeholder
