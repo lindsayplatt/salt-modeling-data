@@ -2,7 +2,7 @@
 
 source('1_Download/src/nwis_fxns.R')
 source('1_Download/src/retry_fxns.R')
-source('1_Download/src/zip_fxns.R')
+source('1_Download/src/download_helper_fxns.R')
 
 p1_targets <- list(
   
@@ -190,6 +190,20 @@ p1_targets <- list(
              item_file_download(sb_id = '60be54f6d34e86b9389117f9',
                                 names = 'dtw.csv',
                                 destinations = '1_Download/out/depth2wt.csv'), 
+             format = 'file'),
+  
+  ##### ADDITIONAL DATASETS ONLINE {< 1 MIN} #####
+  
+  # The groundwater signature dataset from Hare et al. 2021 is available for download on
+  # nature.com. The following targets download the zipfile and unzip, keeping the needed files.
+  tar_target(p1_url_gwsig_zip, 
+             download_file_from_url(out_file = '1_Download/tmp/gwsig.zip',
+                                    url_in = 'https://static-content.springer.com/esm/art%3A10.1038%2Fs41467-021-21651-0/MediaObjects/41467_2021_21651_MOESM3_ESM.zip'),
+             format = 'file'),
+  tar_target(p1_url_gwsig_xlsx, 
+             extract_file_from_zip(out_file = '1_Download/out/gwsig.xlsx', 
+                                   zip_file = p1_url_gwsig_zip,
+                                   file_to_extract = 'sourcedatafigs1,2and3.xlsx'), 
              format = 'file')
   
 )
