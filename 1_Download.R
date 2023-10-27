@@ -2,6 +2,7 @@
 
 source('1_Download/src/nwis_fxns.R')
 source('1_Download/src/retry_fxns.R')
+source('1_Download/src/zip_fxns.R')
 
 p1_targets <- list(
   
@@ -153,6 +154,42 @@ p1_targets <- list(
                service_cd = 'dv'
              ),
              pattern = map(p1_nwis_q_sites_query_dv_download_grps),
+             format = 'file'),
+  
+  ##### SCIENCEBASE DATASET DOWNLOADS {< 1 MIN} #####
+  
+  # All ScienceBase (SB) datasets can be visited on SB by visiting the URL
+  #   `https://www.sciencebase.gov/catalog/item/{ITEM ID}` and input the 
+  #   item id for each dataset at the end of the URL.
+  
+  ###### SB DATA 1: Road salt application rates (Falcone et al., 2018) ######
+  
+  # Have to download the full zipfile but will only be using the 2015 
+  # gridded road salt application rates raster file
+  
+  tar_target(p1_sb_road_salt_zip, 
+             item_file_download(sb_id = '5b15a50ce4b092d9651e22b9',
+                                names = '1992_2015.zip',
+                                destinations = '1_Download/tmp/road_salt_all.zip'),
+             format = 'file'),
+  tar_target(p1_sb_road_salt_2015_tif, 
+             extract_file_from_zip(out_file = '1_Download/out/road_salt_2015.tif', 
+                                   zip_file = p1_sb_road_salt_zip,
+                                   file_to_extract = '2015.tif'), 
+             format = 'file'),
+  
+  ###### SB DATA 2: Gridded groundwater attributes (Zell and Sanford, 2020) ######
+  # Includes transmissivity and depth to water table
+  
+  tar_target(p1_sb_transmissivity_csv, 
+             item_file_download(sb_id = '60be54f6d34e86b9389117f9',
+                                names = 'trans.csv',
+                                destinations = '1_Download/out/transmissivity.csv'), 
+             format = 'file'),
+  tar_target(p1_sb_depth2wt_csv, 
+             item_file_download(sb_id = '60be54f6d34e86b9389117f9',
+                                names = 'dtw.csv',
+                                destinations = '1_Download/out/depth2wt.csv'), 
              format = 'file')
   
 )

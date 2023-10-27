@@ -6,6 +6,7 @@ tar_option_set(
   packages = c(
     'arrow',
     'dataRetrieval',
+    'sbtools',
     'tidyverse'
   ), 
   format =  'qs',
