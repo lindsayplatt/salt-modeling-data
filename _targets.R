@@ -1,12 +1,15 @@
 
 library(targets)
+library(tarchetypes)
 
 options(tidyverse.quiet = TRUE)
 tar_option_set(
   packages = c(
     'arrow',
     'dataRetrieval',
+    'nhdplusTools',
     'sbtools',
+    'sf',
     'tidyverse'
   ), 
   format =  'qs',

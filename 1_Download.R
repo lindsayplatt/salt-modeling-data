@@ -1,8 +1,9 @@
 # Targets for downloading data used in this analysis
 
+source('1_Download/src/download_helper_fxns.R')
+source('1_Download/src/nhdplus_fxns.R')
 source('1_Download/src/nwis_fxns.R')
 source('1_Download/src/retry_fxns.R')
-source('1_Download/src/download_helper_fxns.R')
 
 p1_targets <- list(
   
@@ -204,6 +205,38 @@ p1_targets <- list(
              extract_file_from_zip(out_file = '1_Download/out/gwsig.xlsx', 
                                    zip_file = p1_url_gwsig_zip,
                                    file_to_extract = 'sourcedatafigs1,2and3.xlsx'), 
-             format = 'file')
+             format = 'file'),
+  
+  ##### NHD+: Identify COMIDs for USGS NWIS sites & download catchment attributes {?? MIN} #####
+  
+  ###### Link stream sites to COMIDs #####
+  
+  # First, turn sites into a spatial features object and group into sets of 100 sites
+  # in preparation for querying NHDPlus
+  tar_group_size(p1_nwis_sc_sites_sf, 
+                 fetch_site_locations(p1_nwis_sc_sites_query$site_no),
+                 size = 50),
+  
+  # Then, query NHDPlus using the site locations to identify
+  # the NHD COMID of the closest reach. Two of the COMIDs are 
+  # reused for the same sites:
+  #   COMID 5866457 is linked to site_no '01104455' and '01104460'
+  #   COMID 11079215 is linked to site_no '07381324' and '07381328'
+  tar_target(p1_nwis_site_nhd_comid_xwalk, 
+             identify_site_comids(p1_nwis_sc_sites_sf),
+             pattern = map(p1_nwis_sc_sites_sf)),
+  
+  ###### Download desired static catchment attributes from NHDPlus #####
+  
+  # NHDPlus reach and catchment attributes originating from Wieczorek et al., 2018 but
+  # downloaded via functions in the `nhdplusTools` R package.
+  tar_target(p1_nhdplus_attr_yml, '1_Download/in/nhdplus_attributes.yml', format='file'),
+  tar_target(p1_nhdplus_attr_list, load_nhdplus_attribute_list(p1_nhdplus_attr_yml)),
+  
+  # Download catchment attributes data for each COMID
+  tar_target(p1_nhdplus_attr_vals_tbl, 
+             download_nhdplus_attributes(attributes = unlist(p1_nhdplus_attr_list),
+                                         comids = unique(p1_nwis_site_nhd_comid_xwalk$nhd_comid)),
+             pattern = map(p1_nhdplus_attr_list))
   
 )
