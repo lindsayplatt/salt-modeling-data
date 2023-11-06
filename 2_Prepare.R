@@ -2,6 +2,7 @@
 # site selection in this analysis
 
 source('2_Prepare/src/ts_nwis_fxns.R')
+source('2_Prepare/src/attr_nwis_fxns.R')
 
 p2_targets <- list(
   
@@ -54,4 +55,7 @@ p2_targets <- list(
                                               p1_nwis_q_data_dv_feather),
                                  param_colname = 'Flow'),
              format = 'file'),
+  
+  # Then, find a single mean daily Q value per site
+  tar_target(p2_attr_mean_q, calculate_mean_q_per_site(p2_attr_q_dv_feather))
 )
