@@ -61,7 +61,7 @@ p2_targets <- list(
              format = 'file'),
   
   # Then, find a single mean daily Q value per site
-  tar_target(p2_attr_mean_q, calculate_mean_q_per_site(p2_attr_q_dv_feather))
+  tar_target(p2_attr_meanFlow, calculate_mean_q_per_site(p2_attr_q_dv_feather))
   
   ###### ATTR DATA 2: Extract road salt application per site ######
   
