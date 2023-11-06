@@ -165,6 +165,9 @@ p1_targets <- list(
   
   ###### SB DATA 1: Road salt application rates (Falcone et al., 2018) ######
   
+  # Falcone, J. A., Oelsner, G. P., and Bock, A. R. (2018). Estimates of Road
+  #   Salt Application across the conterminous United States (1992-2015).
+  
   # Have to download the full zipfile but will only be using the 2015 
   # gridded road salt application rates raster file
   
@@ -182,6 +185,11 @@ p1_targets <- list(
   ###### SB DATA 2: Gridded groundwater attributes (Zell and Sanford, 2020) ######
   # Includes transmissivity and depth to water table
   
+  # Zell, W. O., Sanford, W. E. (2020). Calibrated simulation of the long‐term average
+  #   surficial groundwater system and derived spatial distributions of its characteristics 
+  #   for the contiguous United States. Water Resources Research, 55, e2019WR026724. 
+  #   https://doi.org/10.1029/2019WR026724.
+  
   tar_target(p1_sb_transmissivity_csv, 
              item_file_download(sb_id = '60be54f6d34e86b9389117f9',
                                 names = 'trans.csv',
@@ -194,6 +202,10 @@ p1_targets <- list(
              format = 'file'),
   
   ##### ADDITIONAL DATASETS ONLINE {< 1 MIN} #####
+  
+  # Hare, D. K., Helton, A. M., Johnson, Z. C., Lane, J. W., and Briggs, M. A. (2021). 
+  #   Continental-scale analysis of shallow and deep groundwater contributions to streams.
+  #   Nature Communications, 12(1):1450. Number: 1 Publisher: Nature Publishing Group.
   
   # The groundwater signature dataset from Hare et al. 2021 is available for download on
   # nature.com. The following targets download the zipfile and unzip, keeping the needed files.
@@ -229,9 +241,9 @@ p1_targets <- list(
   ###### Download desired static catchment attributes from NHDPlus #####
   
   # Wieczorek, M.E., Jackson, S.E., and Schwarz, G.E., 2018, Select Attributes for 
-  # NHDPlus Version 2.1 Reach Catchments and Modified Network Routed Upstream Watersheds 
-  # for the Conterminous United States (ver. 4.0, August 2023): U.S. Geological Survey 
-  # data release, https://doi.org/10.5066/F7765D7V.
+  #   NHDPlus Version 2.1 Reach Catchments and Modified Network Routed Upstream Watersheds 
+  #   for the Conterminous United States (ver. 4.0, August 2023): U.S. Geological Survey 
+  #   data release, https://doi.org/10.5066/F7765D7V.
   
   # NHDPlus reach and catchment attributes originating from Wieczorek et al., 2018 but
   # downloaded via functions in the `nhdplusTools` R package.
