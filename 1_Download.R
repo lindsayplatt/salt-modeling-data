@@ -228,6 +228,11 @@ p1_targets <- list(
   
   ###### Download desired static catchment attributes from NHDPlus #####
   
+  # Wieczorek, M.E., Jackson, S.E., and Schwarz, G.E., 2018, Select Attributes for 
+  # NHDPlus Version 2.1 Reach Catchments and Modified Network Routed Upstream Watersheds 
+  # for the Conterminous United States (ver. 4.0, August 2023): U.S. Geological Survey 
+  # data release, https://doi.org/10.5066/F7765D7V.
+  
   # NHDPlus reach and catchment attributes originating from Wieczorek et al., 2018 but
   # downloaded via functions in the `nhdplusTools` R package.
   tar_target(p1_nhdplus_attr_yml, '1_Download/in/nhdplus_attributes.yml', format='file'),
