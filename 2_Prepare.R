@@ -31,6 +31,10 @@ p2_targets <- list(
                                  param_colname = 'SpecCond'),
              format = 'file'),
   
+  ###### TS DATA 3: Fill in missing SC values ######
+  
+  # TODO: Fill in data gaps. Figure out the appropriate gap size and method.
+  
   ##### STATIC ATTRIBTUES PREP #####
   
   # All are prefixed with `p2_attr_`
@@ -58,4 +62,11 @@ p2_targets <- list(
   
   # Then, find a single mean daily Q value per site
   tar_target(p2_attr_mean_q, calculate_mean_q_per_site(p2_attr_q_dv_feather))
+  
+  ###### ATTR DATA 2: Extract road salt application per site ######
+  
+  ###### ATTR DATA 3: Calculate SC trend per site ######
+  
+  ###### ATTR DATA 4: Combine all static attributes into one table ######
+  
 )
