@@ -12,6 +12,8 @@ p1_targets <- list(
   
   ##### NWIS DATA: Download SC and Q {75 MIN} #####
   
+  # All are prefixed with `p1_nwis_`
+  
   ###### NWIS DATA 0: Set download configs for streamflow (Q) & specific conductivity (SC) ######
   
   tar_target(p1_nwis_start_date, as.Date('1950-01-01')), 
@@ -158,6 +160,8 @@ p1_targets <- list(
              format = 'file'),
   
   ##### SCIENCEBASE DATASET DOWNLOADS {< 1 MIN} #####
+  
+  # All are prefixed with `p1_sb_`
   
   # All ScienceBase (SB) datasets can be visited on SB by visiting the URL
   #   `https://www.sciencebase.gov/catalog/item/{ITEM ID}` and input the 
