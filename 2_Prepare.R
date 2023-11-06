@@ -3,6 +3,7 @@
 
 source('2_Prepare/src/ts_nwis_fxns.R')
 source('2_Prepare/src/attr_nwis_fxns.R')
+source('2_Prepare/src/attr_road_salt_fxns.R')
 
 p2_targets <- list(
   
@@ -61,9 +62,12 @@ p2_targets <- list(
              format = 'file'),
   
   # Then, find a single mean daily Q value per site
-  tar_target(p2_attr_meanFlow, calculate_mean_q_per_site(p2_attr_q_dv_feather))
+  tar_target(p2_attr_meanFlow, calculate_mean_q_per_site(p2_attr_q_dv_feather)),
   
   ###### ATTR DATA 2: Extract road salt application per site ######
+  
+  tar_target(p2_attr_roadSalt, aggregate_road_salt_per_site(road_salt_tif = p1_sb_road_salt_2015_tif, 
+                                                            sites_sf = p1_nwis_sc_sites_sf))
   
   ###### ATTR DATA 3: Calculate SC trend per site ######
   

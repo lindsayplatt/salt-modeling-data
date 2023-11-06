@@ -8,6 +8,7 @@ tar_option_set(
     'arrow',
     'dataRetrieval',
     'nhdplusTools',
+    'raster',
     'sbtools',
     'sf',
     'tidyverse'
