@@ -66,10 +66,13 @@ p2_targets <- list(
   ###### ATTR DATA 2: Extract road salt application per site ######
   
   tar_target(p2_attr_roadSalt, aggregate_road_salt_per_site(road_salt_tif = p1_sb_road_salt_2015_tif, 
-                                                            sites_sf = p1_nwis_sc_sites_sf))
+                                                            sites_sf = p1_nwis_sc_sites_sf)),
   
   ###### ATTR DATA 3: Calculate SC trend per site ######
   
-  ###### ATTR DATA 4: Combine all static attributes into one table ######
+  ###### ATTR DATA 4: Pivot and link NHD+ attributes to sites ######
+  
+  tar_target(p2_attr_nhd, prepare_nhd_attributes(p1_nhdplus_attr_vals_tbl,
+                                                 p1_nwis_site_nhd_comid_xwalk))
   
 )
