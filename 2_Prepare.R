@@ -3,6 +3,7 @@
 
 source('2_Prepare/src/ts_nwis_fxns.R')
 source('2_Prepare/src/attr_prep_fxns.R')
+source('2_Prepare/src/attr_combine_all.R')
 
 p2_targets <- list(
   
@@ -73,6 +74,12 @@ p2_targets <- list(
   ###### ATTR DATA 4: Pivot and link NHD+ attributes to sites ######
   
   tar_target(p2_attr_nhd, prepare_nhd_attributes(p1_nhdplus_attr_vals_tbl,
-                                                 p1_nwis_site_nhd_comid_xwalk))
+                                                 p1_nwis_site_nhd_comid_xwalk)),
+  
+  ###### ATTR DATA 5: Combine all static attributes into one table ######
+  
+  tar_target(p2_attr_all, combine_static_attributes(p2_attr_meanFlow,
+                                                    p2_attr_roadSalt,
+                                                    p2_attr_nhd))
   
 )
