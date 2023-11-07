@@ -2,8 +2,7 @@
 # site selection in this analysis
 
 source('2_Prepare/src/ts_nwis_fxns.R')
-source('2_Prepare/src/attr_nwis_fxns.R')
-source('2_Prepare/src/attr_road_salt_fxns.R')
+source('2_Prepare/src/attr_prep_fxns.R')
 
 p2_targets <- list(
   

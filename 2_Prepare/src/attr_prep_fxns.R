@@ -1,4 +1,20 @@
 
+#' @title Calculate static mean Q for each site
+#' @description Using the daily timeseries data for streamflow, calculate a single
+#' mean value per site to serve as a static attribute.
+#' 
+#' @param in_file a character string indicating the file path containing all
+#' daily Q records with at least the columns `site_no`, `dateTime`, and `Flow`.
+#' 
+#' @return a feather file containing only one value for each site; it should have 
+#' the columns `site_no` and `attr_meanFlow`.
+#'
+calculate_mean_q_per_site <- function(in_file) {
+  read_feather(in_file) %>% 
+    group_by(site_no) %>% 
+    summarize(attr_meanFlow = mean(Flow, na.rm = TRUE))
+}
+
 #' @title Aggregate road salt application values per site
 #' @description Extract and sum cell values from the road salt raster file
 #' to get a single road salt application rate value for each site.
@@ -6,6 +22,8 @@
 #' @param road_salt_tif filepath to the road salt tif file
 #' @param sites_sf a spatial data frame with locations for NWIS sites. Needs
 #' at least a `site_no` and `geometry` column.
+#' 
+#' @return tibble with two columns `site_no` and `attr_roadSalt`
 #' 
 aggregate_road_salt_per_site <- function(road_salt_tif, sites_sf) {
   
