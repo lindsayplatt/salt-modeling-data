@@ -23,5 +23,7 @@ source('3_Filter.R')
 source('4_ClusterTS.R')
 source('5_DefineClusters.R')
 
+select <- dplyr::select # The raster pkg keeps overriding this one so make sure this is correct
+
 c(p1_targets, p2_targets, p3_targets,
   p4_targets, p5_targets)
