@@ -36,6 +36,10 @@ p2_targets <- list(
   
   # TODO: Fill in data gaps. Figure out the appropriate gap size and method.
   
+  ###### TS DATA 4: Detrend the SC timeseries ######
+  
+  # TODO: Detrend the SC timeseries since we are using trend as a static attr
+  
   ##### STATIC ATTRIBTUES PREP #####
   
   # All are prefixed with `p2_attr_`
@@ -70,6 +74,8 @@ p2_targets <- list(
                                                             sites_sf = p1_nwis_sc_sites_sf)),
   
   ###### ATTR DATA 3: Calculate SC trend per site ######
+  
+  # TODO: Calculate SC trends to add as a static attribute
   
   ###### ATTR DATA 4: Pivot and link NHD+ attributes to sites ######
   
