@@ -105,7 +105,11 @@ combine_all_dv_data <- function(out_file, in_files, param_colname) {
   
   # Map over each of the files and read into memory
   in_files %>% 
-    map(read_nwis_file, param_colname = param_colname) %>% 
+    map(read_nwis_file, param_colname = param_colname) %>%
+    # Make sure the `dateTime` columns was read in as a `Date` class
+    # This happens *after* we already convert uv to dv so this is 
+    # just for forcing the correct class, not changing data.
+    map(~mutate(.x, dateTime = as.Date(dateTime))) %>% 
     # Combine the list of loaded tables into a single table
     bind_rows() %>% 
     # Arrange so that site's data are together and ordered chronologically
