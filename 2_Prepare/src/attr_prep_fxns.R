@@ -33,13 +33,14 @@ aggregate_road_salt_per_site <- function(road_salt_tif, sites_sf) {
                                                crs = st_crs(sites_sf)$input)
   
   road_salt_per_site <- road_salt_rast_proj %>% 
-    # Extract the cells within a 5 km radius of each site
-    # TODO: for some reason, this seems to currently only include cells above
-    # or below the point within the buffer provided. I expected to get some in
-    # the horizontal direction, too. This will require some more work. Might
-    # be able to use COMID reaches to get these values as well?
-    raster::extract(st_coordinates(sites_sf), 
-                    buffer=5000, # In meters, but only seems to go vertically
+    # Extract the cell values for cells within a 5 km radius of each site
+    # Note that this is not weighted based on how much of the cell is inside the
+    # buffered area around each site - it is either included or not based on the
+    # methods descriped in `raster::extract()`: "If the distance between the 
+    # sampling point and the center of a cell is less than or equal to the buffer, 
+    # the cell is included." AKA the cell's center must be within the buffer
+    raster::extract(sites_sf, 
+                    buffer=5000, # in meters
                     df=TRUE) %>% 
     as_tibble() %>% 
     # Add the cells around a site together to get one value of 
