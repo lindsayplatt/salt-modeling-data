@@ -40,6 +40,10 @@ p2_targets <- list(
   
   # TODO: Detrend the SC timeseries since we are using trend as a static attr
   
+  ###### TS DATA 5: Split SC timeseries into individual site-years ######
+  
+  # TODO: Split SC timeseries into site-years
+  
   ##### STATIC ATTRIBTUES PREP #####
   
   # All are prefixed with `p2_attr_`
@@ -66,6 +70,7 @@ p2_targets <- list(
              format = 'file'),
   
   # Then, find a single mean daily Q value per site
+  # TODO: do we need to do anything about negative streamflows?
   tar_target(p2_attr_meanFlow, calculate_mean_q_per_site(p2_attr_q_dv_feather)),
   
   ###### ATTR DATA 2: Extract road salt application per site ######
