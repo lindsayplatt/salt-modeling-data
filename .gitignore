@@ -23,10 +23,12 @@
 _targets/*
 */tmp/*
 */out/*
+1_Download/out_nwis/*
 # But allow folder structure to be commited
 #   with a placeholder file
 !*/tmp/.placeholder
 !*/out/.placeholder
+!1_Download/out_nwis/.placeholder
 
 ##### PRE-PROPOSAL ITEMS TO GITIGNORE #####
 
