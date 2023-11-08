@@ -151,6 +151,9 @@ read_nwis_file <- function(in_file, param_colname) {
   # will result in more NAs.
   if(!all(grepl(standard_colname_regex, names(data_in)))) {
     # TODO: Choose the appropriate sensor column for each site and date
+    # Some are dropped entirely because they only have the unique column names,
+    # e.g. c("01646500", "02323592", "251003080435500", "251209080350100", 
+    #        "251241080385300", "251253080320100")
     
     # E.g. for `01463500` before 1995-09-30, the data is stored in a different column
     # x <- dataRetrieval::readNWISdv(siteNumber = '01463500', startDate = '1968-06-25', parameterCd = '00095') %>%

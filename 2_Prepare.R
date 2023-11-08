@@ -34,6 +34,7 @@ p2_targets <- list(
   
   ###### TS DATA 3: Fill in missing SC values ######
   
+  # TODO: Replace -999999 values with NA.
   # TODO: Fill in data gaps. Figure out the appropriate gap size and method.
   
   ###### TS DATA 4: Detrend the SC timeseries ######
@@ -86,6 +87,8 @@ p2_targets <- list(
   
   tar_target(p2_attr_nhd, prepare_nhd_attributes(p1_nhdplus_attr_vals_tbl,
                                                  p1_nwis_site_nhd_comid_xwalk)),
+  
+  # TODO: add GW signature? transmissivity? depth2wt?
   
   ###### ATTR DATA 5: Combine all static attributes into one table ######
   
