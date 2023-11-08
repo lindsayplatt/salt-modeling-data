@@ -46,7 +46,7 @@ aggregate_road_salt_per_site <- function(road_salt_tif, sites_sf) {
     # Add the cells around a site together to get one value of 
     # road salt applied per site.
     group_by(ID) %>%
-    summarize(attr_roadSalt = sum(road_salt_2015)) %>% 
+    summarize(attr_roadSalt = sum(road_salt_2015, na.rm = TRUE)) %>% 
     # Add site_no as a column
     mutate(site_no = sites_sf$site_no) %>% 
     dplyr::select(site_no, attr_roadSalt)
