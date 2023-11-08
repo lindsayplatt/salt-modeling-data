@@ -5,11 +5,12 @@
 #' is used to query NHDPlus and match sites to their closest COMID. It
 #' could also be used for creating maps.
 #' 
-#' @param site_numbers a vector with NWIS site numbers as character strings
+#' @param site_metadata a tibble containing at least the columns `site_no`, 
+#' `dec_lat_va`, `dec_long_va`, and `datum`, and `tz_cd`
 #' 
 #' @return an `sf` object with site locations as individual points
 #' 
-fetch_site_locations <- function(site_numbers) {
+fetch_site_locations <- function(site_metadata) {
   
   # Crosswalk the site datums to EPSG codes. This crosswalk was borrowed
   # from Lauren Koenig's code at https://github.com/DOI-USGS/ds-pipelines-targets-example-wqp/
@@ -23,8 +24,7 @@ fetch_site_locations <- function(site_numbers) {
   
   # Transform sites into spatial features objects using the appropriate EPSG code
   # based on the datum. Tranform to the 4326 EPSG before binding together into a single sf
-  sites_sf <- readNWISsite(site_numbers) %>% 
-    select(site_no, station_nm, state_cd, huc_cd, dec_long_va, dec_lat_va, datum = coord_datum_cd) %>% 
+  sites_sf <- site_metadata %>% 
     split(.$datum) %>% 
     map(~{
       epsg_in <- datum2epsg(unique(.x$datum))

@@ -251,3 +251,18 @@ download_nwis_data <- function(out_file, site_numbers, param_cd, start_date,
   return(out_file)
 }
 
+#' @title Download metadata from NWIS
+#' @description Use the `dataRetrieval` function `readNWISsite()` to download
+#' metadata information, including lat/longs and timezone from the USGS 
+#' National Water Information System (NWIS) with a given list of site numbers. 
+#' 
+#' @param site_numbers a vector with NWIS site numbers as character strings
+#' 
+#' @return a tibble containing the columns `site_no`, `dec_lat_va`, 
+#' `dec_long_va`, `datum`, and `tz_cd`
+#'
+download_nwis_metadata <- function(site_numbers) {
+  readNWISsite(site_numbers) %>% 
+    dplyr::select(site_no, dec_long_va, dec_lat_va, datum = coord_datum_cd, tz_cd)
+}
+

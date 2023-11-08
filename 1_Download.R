@@ -159,6 +159,11 @@ p1_targets <- list(
              pattern = map(p1_nwis_q_sites_query_dv_download_grps),
              format = 'file'),
   
+  ###### NWIS DATA 9: Download site metadata ######
+  
+  tar_target(p1_nwis_sc_sites_metadata,
+             download_nwis_metadata(p1_nwis_sc_sites_query$site_no)),
+  
   ##### SCIENCEBASE DATASET DOWNLOADS {< 1 MIN} #####
   
   # All are prefixed with `p1_sb_`
@@ -230,7 +235,7 @@ p1_targets <- list(
   # First, turn sites into a spatial features object and group into sets of 100 sites
   # in preparation for querying NHDPlus
   tar_group_size(p1_nwis_sc_sites_sf, 
-                 fetch_site_locations(p1_nwis_sc_sites_query$site_no),
+                 fetch_site_locations(p1_nwis_sc_sites_metadata),
                  size = 50),
   
   # Then, query NHDPlus using the site locations to identify
