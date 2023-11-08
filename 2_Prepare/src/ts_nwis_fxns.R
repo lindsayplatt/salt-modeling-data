@@ -31,19 +31,59 @@ calculate_dv_from_uv <- function(out_file, in_file, site_tz_xwalk, param_colname
     # either SC data or Q data. The name will be reinstated at the end.
     rename_with(~gsub(param_colname, 'PARAM', .x)) %>% 
     # Create a column representing the day without the time
-    # TODO: use the appropriate timezone for this site
-    mutate(dateTime_w_time = dateTime,
-           dateTime = as.Date(dateTime)) %>% 
+    # using the appropriate timezone per site
+    convert_to_date(site_tz_xwalk) %>%
     group_by(site_no, dateTime) %>%
     summarize(PARAM = mean(PARAM_Inst, na.rm=TRUE),
               PARAM_cd = paste(unique(PARAM_Inst_cd), collapse=';'),
               .groups = 'drop') %>%
     # Replace the `PARAM` placeholder column names with the appropriate
-    rename_with(~gsub('PARAM', param_colname, .x)) %>%
+    rename_with(~gsub('PARAM', param_colname, .x)) %>% 
     # Save the data as a file
     write_feather(out_file)
   
   return(out_file)
+}
+
+#' @title Use timezones to convert dateTimes to dates
+#' @description Convert the timeseries dateTime stamps into `Date`class rather 
+#' than `POSIXct` using the appropriate time zone in order to summarize data
+#' by day and use values that are correct for the day.
+#' 
+#' @param timeseries_data a tibble with at least the columns `site_no` and
+#' `dateTime` which are used to join in timezone information and change the date.
+#' @param site_tz_xwalk a tibble with the timezone of each NWIS site so that date
+#' times can be converted into days appropriately. Should at least have the columns
+#' `site_no` and `tz_cd`.
+#' 
+#' @return a tibble the exact same structure as `timeseries_data` but with values
+#' in the `dateTime` column adjusted to dates.
+#' 
+convert_to_date <- function(timeseries_data, site_tz_xwalk) {
+  timeseries_data %>% 
+    # Join in the timezone code information as a column for each site
+    left_join(select(site_tz_xwalk, site_no, tz_cd), by = 'site_no') %>% 
+    # Map the timezone codes from NWIS into `OlsonNames()` to use in R
+    mutate(tz_str = case_when(
+      tz_cd == "EST" ~ "America/New_York",
+      tz_cd == "CST" ~ "America/Chicago",
+      tz_cd == "MST" ~ "America/Denver",
+      tz_cd == "PST" ~ "America/Los_Angeles",
+    )) %>% 
+    # For each timezone, adjust the dateTime values and then drop the times. 
+    # Only return the dates since combining back into a single column forces
+    # dateTimes back into a shared timezone string.
+    split(.$tz_str) %>% 
+    map(~{
+      .x %>% 
+        mutate(dateTime_adj = with_tz(dateTime, tzone = unique(tz_str))) %>% 
+        mutate(dateTime = as.Date(format(dateTime_adj, '%Y-%m-%d'))) %>% 
+        dplyr::select(site_no, dateTime, everything(), 
+                      -tz_cd, -tz_str, -dateTime_adj)
+    }) %>% 
+    # Combine everything and return the order to be by site and date
+    bind_rows() %>% 
+    arrange(site_no, dateTime)
 }
 
 #' @title Combine all downloaded and calculated daily means
