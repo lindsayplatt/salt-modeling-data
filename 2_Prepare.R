@@ -2,6 +2,7 @@
 # site selection in this analysis
 
 source('2_Prepare/src/ts_nwis_fxns.R')
+source('2_Prepare/src/ts_gap_fxns.R')
 source('2_Prepare/src/attr_prep_fxns.R')
 source('2_Prepare/src/attr_combine_all.R')
 
@@ -34,8 +35,22 @@ p2_targets <- list(
   
   ###### TS DATA 3: Fill in missing SC values ######
   
-  # TODO: Replace -999999 values with NA.
-  # TODO: Fill in data gaps. Figure out the appropriate gap size and method.
+  # TODO: Keep investigating WRTDS for gap-filling. For now, this is simple 
+  # linear interpolation for any gap of 5 or fewer days. Also, it replaces
+  # values of -999999. Do this per site!
+  tar_target(p2_ts_sc_dv_bySite, 
+             read_feather(p2_ts_sc_dv_feather) %>% 
+               group_by(site_no) %>% 
+               tar_group(), 
+             iteration = 'group'),
+  tar_target(p2_ts_sc_dv_gapFilled, fill_ts_gaps(p2_ts_sc_dv_bySite, 
+                                                 param_colname = 'SpecCond', 
+                                                 max_gap_days = 5),
+             pattern = p2_ts_sc_dv_bySite),
+  
+  # Now summarize the timeseries that were saved by the gap-filling
+  tar_target(p2_ts_sc_dv_gapSummary, 
+             summarize_gap_fixes(p2_ts_sc_dv_gapFilled, param_colname = 'SpecCond')),
   
   ###### TS DATA 4: Detrend the SC timeseries ######
   
