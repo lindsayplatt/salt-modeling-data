@@ -96,7 +96,8 @@ p2_targets <- list(
   
   ###### ATTR DATA 3: Calculate SC trend per site ######
   
-  # TODO: Calculate SC trends to add as a static attribute
+  # Calculate SC trends to add as a static attribute
+  tar_target(p2_attr_sc_trends, calculate_sc_trend(p2_ts_sc_dv_feather, max_pval = 0.05)),
   
   ###### ATTR DATA 4: Pivot and link NHD+ attributes to sites ######
   
@@ -109,6 +110,7 @@ p2_targets <- list(
   
   tar_target(p2_attr_all, combine_static_attributes(p2_attr_meanFlow,
                                                     p2_attr_roadSalt,
+                                                    p2_attr_sc_trends,
                                                     p2_attr_nhd))
   
 )
