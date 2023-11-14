@@ -89,6 +89,8 @@ convert_to_date <- function(timeseries_data, site_tz_xwalk) {
 #' @title Combine all downloaded and calculated daily means
 #' @description Using the downloaded NWIS daily data and the output from 
 #' `calculate_dv_from_uv()`, create a single timeseries dataset of daily means.
+#' Note that if the data contains the column `SpecCond` any `-999999` value is 
+#' replaced by an NA. 
 #' 
 #' @param out_file a character string indicating a file path to save a feather 
 #' file of all the daily means
@@ -113,7 +115,12 @@ combine_all_dv_data <- function(out_file, in_files, param_colname) {
     # Combine the list of loaded tables into a single table
     bind_rows() %>% 
     # Arrange so that site's data are together and ordered chronologically
-    arrange(site_no, dateTime) %>% 
+    arrange(site_no, dateTime) %>% {
+      # For SC data, replace the -999999 code with NAs before counting & filling gaps
+      if(param_colname == 'SpecCond')
+        mutate(., SpecCond = na_if(SpecCond, -999999))
+      else .
+    } %>% 
     # Save the data as a file
     write_feather(out_file)
   

@@ -68,9 +68,8 @@ interpolate_gaps <- function(ts_data, ids_to_interp, param_colname) {
 #' @description Identify, fill, and announce gap-filling. This is 
 #' currently setup to use linear interpolation via `interpolate_gaps()` 
 #' to fill gaps that meet gap-filling maximums, determined by 
-#' `identify_acceptable_gaps()`. Note that if `-999999` appears in the 
-#' data, it is replaced by an NA *before* gaps are identified and filled. This
-#' assumes that the data passed in is for only one site.
+#' `identify_acceptable_gaps()`. This assumes that the data passed in is for 
+#' only one site.
 #' 
 #' @param ts_data a tibble with at least the columns `site_no`, `dateTime`, and `[PARAM]`
 #' @param param_colname a character string indicating the name used in the columns 
@@ -91,9 +90,7 @@ fill_ts_gaps <- function(ts_data, param_colname, max_gap_days) {
     # Join in the real data
     left_join(ts_data, by = c('site_no', 'dateTime')) %>% 
     # Temporarily rename the data column so that this can handle any param
-    rename_with(~gsub(param_colname, 'PARAM', .x)) %>% 
-    # Replace the -999999 code with NAs before counting & filling gaps
-    mutate(PARAM = na_if(PARAM, -999999))
+    rename_with(~gsub(param_colname, 'PARAM', .x)) 
   
   # Create a vector of the row indices that qualify to be filled
   row_ids_to_fill <- identify_acceptable_gaps(ts_data_all_days[['PARAM']], 

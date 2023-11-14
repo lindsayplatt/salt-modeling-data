@@ -26,6 +26,7 @@ p2_targets <- list(
   
   ###### TS DATA 2: Combine all daily mean SC data ######
   
+  # Also, it replaces values of -999999. 
   tar_target(p2_ts_sc_dv_feather, 
              combine_all_dv_data(out_file = '2_Prepare/tmp/ts_sc_dv.feather',
                                  in_files = c(p2_ts_sc_uv_to_dv_feather,
@@ -36,8 +37,7 @@ p2_targets <- list(
   ###### TS DATA 3: Fill in missing SC values ######
   
   # TODO: Keep investigating WRTDS for gap-filling. For now, this is simple 
-  # linear interpolation for any gap of 5 or fewer days. Also, it replaces
-  # values of -999999. Do this per site!
+  # linear interpolation for any gap of 5 or fewer days. Do this per site!
   tar_target(p2_ts_sc_dv_bySite, 
              read_feather(p2_ts_sc_dv_feather) %>% 
                group_by(site_no) %>% 
