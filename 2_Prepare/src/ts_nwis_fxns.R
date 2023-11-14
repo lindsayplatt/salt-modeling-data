@@ -167,6 +167,7 @@ read_nwis_file <- function(in_file, param_colname) {
     #   renameNWISColumns() %>% 
     #   mutate(SC = ifelse(!is.na(SpecCond), SpecCond, `..2.._SpecCond`))
     # plot(x$dateTime, x$SC)
+    # in_file <- "1_Download/out_nwis/sc_dv_003.feather"
     
     # For now, just record which files this occurs in.
     message('Found a file with more than `SpecCond` datastream: ', in_file)
