@@ -92,6 +92,7 @@ inventory_nwis_data <- function(site_numbers, param_cd, start_date, end_date) {
     left_join(data_info, by = c('site_no', query_service = 'data_type_cd', 'stat_cd')) %>%  
     # Cleanup table to return
     select(site_no, query_service, 
+           datastream_name = loc_web_ds, # This is sometimes used to distinguish multiple sensors at one site
            begin_date, end_date, 
            days_count = count_nu, 
            year_span, year_coverage, 

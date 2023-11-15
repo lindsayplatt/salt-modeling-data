@@ -2,6 +2,8 @@
 # site selection in this analysis
 
 source('2_Prepare/src/ts_nwis_fxns.R')
+source('2_Prepare/src/ts_gap_fxns.R')
+source('2_Prepare/src/ts_detrend_fxns.R')
 source('2_Prepare/src/attr_prep_fxns.R')
 source('2_Prepare/src/attr_combine_all.R')
 
@@ -25,6 +27,7 @@ p2_targets <- list(
   
   ###### TS DATA 2: Combine all daily mean SC data ######
   
+  # Also, it replaces values of -999999. 
   tar_target(p2_ts_sc_dv_feather, 
              combine_all_dv_data(out_file = '2_Prepare/tmp/ts_sc_dv.feather',
                                  in_files = c(p2_ts_sc_uv_to_dv_feather,
@@ -34,16 +37,28 @@ p2_targets <- list(
   
   ###### TS DATA 3: Fill in missing SC values ######
   
-  # TODO: Replace -999999 values with NA.
-  # TODO: Fill in data gaps. Figure out the appropriate gap size and method.
+  # TODO: Keep investigating WRTDS for gap-filling. For now, this is simple 
+  # linear interpolation for any gap of 5 or fewer days. Do this per site!
+  tar_target(p2_ts_sc_dv_bySite, 
+             read_feather(p2_ts_sc_dv_feather) %>% 
+               group_by(site_no) %>% 
+               tar_group(), 
+             iteration = 'group'),
+  tar_target(p2_ts_sc_dv_gapFilled, fill_ts_gaps(p2_ts_sc_dv_bySite, 
+                                                 param_colname = 'SpecCond', 
+                                                 max_gap_days = 5),
+             pattern = p2_ts_sc_dv_bySite),
+  
+  # Now summarize the timeseries that were saved by the gap-filling
+  tar_target(p2_ts_sc_dv_gapSummary, 
+             summarize_gap_fixes(p2_ts_sc_dv_gapFilled, param_colname = 'SpecCond')),
   
   ###### TS DATA 4: Detrend the SC timeseries ######
   
-  # TODO: Detrend the SC timeseries since we are using trend as a static attr
-  
-  ###### TS DATA 5: Split SC timeseries into individual site-years ######
-  
-  # TODO: Split SC timeseries into site-years
+  # Detrend the SC timeseries since we are using trend as a static attr
+  # Detrend only works for sites without any NAs in their time series
+  tar_target(p2_ts_sc_detrend_sites, identify_sites_to_detrend(p2_ts_sc_dv_gapFilled, 'SpecCond')),
+  tar_target(p2_ts_sc_dv_detrend, detrend_ts_data(p2_ts_sc_dv_gapFilled, p2_ts_sc_detrend_sites, 'SpecCond')),
   
   ##### STATIC ATTRIBTUES PREP #####
   
@@ -81,7 +96,8 @@ p2_targets <- list(
   
   ###### ATTR DATA 3: Calculate SC trend per site ######
   
-  # TODO: Calculate SC trends to add as a static attribute
+  # Calculate SC trends to add as a static attribute
+  tar_target(p2_attr_sc_trends, calculate_sc_trend(p2_ts_sc_dv_feather, max_pval = 0.05)),
   
   ###### ATTR DATA 4: Pivot and link NHD+ attributes to sites ######
   
@@ -94,6 +110,7 @@ p2_targets <- list(
   
   tar_target(p2_attr_all, combine_static_attributes(p2_attr_meanFlow,
                                                     p2_attr_roadSalt,
+                                                    p2_attr_sc_trends,
                                                     p2_attr_nhd))
   
 )

@@ -3,4 +3,8 @@
 
 p4_targets <- list(
   
+  ###### Split SC timeseries into individual site-years ######
+  
+  # TODO: Split SC timeseries into site-years to prep for running DTW
+  
 )
