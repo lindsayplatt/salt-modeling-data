@@ -60,10 +60,6 @@ p2_targets <- list(
   tar_target(p2_ts_sc_detrend_sites, identify_sites_to_detrend(p2_ts_sc_dv_gapFilled, 'SpecCond')),
   tar_target(p2_ts_sc_dv_detrend, detrend_ts_data(p2_ts_sc_dv_gapFilled, p2_ts_sc_detrend_sites, 'SpecCond')),
   
-  ###### TS DATA 5: Split SC timeseries into individual site-years ######
-  
-  # TODO: Split SC timeseries into site-years
-  
   ##### STATIC ATTRIBTUES PREP #####
   
   # All are prefixed with `p2_attr_`
