@@ -3,6 +3,7 @@
 
 source('2_Prepare/src/ts_nwis_fxns.R')
 source('2_Prepare/src/ts_gap_fxns.R')
+source('2_Prepare/src/ts_detrend_fxns.R')
 source('2_Prepare/src/attr_prep_fxns.R')
 source('2_Prepare/src/attr_combine_all.R')
 
@@ -54,7 +55,10 @@ p2_targets <- list(
   
   ###### TS DATA 4: Detrend the SC timeseries ######
   
-  # TODO: Detrend the SC timeseries since we are using trend as a static attr
+  # Detrend the SC timeseries since we are using trend as a static attr
+  # Detrend only works for sites without any NAs in their time series
+  tar_target(p2_ts_sc_detrend_sites, identify_sites_to_detrend(p2_ts_sc_dv_gapFilled, 'SpecCond')),
+  tar_target(p2_ts_sc_dv_detrend, detrend_ts_data(p2_ts_sc_dv_gapFilled, p2_ts_sc_detrend_sites, 'SpecCond')),
   
   ###### TS DATA 5: Split SC timeseries into individual site-years ######
   

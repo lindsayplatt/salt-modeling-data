@@ -7,11 +7,13 @@ tar_option_set(
   packages = c(
     'arrow',
     'dataRetrieval',
+    'feasts',
     'nhdplusTools',
     'raster',
     'sbtools',
     'sf',
-    'tidyverse'
+    'tidyverse',
+    'tsibble'
   ), 
   format =  'qs',
   workspace_on_error = TRUE
