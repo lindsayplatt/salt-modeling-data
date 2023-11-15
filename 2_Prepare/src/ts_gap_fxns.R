@@ -43,7 +43,7 @@ identify_acceptable_gaps <- function(data_vector, max_gap_days) {
 #' @param param_colname a character string indicating the name used in the columns 
 #' for the data values. In this workflow, this is likely `SpecCond`.
 #' 
-#' @return tibble with an additional column called `[PARAM]_adj`, containing the 
+#' @return tibble with an additional column called `[PARAM]_fill`, containing the 
 #' gap-filled values (may still have some NAs)
 #' 
 interpolate_gaps <- function(ts_data, ids_to_interp, param_colname) {
@@ -56,7 +56,7 @@ interpolate_gaps <- function(ts_data, ids_to_interp, param_colname) {
     mutate(PARAM_interp = zoo::na.approx(PARAM, na.rm = FALSE)) %>% 
     # Now replace interpolated values with `NA` for any of those
     # rows where we think the gap is too big to accept the interpolation
-    mutate(PARAM_adj = ifelse(row_number() %in% ids_to_interp,
+    mutate(PARAM_fill = ifelse(row_number() %in% ids_to_interp,
                               PARAM_interp, NA)) %>% 
     dplyr::select(-PARAM_interp) %>% 
     ungroup() %>% 
@@ -77,7 +77,7 @@ interpolate_gaps <- function(ts_data, ids_to_interp, param_colname) {
 #' @param max_gap_days single numeric value indicating the maximum number of 
 #' sequential values that can be NA; passed on to `identify_acceptable_gaps()`
 #' 
-#' @return tibble with an additional column called `[PARAM]_adj`, containing the 
+#' @return tibble with an additional column called `[PARAM]_fill`, containing the 
 #' gap-filled values (may still have some NAs) and additional rows so that the 
 #' data has one for each day between the min and max dates).
 #' 
@@ -111,7 +111,7 @@ fill_ts_gaps <- function(ts_data, param_colname, max_gap_days) {
 #' sites' data passed in at once.
 #' 
 #' @param ts_filled_data a tibble with at least the columns `site_no`, `dateTime`,
-#' `[PARAM]`, and `[PARAM]_adj`; expects the output of fill_ts_gaps
+#' `[PARAM]`, and `[PARAM]_fill`; expects the output of fill_ts_gaps
 #' @param param_colname a character string indicating the name used in the columns 
 #' for the data values. In this workflow, this is likely `SpecCond`.
 #' 
@@ -129,7 +129,7 @@ summarize_gap_fixes <- function(ts_filled_data, param_colname) {
     # specific site-year. If there are NAs, that timeseries would be 
     # removed before getting used in the clustering algorithms.
     summarize(use_before = !any(is.na(PARAM)),
-              use_after = !any(is.na(PARAM_adj)),
+              use_after = !any(is.na(PARAM_fill)),
               .groups = 'keep') %>%
     ungroup()
   
