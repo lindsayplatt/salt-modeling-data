@@ -81,7 +81,7 @@ interpolate_gaps <- function(ts_data, ids_to_interp, param_colname) {
 #' gap-filled values (may still have some NAs) and additional rows so that the 
 #' data has one for each day between the min and max dates).
 #' 
-fill_ts_gaps <- function(ts_data, param_colname, max_gap_days) {
+fill_ts_gaps_linear <- function(ts_data, param_colname, max_gap_days) {
   # Start by creating a data frame with all possible days for each site
   ts_data_all_days <- tibble(site_no = unique(ts_data$site_no),
                              dateTime = seq(min(ts_data$dateTime), 

@@ -44,14 +44,17 @@ p2_targets <- list(
                group_by(site_no) %>% 
                tar_group(), 
              iteration = 'group'),
-  tar_target(p2_ts_sc_dv_gapFilled, fill_ts_gaps(p2_ts_sc_dv_bySite, 
-                                                 param_colname = 'SpecCond', 
-                                                 max_gap_days = 5),
-             pattern = p2_ts_sc_dv_bySite),
+  # Also fill with linear interpolation for comparison
+  tar_target(p2_ts_sc_dv_gapFilled_linear, fill_ts_gaps_linear(p2_ts_sc_dv_bySite, 
+                                                               param_colname = 'SpecCond', 
+                                                               max_gap_days = 5),
+             pattern = map(p2_ts_sc_dv_bySite)),
   
   # Now summarize the timeseries that were saved by the gap-filling
   tar_target(p2_ts_sc_dv_gapSummary, 
              summarize_gap_fixes(p2_ts_sc_dv_gapFilled, param_colname = 'SpecCond')),
+  tar_target(p2_ts_sc_dv_gapSummary_linear, 
+             summarize_gap_fixes(p2_ts_sc_dv_gapFilled_linear, param_colname = 'SpecCond')),
   
   ###### TS DATA 4: Detrend the SC timeseries ######
   
