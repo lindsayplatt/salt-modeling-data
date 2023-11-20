@@ -156,6 +156,15 @@ apply_wrtds <- function(data_q, data_param, param_colname, param_nwis_cd) {
     populateDaily(qConvert = 35.314667, # Convert ft3/s to m3/s
                   verbose = FALSE)
   wrtds_sample <- data_param %>% 
+    # For at least one site (01104430) the SC record was one day longer
+    # than the Q record. This can cause issues with the EGRET WRTDS methods
+    # converging on a solution. In these instances, filter to the time range
+    # of the `wrtds_daily` data frame (this shouldn't do anything for sites
+    # whose Q data is longer than param data because `wrtds_daily` was already
+    # subset to match the param time range).
+    filter(dateTime >= min(wrtds_daily$Date),
+           dateTime <= max(wrtds_daily$Date)) %>% 
+    # Set up parameter data in prep for EGRET WRTDS methods
     mutate(ConcLow = !!as.name(param_colname), 
            ConcHigh = !!as.name(param_colname),
            Uncen = 1) %>% 
