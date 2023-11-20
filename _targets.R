@@ -7,6 +7,7 @@ tar_option_set(
   packages = c(
     'arrow',
     'dataRetrieval',
+    'EGRET',
     'feasts',
     'nhdplusTools',
     'raster',

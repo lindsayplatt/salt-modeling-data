@@ -37,13 +37,34 @@ p2_targets <- list(
   
   ###### TS DATA 3: Fill in missing SC values ######
   
-  # TODO: Keep investigating WRTDS for gap-filling. For now, this is simple 
-  # linear interpolation for any gap of 5 or fewer days. Do this per site!
+  # Setup SC and Q data to be mapped by site (arranged by site first so
+  # that the sites alignt to the same group
   tar_target(p2_ts_sc_dv_bySite, 
              read_feather(p2_ts_sc_dv_feather) %>% 
+               arrange(site_no) %>% 
                group_by(site_no) %>% 
                tar_group(), 
              iteration = 'group'),
+  tar_target(p2_attr_q_dv_bySite, 
+             read_feather(p2_attr_q_dv_feather) %>% 
+               arrange(site_no) %>% 
+               group_by(site_no) %>% 
+               tar_group(), 
+             iteration = 'group'),
+  
+  # Run WRTDS to produce complete timeseries of SC data per site
+  # Note that this step will be lengthy. About 5 minutes per site x num sites.
+  tar_target(p2_ts_sc_dv_WRTDS, 
+             apply_wrtds(data_q = p2_attr_q_dv_bySite,
+                         data_param = p2_ts_sc_dv_bySite,
+                         param_colname = 'SpecCond',
+                         param_nwis_cd = p1_nwis_pcode_sc),
+             pattern = map(p2_ts_sc_dv_bySite, p2_attr_q_dv_bySite)),
+  
+  tar_target(p2_ts_sc_dv_gapFilled, fill_ts_gaps_wrtds(p2_ts_sc_dv_bySite, 
+                                                       p2_ts_sc_dv_WRTDS,
+                                                       param_colname = 'SpecCond')),
+  
   # Also fill with linear interpolation for comparison
   tar_target(p2_ts_sc_dv_gapFilled_linear, fill_ts_gaps_linear(p2_ts_sc_dv_bySite, 
                                                                param_colname = 'SpecCond', 
