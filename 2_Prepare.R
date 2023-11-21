@@ -118,7 +118,8 @@ p2_targets <- list(
   ###### ATTR DATA 3: Calculate SC trend per site ######
   
   # Calculate SC trends to add as a static attribute
-  tar_target(p2_attr_sc_trends, calculate_sc_trend(p2_ts_sc_dv_feather, max_pval = 0.05)),
+  # This calculates the trend only for data that meets our criteria from 3_Filter
+  tar_target(p2_attr_sc_trends, calculate_sc_trend(p3_ts_sc_qualified, max_pval = 0.05)),
   
   ###### ATTR DATA 4: Pivot and link NHD+ attributes to sites ######
   

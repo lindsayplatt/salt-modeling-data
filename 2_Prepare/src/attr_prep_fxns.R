@@ -19,14 +19,14 @@ calculate_mean_q_per_site <- function(in_file) {
 #' @description For each site in the data, apply different trend algorithms to 
 #' categorize that site's SC data as trending 'positive', 'negative', or 'none'.
 #' 
-#' @param in_file a character string indicating the file path containing all
-#' daily SC records with at least the columns `site_no`, `dateTime`, and `SpecCond`.
+#' @param ts_data a tibble containing all daily SC records with at least the columns
+#  `site_no`, `dateTime`, and `SpecCond`. Should use data after `3_Filter` phase
 #' @param max_pval numeric value indicating the maximum p-value that is allowed
 #' to declare a trend significant. Passed on to `extract_mk_trend()`. 
 #' 
-calculate_sc_trend <- function(in_file, max_pval = 0.05) {
+calculate_sc_trend <- function(ts_data, max_pval = 0.05) {
   # TODO: which of these trend tests should we use?
-  read_feather(in_file) %>% 
+  ts_data %>% 
     split(.$site_no) %>% 
     map(~{tibble(
       attr_TrendMannKendall = apply_MannKendall(.x, max_pval = 0.05),
