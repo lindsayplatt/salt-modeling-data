@@ -71,7 +71,7 @@ inventory_nwis_data <- function(site_numbers, param_cd, start_date, end_date) {
   data_info <- data_streams %>% 
     mutate(year_span = round(as.numeric((end_date - begin_date)/365), 2),
            year_coverage = round(count_nu/365, 2),
-           gap_pct = round(year_coverage / year_span, 0)) 
+           gap_pct = 100 - round((year_coverage / year_span)*100, 0)) 
   
   # Filter to those that have the appropriate data type (either mean dv or uv)
   data_info %>% 
