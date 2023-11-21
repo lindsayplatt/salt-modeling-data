@@ -37,16 +37,21 @@ p2_targets <- list(
   
   ###### TS DATA 3: Fill in missing SC values ######
   
+  # Note that we are only gap-filling for SC data *after* we have applied
+  # appropriate site filtering criteria in 3_Filter.
+  
   # Setup SC and Q data to be mapped by site (arranged by site first so
-  # that the sites alignt to the same group
+  # that the sites align to the same group
   tar_target(p2_ts_sc_dv_bySite, 
-             read_feather(p2_ts_sc_dv_feather) %>% 
+             p3_ts_sc_qualified %>% 
                arrange(site_no) %>% 
                group_by(site_no) %>% 
                tar_group(), 
              iteration = 'group'),
   tar_target(p2_attr_q_dv_bySite, 
              read_feather(p2_attr_q_dv_feather) %>% 
+               # Only have sites that appear in the SC data
+               filter(site_no %in% p3_ts_sc_qualified_sites) %>% 
                arrange(site_no) %>% 
                group_by(site_no) %>% 
                tar_group(), 
