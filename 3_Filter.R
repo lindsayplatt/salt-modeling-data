@@ -14,7 +14,8 @@ p3_targets <- list(
   # (currently defined as 3 years of sequential NAs)
   tar_target(p3_ts_sc_rmLargeGaps,
              filter_beyond_large_ts_gaps(p2_ts_sc_dv_feather,
-                                         param_colname = 'SpecCond')),
+                                         param_colname = 'SpecCond',
+                                         large_gap_days = 365*2)),
   
   # Filter the prepared data to sites with at least 5 years and some of 
   # those years occurring in the last 15 years. Do the same for Flow data.
