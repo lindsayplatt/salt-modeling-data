@@ -99,6 +99,9 @@ apply_wrtds <- function(data_q_param, param_colname, param_nwis_cd) {
     populateDaily(qConvert = 35.314667, # Convert ft3/s to m3/s
                   verbose = FALSE)
   wrtds_sample <- data_q_param %>%  
+    # First, remove the dates that had flow but didn't have SC before  
+    # trying to run WRTDS (which will fill in those gaps)
+    filter(!is.na(SpecCond)) %>%
     # Set up parameter data in prep for EGRET WRTDS methods
     mutate(ConcLow = !!as.name(param_colname), 
            ConcHigh = !!as.name(param_colname),
