@@ -37,42 +37,49 @@ p2_targets <- list(
   
   ###### TS DATA 3: Fill in missing SC values ######
   
-  # Note that we are only gap-filling for SC data *after* we have applied
-  # appropriate site filtering criteria in 3_Filter.
+  # First, we need to identify sites that should be gap-filled. Since WRTDS takes
+  # a lot of time to run per site, I don't want to waste resources running it
+  # for sites that we won't use anyways. So, this means that before we gap-fill,
+  # we have ...
+  #   1. Filtered to sites that meet our date range criteria. See the targets
+  #      that create `p3_attr_q_qualified` and `p3_ts_sc_qualified` in `3_Filter`.
+  #   2. Remove sites that have negative flows (WRTDS does NOT play nice with 
+  #      negatives). TODO: Later look into what to do with negative flows.
+  #   3. Remove sites that don't actually have any missing SC values on dates where
+  #      there is a flow value (we can't gap-fill with WRTDS where Q is missing).
   
-  # Setup SC and Q data to be mapped by site (arranged by site first so
-  # that the sites align to the same group
-  tar_target(p2_ts_sc_dv_bySite, 
-             p3_ts_sc_qualified %>% 
-               arrange(site_no) %>% 
+  tar_target(p2_ts_sc_to_gapfill, 
+             prep_data_for_wrtds(p3_attr_q_qualified, p3_ts_sc_qualified,
+                                 param_colname = 'SpecCond',
+                                 # TODO: look into these sites
+                                 sites_that_crash = c('01104415', '02160105',
+                                                      '03098600', '05055400',
+                                                      '07106000', '08068275',
+                                                      '08086290', '11336600')) %>% 
                group_by(site_no) %>% 
-               tar_group(), 
+               tar_group(),
              iteration = 'group'),
-  tar_target(p2_attr_q_dv_bySite, 
-             read_feather(p2_attr_q_dv_feather) %>% 
-               # Only have sites that appear in the SC data
-               filter(site_no %in% p3_ts_sc_qualified_sites) %>% 
-               arrange(site_no) %>% 
-               group_by(site_no) %>% 
-               tar_group(), 
-             iteration = 'group'),
+  
   
   # Run WRTDS to produce complete timeseries of SC data per site
-  # Note that this step will be lengthy. About 5 minutes per site x num sites.
-  tar_target(p2_ts_sc_dv_WRTDS, 
-             apply_wrtds(data_q = p2_attr_q_dv_bySite,
-                         data_param = p2_ts_sc_dv_bySite,
+  # Note that this step will be lengthy. About 4 minutes per site x num sites.
+  # TODO: inspect. Annoyingly, there are still lots of NAs in `SpecCond_wrtds` ?!?!
+  # This took 22 hours for 327 sites (avg of 4 min per site)!!!
+  tar_target(p2_ts_sc_WRTDS, 
+             apply_wrtds(data_q_param = p2_ts_sc_to_gapfill,
                          param_colname = 'SpecCond',
                          param_nwis_cd = p1_nwis_pcode_sc),
-             pattern = map(p2_ts_sc_dv_bySite, p2_attr_q_dv_bySite)),
-  
-  tar_target(p2_ts_sc_dv_gapFilled, fill_ts_gaps_wrtds(p2_ts_sc_dv_bySite, 
-                                                       p2_ts_sc_dv_WRTDS,
+             pattern = map(p2_ts_sc_to_gapfill)),
+  # TODO: CHECK ON 01115190, 10260950
+  # TODO: boxplot of WRTDS SE
+  tar_target(p2_ts_sc_gapFilled, fill_ts_gaps_wrtds(p3_ts_sc_qualified, 
+                                                       p2_ts_sc_WRTDS,
                                                        param_colname = 'SpecCond')),
   
   # Now summarize the timeseries that were saved by the gap-filling
-  tar_target(p2_ts_sc_dv_gapSummary, 
-             summarize_gap_fixes(p2_ts_sc_dv_gapFilled, param_colname = 'SpecCond')),
+  # TODO: scrutinize this output. Was expecting higher numbers, I think?
+  tar_target(p2_ts_sc_gapSummary, 
+             summarize_gap_fixes(p2_ts_sc_gapFilled, param_colname = 'SpecCond')),
   
   ###### TS DATA 4: Detrend the SC timeseries ######
   

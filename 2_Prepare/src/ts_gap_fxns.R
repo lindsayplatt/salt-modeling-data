@@ -1,20 +1,73 @@
 
+#' @title Prepare data to be gap-filled using WRTDS
+#' @description Not all sites have data that can be gap-filled using WRTDS (e.g.
+#' sites with negative flow values, sites without any missing data on days with
+#' a flow value). This can accept input for more than one site at once.
+#' 
+#' @param data_q a tibble with flow data, needs at least the columns `dateTime`, 
+#' and `Flow` columns. 
+#' @param data_param a tibble with a water quality parameter of interest to be
+#' regressed with WRTDS. It needs at least the columns `site_no`, `dateTime` and 
+#' `[PARAM]`. In this workflow, the data is likely specific conductance.
+#' @param param_colname a character string indicating the name used in the columns 
+#' for the data values. In this workflow, this is likely `SpecCond`.
+#' @param sites_that_crash vector of site numbers that caused an issue when they
+#' were used in `apply_wrtds()`. They can be investigated further later.
+#' 
+#' @return a tibble of param data with flows combined that is ready to be passed
+#' to `apply_wrtds()` to fill in missing data. Will have the columns `site_no`,
+#' `dateTime`, `Flow`, `Flow_cd`, and `[PARAM]`
+#' 
+prep_data_for_wrtds <- function(data_q, data_param, param_colname, sites_that_crash) {
+  
+  param_date_info <- data_param %>% 
+    # Per site, identify the time range of the parameter data
+    group_by(site_no) %>% 
+    summarize(param_start = min(dateTime),
+              param_end = max(dateTime)) %>% 
+    ungroup()
+  
+  data_q %>% 
+    # First, match up parameter data to a flow record (we don't want any
+    # param values without a corresponding flow record)
+    left_join(data_param, by = c('site_no', 'dateTime')) %>% 
+    # Now filter the flow data to only be for dates within the time range of the
+    # parameter data per site so that we are not using WRTDS to extend the param
+    # beyond its time range (which EGRET functions warn us against, so removing 
+    # that data up front to save on processing time)
+    left_join(param_date_info, by = c('site_no')) %>% 
+    filter(dateTime >= param_start,
+           dateTime <= param_end) %>% 
+    # Prep some filtering information by site
+    group_by(site_no) %>% 
+    mutate(has_missing_param = any(is.na(!!as.name(param_colname))),
+           has_negative_flows = any(Flow < 0)) %>% 
+    ungroup() %>% 
+    # Now only keep those sites that actually have a missing param value where
+    # there is a flow value. If not, this will error when we get to WRTDS
+    filter(has_missing_param) %>% 
+    # Remove any sites that have negative flow values
+    filter(!has_negative_flows) %>% 
+    # Select only the columns we need to run WRTDS
+    dplyr::select(site_no, dateTime, Flow, Flow_cd, !!as.name(param_colname)) %>% 
+    # Filter out the sites that crashed in `apply_wrtds()` before
+    filter(!site_no %in% sites_that_crash)
+  
+}
+
 #' @title Run WRTDS to generate a complete timeseries
 #' @description Use the EGRET R package to run a Weighted Regression in Time,
 #' Discharge, and Season (WRTDS) to generate a timeseries without any NA values.
 #' The output of this will be used to fill gaps.
 #' 
-#' @param data_q a single site's flow data, needs at least the columns `dateTime`, 
-#' `Flow`, and `Flow_cd` columns. The values in `Flow` are assumed to be in cubic
-#' feet per second (cfs).
-#' @param data_param a single site's water quality parameter of interest to be
-#' regressed with WRTDS. It needs at least the columns `dateTime` and `[PARAM]`.
-#' To use with EGRET's WRTDS functions, we assume that the values in `[PARAM]` 
-#' represent daily means from a continuous dataset (not usually how WRTDS 
-#' works). Due to the data we have to pass in, we fill in low and high daily
-#' concentrations with the same value, equal to the daily mean (whatever is in
-#' `[PARAM]` column. In addition, we assume there are no censored values. In 
-#' this workflow, the data is likely specific conductance.
+#' @param data_q_param a single site's combined flow and water quality parameter
+#' data, needs at least the columns `dateTime`, `Flow`, `Flow_cd`, and `[PARAM]`.
+#' The function assumes the values in `Flow` are in cubic feet per second (cfs)
+#' and that the values in `[PARAM]` represent daily means from a continuous 
+#' dataset (not usually how WRTDS works). Due to the data we have to pass in, 
+#' we fill in low and high daily concentrations with the same value, equal to the 
+#' daily mean (whatever is in `[PARAM]` column. In addition, we assume there are
+#' no censored values. In this workflow, the data is likely specific conductance.
 #' @param param_colname a character string indicating the name used in the columns 
 #' for the data values. In this workflow, this is likely `SpecCond`.
 #' @param param_nwis_cd the 5-digit character string representing the NWIS code
@@ -23,42 +76,29 @@
 #' 
 #' @return a tibble with the columns `site_no`, `dateTime`, `Flow`, `[PARAM]_wrtds`
 #' (WRTDS daily output), and `[PARAM]_wrtds_stderr` (the standard error associated  
-#' with the WRTDS daily output). Note that this data will have daily values for the  
-#' full flow record, which may be outside of the original`[PARAM]` time range.
+#' with the WRTDS daily output).
 #' 
-apply_wrtds <- function(data_q, data_param, param_colname, param_nwis_cd) {
+apply_wrtds <- function(data_q_param, param_colname, param_nwis_cd) {
   
-  site_number <- unique(data_q$site_no)
+  site_number <- unique(data_q_param$site_no)
   
   # Mostly suppress the EGRET function messages with `verbose=FALSE` because 
   # they can be A LOT to print out as the pipeline is running. Instead, we 
   # should see this message and one when the EGRET fxns are complete.
   message(sprintf("Starting EGRET's WRTDS for %s (%s param pts for %s days)", 
-                  site_number, nrow(data_param), 
-                  max(data_param$dateTime) - min(data_param$dateTime)))
+                  site_number, sum(!is.na(data_q_param[[param_colname]])), 
+                  max(data_q_param$dateTime) - min(data_q_param$dateTime) + 1))
   
   # Prepare data for using WRTDS functions. Get the site information (yes, this
   # queries NWIS and should technically go in `1_Download` but it is super fast
   # so it was easier to just put it in here and duplicate some of that info).
   # Convert flow and water quality data into the correctly structured data sets
   wrtds_info <- readNWISInfo(site_number, param_nwis_cd, interactive = FALSE)
-  wrtds_daily <- data_q %>% 
-    # Filter the flow data to only be for dates within the time range of `data_param`,
-    # so that we are not returning values for extensions of the input data.
-    filter(dateTime >= min(data_param$dateTime),
-           dateTime <= max(data_param$dateTime)) %>% 
+  wrtds_daily <- data_q_param %>% 
     rename(value = Flow, code = Flow_cd) %>% 
     populateDaily(qConvert = 35.314667, # Convert ft3/s to m3/s
                   verbose = FALSE)
-  wrtds_sample <- data_param %>% 
-    # For at least one site (01104430) the SC record was one day longer
-    # than the Q record. This can cause issues with the EGRET WRTDS methods
-    # converging on a solution. In these instances, filter to the time range
-    # of the `wrtds_daily` data frame (this shouldn't do anything for sites
-    # whose Q data is longer than param data because `wrtds_daily` was already
-    # subset to match the param time range).
-    filter(dateTime >= min(wrtds_daily$Date),
-           dateTime <= max(wrtds_daily$Date)) %>% 
+  wrtds_sample <- data_q_param %>%  
     # Set up parameter data in prep for EGRET WRTDS methods
     mutate(ConcLow = !!as.name(param_colname), 
            ConcHigh = !!as.name(param_colname),
@@ -112,7 +152,10 @@ apply_wrtds <- function(data_q, data_param, param_colname, param_nwis_cd) {
 fill_ts_gaps_wrtds <- function(ts_data, wrtds_data, param_colname) {
   
   wrtds_data %>% 
-    left_join(ts_data, by = c('site_no', "dateTime")) %>% 
+    # Use `full_join` to keep all the values in `wrtds_data` and `ts_data` because
+    # some sites did not get passed through WRTDS but we want to include them in
+    # the parameter data set after filling gaps where it's possible
+    full_join(ts_data, by = c('site_no', "dateTime")) %>% 
     # Temporarily rename the data column so that this can handle any param
     rename_with(~gsub(param_colname, 'PARAM', .x)) %>% 
     # Create a new column that combines the parameter timeseries values to create
