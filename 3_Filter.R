@@ -16,12 +16,15 @@ p3_targets <- list(
              filter_beyond_large_ts_gaps(p2_ts_sc_dv_feather,
                                          param_colname = 'SpecCond')),
   
-  # Filter the prepared data to sites with at least 5 years and some 
-  # of those years occurring in the last 15 years.
+  # Filter the prepared data to sites with at least 5 years and some of 
+  # those years occurring in the last 15 years. Do the same for Flow data.
   tar_target(p3_ts_sc_qualified_sites, 
              identify_qualifying_sites(p3_ts_sc_rmLargeGaps)),
   tar_target(p3_ts_sc_qualified, 
              p3_ts_sc_rmLargeGaps %>% 
+               filter(site_no %in% p3_ts_sc_qualified_sites)),
+  tar_target(p3_attr_q_qualified, 
+             read_feather(p2_attr_q_dv_feather) %>% 
                filter(site_no %in% p3_ts_sc_qualified_sites))
   
 )

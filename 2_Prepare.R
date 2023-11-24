@@ -108,7 +108,7 @@ p2_targets <- list(
   
   # Then, find a single mean daily Q value per site
   # TODO: do we need to do anything about negative streamflows?
-  tar_target(p2_attr_meanFlow, calculate_mean_q_per_site(p2_attr_q_dv_feather)),
+  tar_target(p2_attr_meanFlow, calculate_mean_q_per_site(p3_attr_q_qualified)),
   
   ###### ATTR DATA 2: Extract road salt application per site ######
   
