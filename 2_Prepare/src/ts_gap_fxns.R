@@ -200,7 +200,7 @@ fill_ts_gaps_wrtds <- function(ts_data, wrtds_data, param_colname) {
 #' @param param_colname a character string indicating the name used in the columns 
 #' for the data values. In this workflow, this is likely `SpecCond`.
 #' 
-#' @return a tibble with the columns XXX
+#' @return a tibble with the columns `status` and `num_ts`
 
 summarize_gap_fixes <- function(ts_filled_data, param_colname) {
   
