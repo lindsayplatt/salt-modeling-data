@@ -12,7 +12,9 @@
 #' @return a vector of site numbers
 #' 
 identify_sites_to_detrend <- function(ts_data, param_colname) {
-  ts_data %>% 
+  n_sites_before <- length(unique(ts_data$site_no))
+  
+  sites_to_detrend <- ts_data %>% 
     # Temporarily rename the data column so that this can handle any param
     rename_with(~gsub(param_colname, 'PARAM', .x)) %>% 
     # By site, identify if the column has any NA values
@@ -22,6 +24,11 @@ identify_sites_to_detrend <- function(ts_data, param_colname) {
     filter(!hasNAs) %>% 
     # Return only the site numbers as a character vector
     pull(site_no) 
+  
+  message(sprintf('%s out of %s sites can be detrended', 
+                  length(sites_to_detrend), n_sites_before))
+  
+  return(sites_to_detrend)
 }
 
 #' @title Detrend a timeseries

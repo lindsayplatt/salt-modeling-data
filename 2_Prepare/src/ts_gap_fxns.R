@@ -1,107 +1,192 @@
 
-#' @title Identify gaps that can be filled
-#' @description Count the length of gaps by identifying how many NAs appear
-#' multiple days in a row. Filter to only gaps that are below a max number of 
-#' days and return a vector of indices that refer to the input vector. Note
-#' that this assumes you've only passed in one site's data at a time.
+#' @title Prepare data to be gap-filled using WRTDS
+#' @description Not all sites have data that can be gap-filled using WRTDS (e.g.
+#' sites with negative flow values, sites without any missing data on days with
+#' a flow value). This can accept input for more than one site at once.
 #' 
-#' @param data_vector vector of values where some might be NA
-#' @param max_gap_days single numeric value indicating the maximum 
-#' number of sequential values that can be NA
-#' 
-#' @return numeric vector of the indices that have passed the criteria for being 
-#' gap-filled; indices correspond to the input vector, `data_vector`
-#' 
-identify_acceptable_gaps <- function(data_vector, max_gap_days) {
-  
-  # Count how many NA values appear sequentially
-  acceptableNA_sequences <- accelerometry::rle2(
-    x = is.na(data_vector), 
-    indices = TRUE) %>% as_tibble() %>% 
-    # value == 0 means "FALSE" to is.na(), keep those
-    # value == 1 means "TRUE" to is.na(), only keep if they are < max gap allowed
-    filter(value == 0 | value == 1 & length <= max_gap_days)
-  
-  # Use the `start` and `stop` fields returned by `rle2` to create
-  # a vector of the indices.
-  acceptable_ids <- apply(acceptableNA_sequences, 1, 
-                          function(x) seq(x[['start']], x[['stop']])) %>% 
-    reduce(c)
-  
-  return(acceptable_ids)
-}
-
-#' @title Linearly interpolate to fill data gaps
-#' @description Apply linear interpolation to fill data gaps. Only fills gaps
-#' in rows that correspond to the input parameter `ids_to_interp`. All other
-#' gaps will remain NAs.
-#' 
-#' @param ts_data a tibble with at least the `[PARAM]` column and a row for each 
-#' day; designed for use within `fill_ts_gaps()` 
-#' @param ids_to_interp vector of row indices that can be filled, output 
-#' of `identify_acceptable_gaps()`
+#' @param data_q a tibble with flow data, needs at least the columns `dateTime`, 
+#' and `Flow` columns. 
+#' @param data_param a tibble with a water quality parameter of interest to be
+#' regressed with WRTDS. It needs at least the columns `site_no`, `dateTime` and 
+#' `[PARAM]`. In this workflow, the data is likely specific conductance.
 #' @param param_colname a character string indicating the name used in the columns 
 #' for the data values. In this workflow, this is likely `SpecCond`.
+#' @param sites_that_crash vector of site numbers that caused an issue when they
+#' were used in `apply_wrtds()`. They can be investigated further later.
 #' 
-#' @return tibble with an additional column called `[PARAM]_fill`, containing the 
-#' gap-filled values (may still have some NAs)
+#' @return a tibble of param data with flows combined that is ready to be passed
+#' to `apply_wrtds()` to fill in missing data. Will have the columns `site_no`,
+#' `dateTime`, `Flow`, `Flow_cd`, and `[PARAM]`
 #' 
-interpolate_gaps <- function(ts_data, ids_to_interp, param_colname) {
-  ts_data %>% 
-    # Temporarily rename the data column so that this can handle any param
-    rename_with(~gsub(param_colname, 'PARAM', .x)) %>% 
-    # Linear interpolate with ALL dates and values available (doing ALL and 
-    # THEN replacing with NA afterwards so that the interpolation
-    # uses appropriate data points to fill).
-    mutate(PARAM_interp = zoo::na.approx(PARAM, na.rm = FALSE)) %>% 
-    # Now replace interpolated values with `NA` for any of those
-    # rows where we think the gap is too big to accept the interpolation
-    mutate(PARAM_fill = ifelse(row_number() %in% ids_to_interp,
-                              PARAM_interp, NA)) %>% 
-    dplyr::select(-PARAM_interp) %>% 
+prep_data_for_wrtds <- function(data_q, data_param, param_colname, sites_that_crash) {
+  
+  param_date_info <- data_param %>% 
+    # Per site, identify the time range of the parameter data
+    group_by(site_no) %>% 
+    summarize(param_start = min(dateTime),
+              param_end = max(dateTime)) %>% 
+    ungroup()
+  
+  data_q %>% 
+    # First, match up parameter data to a flow record (we don't want any
+    # param values without a corresponding flow record)
+    left_join(data_param, by = c('site_no', 'dateTime')) %>% 
+    # Now filter the flow data to only be for dates within the time range of the
+    # parameter data per site so that we are not using WRTDS to extend the param
+    # beyond its time range (which EGRET functions warn us against, so removing 
+    # that data up front to save on processing time)
+    left_join(param_date_info, by = c('site_no')) %>% 
+    filter(dateTime >= param_start,
+           dateTime <= param_end) %>% 
+    # Prep some filtering information by site
+    group_by(site_no) %>% 
+    mutate(has_missing_param = any(is.na(!!as.name(param_colname))),
+           has_negative_flows = any(Flow < 0)) %>% 
     ungroup() %>% 
-    # Reverse the `PARAM` placeholder column names 
-    rename_with(~gsub('PARAM', param_colname, .x))
+    # Now only keep those sites that actually have a missing param value where
+    # there is a flow value. If not, this will error when we get to WRTDS
+    filter(has_missing_param) %>% 
+    # Remove any sites that have negative flow values
+    filter(!has_negative_flows) %>% 
+    # WRTDS does not work if the concentration is ever 0 (this is rare but does 
+    # come up in the NWIS continuous data). Replace with a tiny value instead.
+    mutate(SpecCond = ifelse(SpecCond == 0, 0.001, SpecCond)) %>% 
+    # Select only the columns we need to run WRTDS
+    dplyr::select(site_no, dateTime, Flow, Flow_cd, !!as.name(param_colname)) %>% 
+    # Filter out the sites that crashed in `apply_wrtds()` before
+    filter(!site_no %in% sites_that_crash)
+  
 }
 
-#' @title Fill gaps in a timeseries
-#' @description Identify, fill, and announce gap-filling. This is 
-#' currently setup to use linear interpolation via `interpolate_gaps()` 
-#' to fill gaps that meet gap-filling maximums, determined by 
-#' `identify_acceptable_gaps()`. This assumes that the data passed in is for 
-#' only one site.
+#' @title Run WRTDS to generate a complete timeseries
+#' @description Use the EGRET R package to run a Weighted Regression in Time,
+#' Discharge, and Season (WRTDS) to generate a timeseries without any NA values.
+#' The output of this will be used to fill gaps.
+#' 
+#' @param data_q_param a single site's combined flow and water quality parameter
+#' data, needs at least the columns `dateTime`, `Flow`, `Flow_cd`, and `[PARAM]`.
+#' The function assumes the values in `Flow` are in cubic feet per second (cfs)
+#' and that the values in `[PARAM]` represent daily means from a continuous 
+#' dataset (not usually how WRTDS works). Due to the data we have to pass in, 
+#' we fill in low and high daily concentrations with the same value, equal to the 
+#' daily mean (whatever is in `[PARAM]` column. In addition, we assume there are
+#' no censored values. In this workflow, the data is likely specific conductance.
+#' @param param_colname a character string indicating the name used in the columns 
+#' for the data values. In this workflow, this is likely `SpecCond`.
+#' @param param_nwis_cd the 5-digit character string representing the NWIS code
+#' for this particular parameter so that information in EGRET's WRTDS functions
+#' can be gathered. In this workflow, it is likely '00095' for specific conductance.
+#' 
+#' @return a tibble with the columns `site_no`, `dateTime`, `Flow`, `[PARAM]_wrtds`
+#' (WRTDS daily output), and `[PARAM]_wrtds_stderr` (the standard error associated  
+#' with the WRTDS daily output).
+#' 
+apply_wrtds <- function(data_q_param, param_colname, param_nwis_cd) {
+  
+  site_number <- unique(data_q_param$site_no)
+  
+  # Mostly suppress the EGRET function messages with `verbose=FALSE` because 
+  # they can be A LOT to print out as the pipeline is running. Instead, we 
+  # should see this message and one when the EGRET fxns are complete.
+  message(sprintf("Starting EGRET's WRTDS for %s (%s param pts for %s days)", 
+                  site_number, sum(!is.na(data_q_param[[param_colname]])), 
+                  max(data_q_param$dateTime) - min(data_q_param$dateTime) + 1))
+  
+  # Prepare data for using WRTDS functions. Get the site information (yes, this
+  # queries NWIS and should technically go in `1_Download` but it is super fast
+  # so it was easier to just put it in here and duplicate some of that info).
+  # Convert flow and water quality data into the correctly structured data sets
+  wrtds_info <- readNWISInfo(site_number, param_nwis_cd, interactive = FALSE)
+  wrtds_daily <- data_q_param %>% 
+    rename(value = Flow, code = Flow_cd) %>% 
+    populateDaily(qConvert = 35.314667, # Convert ft3/s to m3/s
+                  verbose = FALSE)
+  wrtds_sample <- data_q_param %>%  
+    # First, remove the dates that had flow but didn't have SC before  
+    # trying to run WRTDS (which will fill in those gaps)
+    filter(!is.na(SpecCond)) %>%
+    # Set up parameter data in prep for EGRET WRTDS methods
+    mutate(ConcLow = !!as.name(param_colname), 
+           ConcHigh = !!as.name(param_colname),
+           Uncen = 1) %>% 
+    populateSampleColumns()
+  
+  # Step 1: Use `mergeReport()` to prepare `eList`
+  eList <- mergeReport(INFO = wrtds_info, Daily = wrtds_daily, 
+                       Sample = wrtds_sample, verbose = FALSE)
+  
+  # Step 2: add surfaces with `modelEstimation()` so that `yHat` and `SE` are
+  # added directly to the eList Sample and Daily data frames:
+  eList <- modelEstimation(eList, verbose = FALSE)
+  
+  # Step 3: Run WRTDS-Kalman to generate a complete time series
+  eList <- WRTDSKalman(eList, verbose = FALSE)
+    
+  message("Completed EGRET's WRTDS for ", site_number)
+  
+  # Format and return the data from the WRTDS output 
+  wrtds_out <- eList$Daily %>% 
+    # Add the site_no as a column (this fxn only does one site at a time)
+    mutate(site_no = site_number) %>% 
+    # Arrange and rename some of the columns before returning
+    dplyr::select(site_no, 
+                  dateTime = Date, 
+                  Flow = Q,
+                  !!as.name(sprintf('%s_wrtds', param_colname)) := ConcDay, 
+                  !!as.name(sprintf('%s_wrtds_stderr', param_colname)) := SE)
+  
+  return(wrtds_out)
+}
+
+#' @title Fill gaps in a timeseries using WRTDS data
+#' @description Fill gaps in a timeseries using the output from `apply_wrtds()`. 
+#' This currently only uses WRTDS values when there is an NA in the timeseries 
+#' data. 
 #' 
 #' @param ts_data a tibble with at least the columns `site_no`, `dateTime`, and `[PARAM]`
+#' @param wrtds_data a tibble with at least the columns `site_no`, `dateTime`, and 
+#' `[PARAM]_wrtds`. Should be the output of `apply_wrtds()`.
 #' @param param_colname a character string indicating the name used in the columns 
 #' for the data values. In this workflow, this is likely `SpecCond`.
-#' @param max_gap_days single numeric value indicating the maximum number of 
-#' sequential values that can be NA; passed on to `identify_acceptable_gaps()`
 #' 
-#' @return tibble with an additional column called `[PARAM]_fill`, containing the 
-#' gap-filled values (may still have some NAs) and additional rows so that the 
-#' data has one for each day between the min and max dates).
+#' @return tibble with all columns related to the parameter and gap-filling: 
+#' `site_no`, `dateTime`, `[PARAM]`, `[PARAM]_wrtds`, `[PARAM]_fill`. Plus, additional 
+#' rows compared to `ts_data` because there is now data for each day between the 
+#' min and max dates. Note that this drops `[PARAM]_cd` from the input `ts_data`
+#' and `[PARAM]_wrtds_stderr` from the input `wrtds_data`.
 #' 
-fill_ts_gaps <- function(ts_data, param_colname, max_gap_days) {
-  # Start by creating a data frame with all possible days for each site
-  ts_data_all_days <- tibble(site_no = unique(ts_data$site_no),
-                             dateTime = seq(min(ts_data$dateTime), 
-                                            max(ts_data$dateTime),
-                                            by = 'days')) %>% 
-    # Join in the real data
-    left_join(ts_data, by = c('site_no', 'dateTime')) %>% 
+fill_ts_gaps_wrtds <- function(ts_data, wrtds_data, param_colname) {
+  
+  # Create a tibble that includes all possible combinations of dates per site
+  ts_data_all_days <- ts_data %>% 
+    split(.$site_no) %>% 
+    map(~{
+      tibble(site_no = unique(.x$site_no),
+             dateTime = seq(min(.x$dateTime), 
+                            max(.x$dateTime),
+                            by = 'days')) %>% 
+        # Join in the real data
+        left_join(.x, by = c('site_no', 'dateTime'))
+    }) %>% bind_rows()
+  
+  wrtds_data %>% 
+    # Use `full_join` to keep all the values in `wrtds_data` and `ts_data` because
+    # some sites did not get passed through WRTDS but we want to include them in
+    # the parameter data set after filling gaps where it's possible
+    full_join(ts_data_all_days, by = c('site_no', "dateTime")) %>% 
     # Temporarily rename the data column so that this can handle any param
-    rename_with(~gsub(param_colname, 'PARAM', .x)) 
+    rename_with(~gsub(param_colname, 'PARAM', .x)) %>% 
+    # Create a new column that combines the parameter timeseries values to create
+    # a complete (no NA) timeseries. It will only use the WRTDS values when there
+    # is an NA for `ts_data`.
+    mutate(PARAM_fill = ifelse(is.na(PARAM), 
+                               yes = PARAM_wrtds, 
+                               no = PARAM)) %>% 
+    # Select the columns we need
+    dplyr::select(site_no, dateTime, PARAM, PARAM_wrtds, PARAM_fill) %>% 
+    # Reverse the `PARAM` placeholder column names 
+    rename_with(~gsub('PARAM', param_colname, .x))
   
-  # Create a vector of the row indices that qualify to be filled
-  row_ids_to_fill <- identify_acceptable_gaps(ts_data_all_days[['PARAM']], 
-                                              max_gap_days = 5)
-  
-  ts_data_all_days %>% 
-    # Reverse the temporary column name before passing to `interpolate_gaps()`
-    # because it will also rename them temporarily.
-    rename_with(~gsub('PARAM', param_colname, .x)) %>% 
-    # Fill the gaps!
-    interpolate_gaps(row_ids_to_fill, param_colname) 
 }
 
 #' @title Summarize counts of pre- and post-gap filling.
@@ -115,7 +200,7 @@ fill_ts_gaps <- function(ts_data, param_colname, max_gap_days) {
 #' @param param_colname a character string indicating the name used in the columns 
 #' for the data values. In this workflow, this is likely `SpecCond`.
 #' 
-#' @return a tibble with the columns XXX
+#' @return a tibble with the columns `status` and `num_ts`
 
 summarize_gap_fixes <- function(ts_filled_data, param_colname) {
   
@@ -161,4 +246,56 @@ summarize_gap_fixes <- function(ts_filled_data, param_colname) {
                     ts_saved, 
                     ts_still_unusable, 
                     ts_usable_now))
+}
+
+#' @title Summarize distribution of WRTDS errors in a boxplot
+#' @description Visualize the distribution of errors from the WRTDS output 
+#' for all possible values and then just those that were used by the gap-filling
+#' step. 
+#' 
+#' @param ts_filled_data a tibble with at least the columns `site_no`, `dateTime`,
+#' `[PARAM]`, and `[PARAM]_fill`; expects the output of fill_ts_gaps
+#' @param wrtds_data a tibble with at least the columns `site_no`, `dateTime`, and 
+#' `[PARAM]_wrtds_stderr`. Should be the output of `apply_wrtds()`.
+#' @param param_colname a character string indicating the name used in the columns 
+#' for the data values. In this workflow, this is likely `SpecCond`.
+#' 
+#' @return a ggplot object with WRTDS standard errors visualized as distributions.
+#' 
+summarize_wrtds_error <- function(ts_filled_data, wrtds_data, param_colname) {
+  
+  # Using the gap-filled dataset, identify the dates for each site
+  # that were filled with the WRTDS value.
+  site_dates_using_wrtds <- ts_filled_data %>% 
+    # Temporarily rename the data column so that this can handle any param
+    rename_with(~gsub(param_colname, 'PARAM', .x)) %>% 
+    # Filter to just the site-dates that used WRTDS
+    filter(is.na(PARAM) & !is.na(PARAM_fill)) %>% 
+    dplyr::select(site_no, dateTime)
+  
+  # Join the information about whether the WRTDS value was used to the 
+  # WRTDS data in order to make a boxplot of both WRTDS standard error
+  # overall AND standard error of just the values used.
+  wrtds_data_used <- wrtds_data %>% 
+    # Join WRTDS output into the data frame with just the site-dates that
+    # used the WRTDS value to fill in a gap.
+    right_join(site_dates_using_wrtds, by = c('site_no', 'dateTime')) %>% 
+    # Add a column that will help us plot these values vs overall
+    mutate(data_info = 'WRTDS used to fill gaps') 
+  
+  # Now combine rows with overall values and those with just the values used
+  wrtds_data_forplot <- wrtds_data %>% 
+    mutate(data_info = 'WRTDS overall') %>% 
+    bind_rows(wrtds_data_used) 
+  
+  # Now make a plot
+  ggplot(wrtds_data_forplot, 
+         aes(x = data_info, fill = data_info,
+             y = !!as.name(sprintf('%s_wrtds_stderr', param_colname)))) +
+    ggdist::stat_eye(side = "both") +
+    scico::scale_fill_scico_d(begin = 0.25, end = 0.75) +
+    xlab('') + ylab('Standard error of WRTDS output') +
+    ggtitle('Distribution of WRTDS standard errors') +
+    theme_bw() +
+    theme(legend.position = 'none')
 }
