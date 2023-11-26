@@ -154,11 +154,23 @@ apply_wrtds <- function(data_q_param, param_colname, param_nwis_cd) {
 #' 
 fill_ts_gaps_wrtds <- function(ts_data, wrtds_data, param_colname) {
   
+  # Create a tibble that includes all possible combinations of dates per site
+  ts_data_all_days <- ts_data %>% 
+    split(.$site_no) %>% 
+    map(~{
+      tibble(site_no = unique(.x$site_no),
+             dateTime = seq(min(.x$dateTime), 
+                            max(.x$dateTime),
+                            by = 'days')) %>% 
+        # Join in the real data
+        left_join(.x, by = c('site_no', 'dateTime'))
+    }) %>% bind_rows()
+  
   wrtds_data %>% 
     # Use `full_join` to keep all the values in `wrtds_data` and `ts_data` because
     # some sites did not get passed through WRTDS but we want to include them in
     # the parameter data set after filling gaps where it's possible
-    full_join(ts_data, by = c('site_no', "dateTime")) %>% 
+    full_join(ts_data_all_days, by = c('site_no', "dateTime")) %>% 
     # Temporarily rename the data column so that this can handle any param
     rename_with(~gsub(param_colname, 'PARAM', .x)) %>% 
     # Create a new column that combines the parameter timeseries values to create
