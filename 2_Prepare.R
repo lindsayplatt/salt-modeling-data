@@ -77,8 +77,7 @@ p2_targets <- list(
                                                     p2_ts_sc_WRTDS,
                                                     param_colname = 'SpecCond')),
   
-  # Now summarize the timeseries that were saved by the gap-filling
-  # TODO: scrutinize this output. Was expecting higher numbers, I think?
+  # Now summarize the time series that were saved by the gap-filling
   tar_target(p2_ts_sc_gapSummary, 
              summarize_gap_fixes(p2_ts_sc_gapFilled, param_colname = 'SpecCond')),
   
