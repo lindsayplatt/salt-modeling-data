@@ -65,9 +65,8 @@ p2_targets <- list(
   
   
   # Run WRTDS to produce complete timeseries of SC data per site
-  # Note that this step will be lengthy. About 4 minutes per site x num sites.
-  # TODO: inspect. Annoyingly, there are still lots of NAs in `SpecCond_wrtds` ?!?!
-  # This took 22 hours for 327 sites (avg of 4 min per site)!!!
+  # Note that this step will be lengthy. 
+  # Nov 24-25, 2023: This took 21 hours for 331 sites (avg of 4 min per site)!!!
   tar_target(p2_ts_sc_WRTDS, 
              apply_wrtds(data_q_param = p2_ts_sc_to_gapfill,
                          param_colname = 'SpecCond',
