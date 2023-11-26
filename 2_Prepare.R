@@ -71,7 +71,9 @@ p2_targets <- list(
                          param_colname = 'SpecCond',
                          param_nwis_cd = p1_nwis_pcode_sc),
              pattern = map(p2_ts_sc_to_gapfill)),
-  # TODO: boxplot of WRTDS SE
+  
+  # Now use the WRTDS outputs to fill in gaps where there is an NA and WRTDS is 
+  # available (this pulls in any site data that was not eligible for `apply_wrtds()`)
   tar_target(p2_ts_sc_gapFilled, fill_ts_gaps_wrtds(p3_ts_sc_qualified, 
                                                     p2_ts_sc_WRTDS,
                                                     param_colname = 'SpecCond')),
@@ -80,6 +82,10 @@ p2_targets <- list(
   tar_target(p2_ts_sc_gapSummary, 
              summarize_gap_fixes(p2_ts_sc_gapFilled, param_colname = 'SpecCond')),
   
+  # Summarizing the WRTDS output with a boxplot of standard errors
+  tar_target(p2_ts_sc_wrtds_errors_ggplot, 
+             summarize_wrtds_error(p2_ts_sc_gapFilled, p2_ts_sc_WRTDS, 'SpecCond')),
+
   ###### TS DATA 4: Detrend the SC timeseries ######
   
   # Detrend the SC timeseries since we are using trend as a static attr

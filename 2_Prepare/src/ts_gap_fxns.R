@@ -247,3 +247,55 @@ summarize_gap_fixes <- function(ts_filled_data, param_colname) {
                     ts_still_unusable, 
                     ts_usable_now))
 }
+
+#' @title Summarize distribution of WRTDS errors in a boxplot
+#' @description Visualize the distribution of errors from the WRTDS output 
+#' for all possible values and then just those that were used by the gap-filling
+#' step. 
+#' 
+#' @param ts_filled_data a tibble with at least the columns `site_no`, `dateTime`,
+#' `[PARAM]`, and `[PARAM]_fill`; expects the output of fill_ts_gaps
+#' @param wrtds_data a tibble with at least the columns `site_no`, `dateTime`, and 
+#' `[PARAM]_wrtds_stderr`. Should be the output of `apply_wrtds()`.
+#' @param param_colname a character string indicating the name used in the columns 
+#' for the data values. In this workflow, this is likely `SpecCond`.
+#' 
+#' @return a ggplot object with WRTDS standard errors visualized as distributions.
+#' 
+summarize_wrtds_error <- function(ts_filled_data, wrtds_data, param_colname) {
+  
+  # Using the gap-filled dataset, identify the dates for each site
+  # that were filled with the WRTDS value.
+  site_dates_using_wrtds <- ts_filled_data %>% 
+    # Temporarily rename the data column so that this can handle any param
+    rename_with(~gsub(param_colname, 'PARAM', .x)) %>% 
+    # Filter to just the site-dates that used WRTDS
+    filter(is.na(PARAM) & !is.na(PARAM_fill)) %>% 
+    dplyr::select(site_no, dateTime)
+  
+  # Join the information about whether the WRTDS value was used to the 
+  # WRTDS data in order to make a boxplot of both WRTDS standard error
+  # overall AND standard error of just the values used.
+  wrtds_data_used <- wrtds_data %>% 
+    # Join WRTDS output into the data frame with just the site-dates that
+    # used the WRTDS value to fill in a gap.
+    right_join(site_dates_using_wrtds, by = c('site_no', 'dateTime')) %>% 
+    # Add a column that will help us plot these values vs overall
+    mutate(data_info = 'WRTDS used to fill gaps') 
+  
+  # Now combine rows with overall values and those with just the values used
+  wrtds_data_forplot <- wrtds_data %>% 
+    mutate(data_info = 'WRTDS overall') %>% 
+    bind_rows(wrtds_data_used) 
+  
+  # Now make a plot
+  ggplot(wrtds_data_forplot, 
+         aes(x = data_info, fill = data_info,
+             y = !!as.name(sprintf('%s_wrtds_stderr', param_colname)))) +
+    ggdist::stat_eye(side = "both") +
+    scico::scale_fill_scico_d(begin = 0.25, end = 0.75) +
+    xlab('') + ylab('Standard error of WRTDS output') +
+    ggtitle('Distribution of WRTDS standard errors') +
+    theme_bw() +
+    theme(legend.position = 'none')
+}
