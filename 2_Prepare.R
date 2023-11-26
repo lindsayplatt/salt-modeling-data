@@ -49,13 +49,16 @@ p2_targets <- list(
   #      there is a flow value (we can't gap-fill with WRTDS where Q is missing).
   
   tar_target(p2_ts_sc_to_gapfill, 
-             prep_data_for_wrtds(p3_attr_q_qualified, p3_ts_sc_qualified,
-                                 param_colname = 'SpecCond',
-                                 # TODO: look into these sites
-                                 sites_that_crash = c('01104415', '02160105',
-                                                      '03098600', '05055400',
-                                                      '07106000', '08068275',
-                                                      '08086290', '11336600')) %>% 
+             prep_data_for_wrtds(
+               p3_attr_q_qualified, p3_ts_sc_qualified,
+               param_colname = 'SpecCond',
+               # Skipping a couple of sites that I can't figure out
+               # TODO: Maybe return to these in the future with an EGRET dev help
+               #  1. 05055400: finishes survival regression in `modelEstimation()` but 
+               #      then errors with "replacement has 3428 rows, data has 4486"
+               #  2. 11336600: fails with some weird `Backtrace` error
+               sites_that_crash = c('05055400', '11336600')
+             ) %>% 
                group_by(site_no) %>% 
                tar_group(),
              iteration = 'group'),
