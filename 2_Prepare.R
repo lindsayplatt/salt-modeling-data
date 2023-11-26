@@ -63,8 +63,7 @@ p2_targets <- list(
                tar_group(),
              iteration = 'group'),
   
-  
-  # Run WRTDS to produce complete timeseries of SC data per site
+  # Run WRTDS to produce complete time series of SC data per site
   # Note that this step will be lengthy. 
   # Nov 24-25, 2023: This took 21 hours for 331 sites (avg of 4 min per site)!!!
   tar_target(p2_ts_sc_WRTDS, 
@@ -92,7 +91,7 @@ p2_targets <- list(
   
   # All are prefixed with `p2_attr_`
   
-  ###### ATTR DATA 1: Collapse Q timeseries to mean Q per site ######
+  ###### ATTR DATA 1: Collapse Q time series to mean Q per site ######
   
   # First, convert instantaneous Q to daily Q
   tar_target(p2_attr_q_uv_to_dv_feather, 
