@@ -74,8 +74,8 @@ p2_targets <- list(
              pattern = map(p2_ts_sc_to_gapfill)),
   # TODO: boxplot of WRTDS SE
   tar_target(p2_ts_sc_gapFilled, fill_ts_gaps_wrtds(p3_ts_sc_qualified, 
-                                                       p2_ts_sc_WRTDS,
-                                                       param_colname = 'SpecCond')),
+                                                    p2_ts_sc_WRTDS,
+                                                    param_colname = 'SpecCond')),
   
   # Now summarize the timeseries that were saved by the gap-filling
   # TODO: scrutinize this output. Was expecting higher numbers, I think?
