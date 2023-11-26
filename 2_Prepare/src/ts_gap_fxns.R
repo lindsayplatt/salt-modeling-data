@@ -48,6 +48,9 @@ prep_data_for_wrtds <- function(data_q, data_param, param_colname, sites_that_cr
     filter(has_missing_param) %>% 
     # Remove any sites that have negative flow values
     filter(!has_negative_flows) %>% 
+    # WRTDS does not work if the concentration is ever 0 (this is rare but does 
+    # come up in the NWIS continuous data). Replace with a tiny value instead.
+    mutate(SpecCond = ifelse(SpecCond == 0, 0.001, SpecCond)) %>% 
     # Select only the columns we need to run WRTDS
     dplyr::select(site_no, dateTime, Flow, Flow_cd, !!as.name(param_colname)) %>% 
     # Filter out the sites that crashed in `apply_wrtds()` before
