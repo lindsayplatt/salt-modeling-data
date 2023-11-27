@@ -75,7 +75,7 @@ identify_highSC_sites <- function(ts_data) {
     group_by(site_no) %>% 
     summarize(perc50 = quantile(SpecCond, probs = 0.50, na.rm=TRUE),
               perc75 = quantile(SpecCond, probs = 0.75, na.rm=TRUE)) %>% 
-    filter(perc50 >= 10000 | perc75 >= 55000) %>% 
+    filter(perc75 >= 10000 | perc50 >= 55000) %>% 
     pull(site_no)
 }
 
