@@ -51,9 +51,18 @@ p3_targets <- list(
                filter_data_to_qualifying_sites(keep_sites = p3_ts_sc_temporal_qualified_sites,
                                                remove_sites = c(p1_nwis_sc_sites_tidal,
                                                                 p3_ts_sc_ag_sites,
-                                                                p3_ts_sc_highSC_sites)))
+                                                                p3_ts_sc_highSC_sites))),
   
   # The `_qualified` data above go back to `2_Prepare` to continue prepping
   
+  ##### ATTR FILTERING #####
+  
+  # Filter the final static attribute table to only those sites that qualified.
+  tar_target(p3_static_attributes, 
+             filter_data_to_qualifying_sites(p2_attr_all, 
+                                             keep_sites = p3_ts_sc_temporal_qualified_sites,
+                                             remove_sites = c(p1_nwis_sc_sites_tidal,
+                                                              p3_ts_sc_ag_sites,
+                                                              p3_ts_sc_highSC_sites)))
   
 )

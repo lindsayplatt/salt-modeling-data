@@ -81,30 +81,29 @@ identify_highSC_sites <- function(ts_data) {
 
 #' @title Filter data to sites that met certain criteria
 #' @description Using previously identified vectors of NWIS sites, filter the 
-#' time series data to only those of sites that we want to keep and remove any
+#' data to only those of sites that we want to keep and remove any
 #' data for sites that we don't want. In the function, we use both those sites
 #' in `keep_sites` and those in `remove_sites` because there may be some 
 #' cross-listing. For example, some tidal sites have the appropriate length of 
 #' record for their SC data but we want to remove from our final data set due 
 #' to the tidal influence.
 #' 
-#' @param ts_data a tibble of daily water quality time series with at least the 
-#' column `site_no`. 
+#' @param site_data a tibble of data with at least the column `site_no`. 
 #' @param keep_sites a single character vector of NWIS site numbers that should
 #' be kept in the data.
 #' @param remove_sites a single character vector of NWIS site numbers that should
 #' be removed from the data (e.g. tidal sites, high agriculture sites)
 #' 
-#' @return a tibble with the same columns as `ts_data` but likely fewer rows
+#' @return a tibble with the same columns as `site_data` but likely fewer rows
 #' 
-filter_data_to_qualifying_sites <- function(ts_data, keep_sites, remove_sites) {
+filter_data_to_qualifying_sites <- function(site_data, keep_sites, remove_sites) {
 
   message('Removing sites that did not meet temporal criteria: ', 
-          sum(!unique(ts_data$site_no) %in% keep_sites))
+          sum(!unique(site_data$site_no) %in% keep_sites))
   message('Removing additional sites that are ag/tidal/highSC: ',
           sum(keep_sites %in% remove_sites))
 
-  ts_data %>% 
+  site_data %>% 
     filter(site_no %in% keep_sites) %>% 
     filter(!site_no %in% remove_sites)
 }
