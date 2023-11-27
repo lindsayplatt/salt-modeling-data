@@ -4,6 +4,7 @@
 source('2_Prepare/src/ts_nwis_fxns.R')
 source('2_Prepare/src/ts_gap_fxns.R')
 source('2_Prepare/src/ts_detrend_fxns.R')
+source('2_Prepare/src/ts_finalize_fxns.R')
 source('2_Prepare/src/attr_prep_fxns.R')
 source('2_Prepare/src/attr_combine_all.R')
 
@@ -35,14 +36,16 @@ p2_targets <- list(
                                  param_colname = 'SpecCond'),
              format = 'file'),
   
+  # Then this SC data is filtered to only qualifying sites and data in `3_Filter`
+  
   ###### TS DATA 3: Fill in missing SC values ######
   
   # First, we need to identify sites that should be gap-filled. Since WRTDS takes
   # a lot of time to run per site, I don't want to waste resources running it
   # for sites that we won't use anyways. So, this means that before we gap-fill,
   # we have ...
-  #   1. Filtered to sites that meet our date range criteria. See the targets
-  #      that create `p3_attr_q_qualified` and `p3_ts_sc_qualified` in `3_Filter`.
+  #   1. Filtered to sites that meet our criteria. See the targets  that create 
+  #      `p3_attr_q_qualified` and `p3_ts_sc_qualified` in `3_Filter`.
   #   2. Remove sites that have negative flows (WRTDS does NOT play nice with 
   #      negatives). TODO: Later look into what to do with negative flows.
   #   3. Remove sites that don't actually have any missing SC values on dates where
@@ -53,11 +56,10 @@ p2_targets <- list(
                p3_attr_q_qualified, p3_ts_sc_qualified,
                param_colname = 'SpecCond',
                # Skipping a couple of sites that I can't figure out
-               # TODO: Maybe return to these in the future with an EGRET dev help
-               #  1. 05055400: finishes survival regression in `modelEstimation()` but 
-               #      then errors with "replacement has 3428 rows, data has 4486"
-               #  2. 11336600: fails with some weird `Backtrace` error
-               sites_that_crash = c('05055400', '11336600')
+               # TODO: Maybe return to this in the future with an EGRET dev help
+               #  05055400: finishes survival regression in `modelEstimation()` but 
+               #    then errors with "replacement has 3428 rows, data has 4486"
+               sites_that_crash = c('05055400')
              ) %>% 
                group_by(site_no) %>% 
                tar_group(),
@@ -91,10 +93,14 @@ p2_targets <- list(
   # Detrend the SC timeseries since we are using trend as a static attr
   # Detrend only works for sites without any NAs in their time series
   # TODO: can anything be done? The requirement to have no NAs in the 
-  #   full time series drops 78 sites
+  #   full time series drops 56 sites
   tar_target(p2_ts_sc_detrend_sites, identify_sites_to_detrend(p2_ts_sc_gapFilled, 'SpecCond')),
   tar_target(p2_ts_sc_dv_detrend, 
              detrend_ts_data(p2_ts_sc_gapFilled, p2_ts_sc_detrend_sites, 'SpecCond')),
+  
+  ###### TS DATA 5: Finalize the SC time series for modeling ######
+  
+  tar_target(p2_ts_sc, finalize_ts_modeling(p2_ts_sc_dv_detrend, 'SpecCond', '_detrend')),
   
   ##### STATIC ATTRIBTUES PREP #####
   
@@ -121,6 +127,8 @@ p2_targets <- list(
                                  param_colname = 'Flow'),
              format = 'file'),
   
+  # Then this Q data is filtered to only qualifying sites in `3_Filter`
+  
   # Then, find a single mean daily Q value per site
   # TODO: do we need to do anything about negative streamflows?
   tar_target(p2_attr_meanFlow, calculate_mean_q_per_site(p3_attr_q_qualified)),
@@ -140,6 +148,10 @@ p2_targets <- list(
   
   tar_target(p2_attr_nhd, prepare_nhd_attributes(p1_nhdplus_attr_vals_tbl,
                                                  p1_nwis_site_nhd_comid_xwalk)),
+  
+  # Do the same prep for the agriculture-specific attributes
+  tar_target(p2_ag_attr_nhd, prepare_nhd_attributes(p1_nhdplus_ag_vals_tbl,
+                                                    p1_nwis_site_nhd_comid_xwalk)),
   
   # TODO: add GW signature? transmissivity? depth2wt?
   

@@ -142,7 +142,7 @@ download_nhdplus_attributes <- function(attributes, comids) {
   
   # Download the attribute values for the given attributes and comids
   get_catchment_characteristics(varname = attributes, ids = comids) %>% 
-    select(nhd_comid = comid,
+    dplyr::select(nhd_comid = comid,
            nhd_attr_id = characteristic_id,
            nhd_attr_val = characteristic_value,
            percent_nodata)

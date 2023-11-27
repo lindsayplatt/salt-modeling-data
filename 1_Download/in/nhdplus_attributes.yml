@@ -14,7 +14,7 @@
 #     # ACC = accumulated
 #     # TOT = total
 #     # Using `CAT`
-#     select(.x, ID, description) %>% 
+#     dplyr::select(.x, ID, description) %>%
 #       filter(grepl('^CAT_', ID))
 #   })
 
