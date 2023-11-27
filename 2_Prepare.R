@@ -4,6 +4,7 @@
 source('2_Prepare/src/ts_nwis_fxns.R')
 source('2_Prepare/src/ts_gap_fxns.R')
 source('2_Prepare/src/ts_detrend_fxns.R')
+source('2_Prepare/src/ts_finalize_fxns.R')
 source('2_Prepare/src/attr_prep_fxns.R')
 source('2_Prepare/src/attr_combine_all.R')
 
@@ -94,6 +95,10 @@ p2_targets <- list(
   tar_target(p2_ts_sc_detrend_sites, identify_sites_to_detrend(p2_ts_sc_gapFilled, 'SpecCond')),
   tar_target(p2_ts_sc_dv_detrend, 
              detrend_ts_data(p2_ts_sc_gapFilled, p2_ts_sc_detrend_sites, 'SpecCond')),
+  
+  ###### TS DATA 5: Identify the SC time series for modeling ######
+  
+  tar_target(p2_ts_sc, finalize_ts_modeling(p2_ts_sc_dv_detrend, 'SpecCond', '_detrend')),
   
   ##### STATIC ATTRIBTUES PREP #####
   
