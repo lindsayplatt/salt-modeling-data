@@ -53,11 +53,10 @@ p2_targets <- list(
                p3_attr_q_qualified, p3_ts_sc_qualified,
                param_colname = 'SpecCond',
                # Skipping a couple of sites that I can't figure out
-               # TODO: Maybe return to these in the future with an EGRET dev help
-               #  1. 05055400: finishes survival regression in `modelEstimation()` but 
-               #      then errors with "replacement has 3428 rows, data has 4486"
-               #  2. 11336600: fails with some weird `Backtrace` error
-               sites_that_crash = c('05055400', '11336600')
+               # TODO: Maybe return to this in the future with an EGRET dev help
+               #  05055400: finishes survival regression in `modelEstimation()` but 
+               #    then errors with "replacement has 3428 rows, data has 4486"
+               sites_that_crash = c('05055400')
              ) %>% 
                group_by(site_no) %>% 
                tar_group(),
@@ -91,7 +90,7 @@ p2_targets <- list(
   # Detrend the SC timeseries since we are using trend as a static attr
   # Detrend only works for sites without any NAs in their time series
   # TODO: can anything be done? The requirement to have no NAs in the 
-  #   full time series drops 78 sites
+  #   full time series drops 56 sites
   tar_target(p2_ts_sc_detrend_sites, identify_sites_to_detrend(p2_ts_sc_gapFilled, 'SpecCond')),
   tar_target(p2_ts_sc_dv_detrend, 
              detrend_ts_data(p2_ts_sc_gapFilled, p2_ts_sc_detrend_sites, 'SpecCond')),
