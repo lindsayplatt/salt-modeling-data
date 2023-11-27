@@ -235,7 +235,10 @@ aggregate_road_salt_per_site <- function(road_salt_tif, sites_sf) {
 #' the columns `nhd_comid`, `nhd_attr_id`, `nhd_attr_val`, and `percent_nodata`
 #' @param comid_site_xwalk a tibble with the columns `site_no`, `nhd_comid`, `with_retry`
 #' 
-#' @return tibble with two columns `site_no` and `attr_roadSalt`
+#' @return tibble with the columns `site_no` and any number of columns containing
+#' NHD+ static catchment attributes, most prefixed with `attr_[attribute name]`. Any
+#' column that is an NHD+ attribute but not prefixed `attr_` is not included in the 
+#' function renaming step. You could add it, or leave it as-is. 
 #' 
 prepare_nhd_attributes <- function(nhd_attribute_table, comid_site_xwalk) {
   

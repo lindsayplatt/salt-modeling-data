@@ -164,6 +164,16 @@ p1_targets <- list(
   tar_target(p1_nwis_sc_sites_metadata,
              download_nwis_metadata(p1_nwis_sc_sites_query$site_no)),
   
+  # Identify which of the sites have tidal influence, which will be used
+  # in filtering or grouping later in the pipeline, by querying for sites
+  # that may have data for parameter codes that contain `tidally filtered`
+  # discharge, velocity, or gage height, indicating tidal influence
+  tar_target(p1_nwis_sc_sites_tidal, 
+             whatNWISsites(siteNumber = p1_nwis_sc_sites_query$site_no,
+                           parameterCd = c("72137", "72138", "72139", "72168", 
+                                           "72169", "72170", "72171")) %>% 
+               pull(site_no)),
+  
   ##### SCIENCEBASE DATASET DOWNLOADS {< 1 MIN} #####
   
   # All are prefixed with `p1_sb_`
@@ -263,6 +273,12 @@ p1_targets <- list(
   tar_target(p1_nhdplus_attr_vals_tbl, 
              download_nhdplus_attributes(attributes = unlist(p1_nhdplus_attr_list),
                                          comids = unique(p1_nwis_site_nhd_comid_xwalk$nhd_comid)),
-             pattern = map(p1_nhdplus_attr_list))
+             pattern = map(p1_nhdplus_attr_list)),
+  
+  # Download catchment attributes relating to agriculture for each COMID (CAT_NLCD19_81 
+  # is pasture/hay and CAT_NLCD19_82 is cultivated crops). Used during `3_Filter`.
+  tar_target(p1_nhdplus_ag_vals_tbl, 
+             download_nhdplus_attributes(attributes = c('CAT_NLCD19_81', 'CAT_NLCD19_82'),
+                                         comids = unique(p1_nwis_site_nhd_comid_xwalk$nhd_comid)))
   
 )

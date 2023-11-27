@@ -1,5 +1,5 @@
 
-#' @title Filter sites to those that meet minimum data quantity criteria
+#' @title Find sites that meet minimum data quantity-temporal range criteria
 #' @description Apply a minimum number of years + a minimum date requirement to
 #' filter to lengthier time series that have had data recently.
 #' 
@@ -16,9 +16,9 @@
 #' 
 #' @return a vector of NWIS site character strings whose `ts_data` met requirements
 #' 
-identify_qualifying_sites <- function(ts_data, min_years = 5, min_recent_date = as.Date('2007-01-01')) {
+identify_temporal_qualifying_sites <- function(ts_data, min_years = 5, min_recent_date = as.Date('2007-01-01')) {
   
-  qualifying_sites <- ts_data %>% 
+  ts_data %>% 
     group_by(site_no) %>% 
     summarize(min_date = min(dateTime),
               max_date = max(dateTime)) %>% 
@@ -31,4 +31,80 @@ identify_qualifying_sites <- function(ts_data, min_years = 5, min_recent_date = 
     filter(max_date >= min_recent_date) %>% 
     pull(site_no)
   
+}
+
+#' @title Find sites that might be in high agricultural areas
+#' @description Identify sites that may be influenced by agriculture because
+#' their SC levels could be much higher than other streams, or behave 
+#' differently than other streams SC data, unrelated to road salt application. 
+#' Sites with over 75% agriculture in their catchments will be flagged here.
+#' 
+#' @param nhd_ag_attrs a tibble with the columns `site_no`, `CAT_NLCD19_81`, and
+#' `CAT_NLCD19_82` which give percentages of the catchment for each site that is
+#' covered with pasture/hay or cultivated crops, respectively.
+#' 
+#' @return a vector of NWIS site character strings whose `ts_data` fit into the
+#' `agriculture` category and should be removed.
+#' 
+identify_ag_sites <- function(nhd_ag_attrs) {
+  nhd_ag_attrs %>% 
+    filter(CAT_NLCD19_81 > 75 | CAT_NLCD19_82 > 75) %>% 
+    pull(site_no)
+}
+
+#' @title Find sites that have outrageously high SC too frequently
+#' @description Identify sites that may be influenced by some other source of
+#' salt contributing to consistently high SC. Waste water and industrial water
+#' can be over `10,000 uS/cm @25degC` and seawater is typically over 
+#' `55,000 uS/cm @25degC`. We can use these values to identify sites that might
+#' be outside of our typical freshwater scenarios (maybe they are coastal, maybe
+#' they are directly downstream of a waste water facility?). As the function is
+#' written, any site with over 50% of their SC data above `10,000 uS/cm @25degC`
+#' or over 25% of their SC data above `55,000 uS/cm @25degC` will be returned.
+#' 
+#' @param ts_data a tibble of daily water quality time series. It needs at least the 
+#' columns `site_no` and `dateTime`, and `SpecCond`. Note that `SpecCond` is required
+#' rather than the generic input option (`param_colname`) to handle other parameters 
+#' because this function specifically is designed for specific conductance data.
+#' 
+#' @return a vector of NWIS site character strings whose `ts_data` fit into the
+#' `outlier` category and should be removed.
+#' 
+identify_highSC_sites <- function(ts_data) {
+  ts_data %>% 
+    group_by(site_no) %>% 
+    summarize(perc50 = quantile(SpecCond, probs = 0.50, na.rm=TRUE),
+              perc75 = quantile(SpecCond, probs = 0.75, na.rm=TRUE)) %>% 
+    filter(perc50 >= 10000 | perc75 >= 55000) %>% 
+    pull(site_no)
+}
+
+#' @title Filter data to sites that met certain criteria
+#' @description Using previously identified vectors of NWIS sites, filter the 
+#' time series data to only those of sites that we want to keep and remove any
+#' data for sites that we don't want. In the function, we use both those sites
+#' in `keep_sites` and those in `remove_sites` because there may be some 
+#' cross-listing. For example, some tidal sites have the appropriate length of 
+#' record for their SC data but we want to remove from our final data set due 
+#' to the tidal influence.
+#' 
+#' @param ts_data a tibble of daily water quality time series with at least the 
+#' column `site_no`. 
+#' @param keep_sites a single character vector of NWIS site numbers that should
+#' be kept in the data.
+#' @param remove_sites a single character vector of NWIS site numbers that should
+#' be removed from the data (e.g. tidal sites, high agriculture sites)
+#' 
+#' @return a tibble with the same columns as `ts_data` but likely fewer rows
+#' 
+filter_data_to_qualifying_sites <- function(ts_data, keep_sites, remove_sites) {
+
+  message('Removing sites that did not meet temporal criteria: ', 
+          sum(!unique(ts_data$site_no) %in% keep_sites))
+  message('Removing additional sites that are ag/tidal/highSC: ',
+          sum(keep_sites %in% remove_sites))
+
+  ts_data %>% 
+    filter(site_no %in% keep_sites) %>% 
+    filter(!site_no %in% remove_sites)
 }

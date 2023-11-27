@@ -141,6 +141,10 @@ p2_targets <- list(
   tar_target(p2_attr_nhd, prepare_nhd_attributes(p1_nhdplus_attr_vals_tbl,
                                                  p1_nwis_site_nhd_comid_xwalk)),
   
+  # Do the same prep for the agriculture-specific attributes
+  tar_target(p2_ag_attr_nhd, prepare_nhd_attributes(p1_nhdplus_ag_vals_tbl,
+                                                    p1_nwis_site_nhd_comid_xwalk)),
+  
   # TODO: add GW signature? transmissivity? depth2wt?
   
   ###### ATTR DATA 5: Combine all static attributes into one table ######
