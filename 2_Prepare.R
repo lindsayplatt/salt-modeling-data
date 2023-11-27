@@ -36,14 +36,16 @@ p2_targets <- list(
                                  param_colname = 'SpecCond'),
              format = 'file'),
   
+  # Then this SC data is filtered to only qualifying sites and data in `3_Filter`
+  
   ###### TS DATA 3: Fill in missing SC values ######
   
   # First, we need to identify sites that should be gap-filled. Since WRTDS takes
   # a lot of time to run per site, I don't want to waste resources running it
   # for sites that we won't use anyways. So, this means that before we gap-fill,
   # we have ...
-  #   1. Filtered to sites that meet our date range criteria. See the targets
-  #      that create `p3_attr_q_qualified` and `p3_ts_sc_qualified` in `3_Filter`.
+  #   1. Filtered to sites that meet our criteria. See the targets  that create 
+  #      `p3_attr_q_qualified` and `p3_ts_sc_qualified` in `3_Filter`.
   #   2. Remove sites that have negative flows (WRTDS does NOT play nice with 
   #      negatives). TODO: Later look into what to do with negative flows.
   #   3. Remove sites that don't actually have any missing SC values on dates where
@@ -124,6 +126,8 @@ p2_targets <- list(
                                               p1_nwis_q_data_dv_feather),
                                  param_colname = 'Flow'),
              format = 'file'),
+  
+  # Then this Q data is filtered to only qualifying sites in `3_Filter`
   
   # Then, find a single mean daily Q value per site
   # TODO: do we need to do anything about negative streamflows?
