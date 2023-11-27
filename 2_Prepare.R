@@ -96,7 +96,7 @@ p2_targets <- list(
   tar_target(p2_ts_sc_dv_detrend, 
              detrend_ts_data(p2_ts_sc_gapFilled, p2_ts_sc_detrend_sites, 'SpecCond')),
   
-  ###### TS DATA 5: Identify the SC time series for modeling ######
+  ###### TS DATA 5: Finalize the SC time series for modeling ######
   
   tar_target(p2_ts_sc, finalize_ts_modeling(p2_ts_sc_dv_detrend, 'SpecCond', '_detrend')),
   
