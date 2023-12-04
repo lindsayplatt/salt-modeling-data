@@ -148,3 +148,86 @@ choose_single_cluster_per_site <- function(cluster_info_bySiteYear) {
               frac_years = frac_years[which.max(n_yrs_cluster)])
   
 }
+
+#' @title Format the time series data by cluster
+#' @description Add cluster information per site-year to the time series data.
+#' 
+#' TODO: should we filter to just those annual ts that appear in the site's overall cluster?
+#' 
+#' @param ts_data a tibble with at least the columns `site_no`, `year` and `[PARAM]_norm`
+#' @param cluster_info a table with the processed clustering information for each
+#' site and at least the columns `site_no`, `year`, and `cluster`. Output from
+#' `process_dtw_clusters_bySiteYear()` is expected.
+#' 
+#' @return a tibble with annual time series of normalized SC and the cluster 
+#' information; includes the columns `site_no`, `year`, `date`, `doy`, `[PARAM]`,
+#' `[PARAM]_norm`, and `cluster`
+#' 
+prep_cluster_ts <- function(ts_data, cluster_info) {
+  # Generate a table of ts per site and year that can
+  # be plot on the same axes (so x just = index/doy).
+  # map2(ts_list, names(ts_list), 
+  #      ~tibble(site_year = .y, y = .x)) %>%
+  #   bind_rows() %>%
+  #   separate(site_year, into = c('site', 'year'), sep='-') %>%
+  #   mutate(year = as.numeric(year)) %>%
+  ts_data %>% 
+    left_join(cluster_info, by = c('site_no', 'year')) %>%
+    mutate(doy = yday(date), .after = date)
+}
+
+#' @title Extract cluster centroid ts from `dtwclust` model output
+#' @description Extract each cluster's "centroid" or "prototype" time series from
+#' a `dtwclust` model output file. Then, reformat the match the output of `prep_cluster_ts()`
+#' so that it can be plotted alongside the actual time series.
+#' 
+#' @param in_file qs file with the `dtwclust` output for a single clustering model
+#' @param param_colname a character string indicating the name used in the columns 
+#' for the data values. In this workflow, this is likely `SpecCond`.
+#' 
+#' @return a tibble with an annual ts representing each cluster in the model; includes 
+#' the columns `site_no`, `doy`, `[PARAM]_norm`, and `cluster`
+#' 
+extract_cluster_centroids <- function(in_file, param_colname) {
+  # Generate a table of ts per cluster so that it can
+  # be plot on the same axes as the raw ts.
+  dtw_out <- qread(in_file)
+  dtw_out@centroids %>%
+    # Collapse the list of ts per cluster into a tibble
+    setNames(seq_len(length(.))) %>%
+    map(~tibble(ts_id = 'cluster_centroid', year = NA, val_norm = .x)) %>%
+    bind_rows(.id = 'cluster') %>%
+    # Adjust the cluster to be numeric
+    mutate(cluster = as.numeric(cluster)) %>%
+    # Add the `doy` by just using the position of the value per cluster
+    group_by(cluster) %>%
+    mutate(doy = row_number(), .after = year) %>%
+    ungroup() %>% 
+    # Move and rename the parameter columns
+    relocate(cluster, .after = val_norm) %>% 
+    rename_with(~gsub('val', param_colname, .x)) 
+}
+
+#' @title Visualize the time series for each cluster
+#' @description Using the actual time series and each cluster's representative time
+#' series, this function creates a plot showing all the time series in each cluster.
+#' 
+#' @param dtw_clusters_ts a tibble with the actual time series data input into the
+#' model and the cluster information that accompanies each time series; expects
+#' the output from `prep_cluster_ts()`
+#' @param dtw_clusters_ts_centroids a tibble with the time series data representative 
+#' of each cluster; expects the output from `extract_cluster_centroids()`
+#' @param param_colname a character string indicating the name used in the columns 
+#' for the data values. In this workflow, this is likely `SpecCond`.
+#' 
+#' @return a ggplot object visualizing the clusters and their time series
+#' 
+visualize_cluster_ts <- function(dtw_clusters_ts, dtw_clusters_ts_centroids, param_colname) {
+  ggplot(dtw_clusters_ts, aes(x = doy, y = !!as.name(sprintf('%s_norm', param_colname)))) +
+    geom_line(alpha = 0.75) +
+    geom_line(data = dtw_clusters_ts_centroids,
+              color = 'salmon') +
+    facet_wrap(vars(cluster), scales='free_y') +
+    theme_bw() +
+    ylab('Normalized SC')
+}

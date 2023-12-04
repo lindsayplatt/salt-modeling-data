@@ -79,6 +79,11 @@ p4_targets <- list(
   tar_target(p4_dtw_clusters_bySiteYear, 
              process_dtw_clusters_bySiteYear(p4_dtw_optimal_qs, p4_ts_sc_list)),
   tar_target(p4_dtw_clusters_bySite, 
-             choose_single_cluster_per_site(p4_dtw_clusters_bySiteYear))
+             choose_single_cluster_per_site(p4_dtw_clusters_bySiteYear)),
+  
+  # Visualize cluster time series data 
+  tar_target(p4_dtw_clusters_ts, prep_cluster_ts(p4_ts_sc_norm, p4_dtw_clusters_bySiteYear)),
+  tar_target(p4_dtw_cluster_centroid_ts, extract_cluster_centroids(p4_dtw_optimal_qs, 'SpecCond')),
+  tar_target(p4_dtw_cluster_ts_viz, visualize_cluster_ts(p4_dtw_clusters_ts, p4_dtw_cluster_centroid_ts, 'SpecCond'))
   
 )
