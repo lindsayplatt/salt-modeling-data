@@ -49,6 +49,22 @@ p4_targets <- list(
   
   ##### USE OPTIMAL CLUSTERING MODEL ##### 
   
-  # TODO: ADD FRACTION OF YEARS PER CLUSTER
+  # Using COP index & "elbow" method with the cluster distance values,
+  # I determined that 7 clusters with a window size of 20 was optimal.
+  
+  tar_target(p4_distance_optimal, 'dtw_basic'), # TODO: switch to `dtw`
+  tar_target(p4_centroid_optimal, 'pam'), # DBA had issues with turning into a flat line.
+  tar_target(p4_cluster_optimal, 7),
+  tar_target(p4_window_optimal, 20),
+  tar_target(p4_dtw_optimal_qs, 
+             apply_dynamic_timewarping(out_file = sprintf('4_ClusterTS/out/output_dist_%s_centroid_%s_cluster_%02d_window_%02d.qs',
+                                                          p4_distance_optimal, p4_centroid_optimal, p4_cluster_optimal, p4_window_optimal),
+                                       p4_ts_sc_list, 
+                                       p4_cluster_optimal, 
+                                       p4_window_optimal,
+                                       p4_distance_optimal,
+                                       p4_centroid_optimal),
+             format = 'file'),
+  
   
 )
