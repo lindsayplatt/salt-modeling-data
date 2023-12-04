@@ -1,5 +1,21 @@
-# TODO: DOCUMENT FUNCTION
-evaluate_dtw_clusters <- function(in_files) {
+#' @title Evaluate the clustering output
+#' @description Extract various cluster validity indices (CVIs) using the function
+#' `dtwclust::cvi()` & add an additional metric to look at the cluster distances 
+#' as an attempt at using the "elbow method" for evaluation. Note that this currently
+#' only works when comparing metrics with different clusters or windows, not different
+#' distance or centroid methods (though the file-naming allows for that).
+#' 
+#' TODO: handle different distance measures or centroid methods.
+#' 
+#' @param in_files a vector of qs file paths with the `dtwclust` output for  
+#' a number of clustering algorithm attempts. Expects the names to be formatted
+#' as `output_dist_[DISTANCE METHOD]_centroid_[CENTROID METHOD]_cluster_[N CLUSTERS]_window_[WINDOW SIZE].qs`
+#' 
+#' @return a tibble with the columns `n_clusters`, `n_windows`, `eval_metric`,
+#' `value`, and `index_goal` with rows for every combination of clusters & windows
+#' plus evaluation metrics available.
+#' 
+evaluate_dtw <- function(in_files) {
   clust.out <- map(in_files, qread)
   
   cluster_windows <- str_split(in_files, 'cluster_|_window|.qs') 
@@ -17,7 +33,8 @@ evaluate_dtw_clusters <- function(in_files) {
     c(cvi(x), ELBOW = sum(x@cldist[,1]))
   }
   
-  # Now evaluate to find which number of clusters works best
+  # Return a table with various evaluation metrics to be used to determine 
+  # which clustering configuration (n clusters, window size, etc) works best
   clust.out %>% 
     purrr::map(cvi_plus_elbow) %>% 
     bind_rows(.id = 'clust_window') %>% 
@@ -44,7 +61,7 @@ evaluate_dtw_clusters <- function(in_files) {
       n_clusters = as.numeric(n_clusters), # It was a list name, so needed to make numeric for plotting
       n_windows = as.numeric(n_windows), # It was a list name, so needed to make numeric for plotting
       index_goal = ifelse(
-        eval_metric %in% c('COP index', 'Davies-Bouldin index', 'Modified Davies-Bouldin index'), 
+        eval_metric %in% c('COP index', 'Davies-Bouldin index', 'Modified Davies-Bouldin index', 'Elbow method'), 
         yes = 'minimize', no = 'maximize')
     )
   

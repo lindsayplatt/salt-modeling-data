@@ -43,10 +43,10 @@ p4_targets <- list(
              pattern = cross(p4_cluster_opts, p4_window_opts, p4_distance_methods, p4_centroid_methods),
              format = 'file'),
   
-  # TODO: work on how best to evaluate the clustering models
-  # Probably won't be able to load all at once, as I have here.
+  # While the function can handle multiple qs files at once, added mapping
+  # so that we weren't trying to work with too much data in memory.
   tar_target(p4_dtw_tests_evaluate, 
-             evaluate_dtw_clusters(p4_dtw_tests_out_qs),
+             evaluate_dtw(p4_dtw_tests_out_qs),
              pattern = map(p4_dtw_tests_out_qs)),
   
   ##### USE OPTIMAL CLUSTERING MODEL ##### 

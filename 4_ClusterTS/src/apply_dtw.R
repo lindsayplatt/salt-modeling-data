@@ -10,7 +10,8 @@
 #' @param distance_method see `?dtwclust::tsclust()`, defaults to "dtw"
 #' @param centroid_method see `?dtwclust::tsclust()`, defaults to "pam"
 #' 
-#' @return TODO: ???
+#' @return an object of class `dtwclust` that contains the results of the 
+#' clustering with current configuration.
 #' 
 apply_dynamic_timewarping <- function(out_file, ts_list, n_clusters, n_day_window = 20,
                                       distance_method = "dtw", centroid_method = "pam") {
