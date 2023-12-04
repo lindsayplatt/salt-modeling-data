@@ -3,6 +3,8 @@
 
 source('4_ClusterTS/src/ts_cluster_prep.R')
 source('4_ClusterTS/src/apply_dtw.R')
+source('4_ClusterTS/src/evaluate_dtw.R')
+
 
 p4_targets <- list(
   
