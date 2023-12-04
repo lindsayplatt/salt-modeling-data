@@ -106,7 +106,7 @@ compare_dtw_cluster_configs <- function(dtw_eval) {
 #' algorithm that was found to be the most optimal.
 #' @param ts_list a tibble with at least the columns `site_no`, `year` and `[PARAM]_norm`
 #' 
-#' @return a tibble with the columns `site`, `year`, and `cluster`
+#' @return a tibble with the columns `site_no`, `year`, and `cluster`
 #' 
 process_dtw_clusters_bySiteYear <- function(in_file, ts_list) {
   cluster_optimal <- qread(in_file)
@@ -115,7 +115,7 @@ process_dtw_clusters_bySiteYear <- function(in_file, ts_list) {
     site_year = names(ts_list),
     cluster = cluster_optimal@cluster
   ) %>% 
-    separate(site_year, into = c('site', 'year'), sep='-') %>% 
+    separate(site_year, into = c('site_no', 'year'), sep='-') %>% 
     mutate(year = as.numeric(year))
 }
 
@@ -123,7 +123,7 @@ process_dtw_clusters_bySiteYear <- function(in_file, ts_list) {
 #' @description Use output from `process_dtw_clusters_bySiteYear()` to get
 #' a single cluster per site.
 #' 
-#' @param cluster_info_bySiteYear a tibble with at least the columns `site`, `year`, 
+#' @param cluster_info_bySiteYear a tibble with at least the columns `site_no`, `year`, 
 #' and `cluster`. Should be the output of `process_dtw_clusters_bySiteYear()`
 #' 
 #' @return a tibble with the columns `site`, `cluster`, and `frac_years` which is
@@ -134,16 +134,16 @@ choose_single_cluster_per_site <- function(cluster_info_bySiteYear) {
   
   cluster_info_bySiteYear %>% 
     # Tally total number of years per site
-    group_by(site) %>% 
+    group_by(site_no) %>% 
     mutate(n_yrs_site = n()) %>%
     # Tally total number of years per cluster per site
-    group_by(site, cluster) %>% 
+    group_by(site_no, cluster) %>% 
     mutate(n_yrs_cluster = n()) %>% 
     ungroup() %>% 
     # Add fraction of years per cluster
     mutate(frac_years = n_yrs_cluster / n_yrs_site) %>% 
     # Choose one cluster per site based on the most frequent one
-    group_by(site) %>%
+    group_by(site_no) %>%
     summarize(cluster = cluster[which.max(n_yrs_cluster)],
               frac_years = frac_years[which.max(n_yrs_cluster)])
   
