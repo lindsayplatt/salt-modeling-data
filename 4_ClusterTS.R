@@ -19,9 +19,14 @@ p4_targets <- list(
   
   ##### DETERMINE OPTIMAL CLUSTERING MODEL #####
   
+  # 2 clusters with a 5-day window was running for over 2.5 hrs
+  # and hadn't converged.
+  # 3 clusters with 30 day window was running for 9 hours ... no progress.
+  # Switched distance method to `dtw_basic` and in ~5.5 hours I was able to
+  # run models for clusters 7-10 with windows 10, 30, and 60
   tar_target(p4_cluster_opts, 2:10),
   tar_target(p4_window_opts, c(5, 10, 20, 30, 45, 60)),
-  tar_target(p4_distance_methods, c('dtw')),
+  tar_target(p4_distance_methods, c('dtw_basic')), # Using dtw_basic because it is faster
   tar_target(p4_centroid_methods, c('pam')),
   
   # Apply DTW Map over the combinations of clusters and windows to try
