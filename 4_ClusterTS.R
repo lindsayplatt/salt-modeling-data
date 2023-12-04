@@ -66,5 +66,11 @@ p4_targets <- list(
                                        p4_centroid_optimal),
              format = 'file'),
   
+  ##### Process clustering output into usable tibbles #####
+  
+  tar_target(p4_dtw_clusters_bySiteYear, 
+             process_dtw_clusters_bySiteYear(p4_dtw_optimal_qs, p4_ts_sc_list)),
+  tar_target(p4_dtw_clusters_bySite, 
+             choose_single_cluster_per_site(p4_dtw_clusters_bySiteYear))
   
 )

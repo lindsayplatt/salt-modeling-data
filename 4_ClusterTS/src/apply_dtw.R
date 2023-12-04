@@ -76,11 +76,57 @@ evaluate_dtw_clusters <- function(in_files) {
         yes = 'minimize', no = 'maximize')
     )
   
+}
+
+#' @title Process cluster output by site and year
+#' @description Extract and format a table that includes every site-year
+#' combination and the cluster in which it appeared for the optimal
+#' clustering algorithm.
+#' 
+#' @param in_file qs file with the `dtwclust` output for the clustering
+#' algorithm that was found to be the most optimal.
+#' @param ts_list a tibble with at least the columns `site_no`, `year` and `[PARAM]_norm`
+#' 
+#' @return a tibble with the columns `site`, `year`, and `cluster`
+#' 
+process_dtw_clusters_bySiteYear <- function(in_file, ts_list) {
+  cluster_optimal <- qread(in_file)
   
-  ggplot(clust.out.eval, aes(x = n_clusters, y = value, color = n_windows)) +
-    geom_line(aes(group=n_windows), size=2) +
-    facet_wrap(vars(eval_metric), scales='free_y') +
-    theme_bw()
+  site_cluster_output <- tibble(
+    site_year = names(ts_list),
+    cluster = cluster_optimal@cluster
+  ) %>% 
+    separate(site_year, into = c('site', 'year'), sep='-') %>% 
+    mutate(year = as.numeric(year))
+}
+
+#' @title Process cluster output by site
+#' @description Use output from `process_dtw_clusters_bySiteYear()` to get
+#' a single cluster per site.
+#' 
+#' @param cluster_info_bySiteYear a tibble with at least the columns `site`, `year`, 
+#' and `cluster`. Should be the output of `process_dtw_clusters_bySiteYear()`
+#' 
+#' @return a tibble with the columns `site`, `cluster`, and `frac_years` which is
+#' the fraction of the years that appeared in the selected cluster per site.
+#' 
+choose_single_cluster_per_site <- function(cluster_info_bySiteYear) {
+  cluster_info_bySiteYear <- tar_read(p4_dtw_clusters_bySiteYear)
+  
+  cluster_info_bySiteYear %>% 
+    # Tally total number of years per site
+    group_by(site) %>% 
+    mutate(n_yrs_site = n()) %>%
+    # Tally total number of years per cluster per site
+    group_by(site, cluster) %>% 
+    mutate(n_yrs_cluster = n()) %>% 
+    ungroup() %>% 
+    # Add fraction of years per cluster
+    mutate(frac_years = n_yrs_cluster / n_yrs_site) %>% 
+    # Choose one cluster per site based on the most frequent one
+    group_by(site) %>%
+    summarize(cluster = cluster[which.max(n_yrs_cluster)],
+              frac_years = frac_years[which.max(n_yrs_cluster)])
   
 }
 
