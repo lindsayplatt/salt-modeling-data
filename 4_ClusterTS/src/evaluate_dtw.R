@@ -67,6 +67,36 @@ evaluate_dtw <- function(in_files) {
   
 }
 
+#' @title Visualize different clustering config results
+#' @description Use output from `evaluate_dtw()` to visualize the results of 
+#' different clustering configurations and find the best combination of clusters
+#' and windows. Also, visualizes results for a single cluster config so that 
+#' you can visualize how the window size differs.
+#' 
+#' @param dtw_eval a tibble with at least the columns `n_clusters`, `n_windows`,
+#' `value`, and `eval_metric` to be used for plotting (e.g. output of `evaluate_dtw()`)
+#' 
+#' @return a ggplot object that contains line plots of the evaluation metrics
+#' 
+compare_dtw_cluster_configs <- function(dtw_eval) {
+  uniq_clusters <- unique(dtw_eval$n_clusters)
+  # Add different lines per window, but skip if there is only one 
+  # window option present in the eval data
+  if(length(uniq_clusters) > 1) {
+    p_eval <- ggplot(dtw_eval, aes(x = n_clusters, y = value, color = n_windows)) +
+      geom_line(aes(group=n_windows), linewidth=1) +
+      facet_wrap(vars(eval_metric), scales='free_y') +
+      theme_bw() +
+      ggtitle('Comparing DTW results for various cluster & window sizes')
+  } else {
+    ggplot(dtw_eval, aes(x = n_windows, y = value)) +
+      geom_line(linewidth=1) +
+      facet_wrap(vars(eval_metric), scales='free_y') +
+      theme_bw() +
+      ggtitle(sprintf('Comparing DTW results for %s clusters & various window sizes', uniq_clusters))
+  }
+}
+
 #' @title Process cluster output by site and year
 #' @description Extract and format a table that includes every site-year
 #' combination and the cluster in which it appeared for the optimal

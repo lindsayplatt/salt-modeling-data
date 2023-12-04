@@ -52,7 +52,13 @@ p4_targets <- list(
   ##### USE OPTIMAL CLUSTERING MODEL ##### 
   
   # Using COP index & "elbow" method with the cluster distance values,
-  # I determined that 7 clusters with a window size of 20 was optimal.
+  # I determined that 7 clusters with a window size of 20 was optimal 
+  # using the two visuals below (first showing all windows & all clusters,
+  # second showing just results for the optimal cluster count).
+  tar_target(p4_dtw_eval_clusters_windows_viz, compare_dtw_cluster_configs(p4_dtw_tests_evaluate)),
+  tar_target(p4_dtw_eval_optimal_cluster_viz, p4_dtw_tests_evaluate %>% 
+               filter(n_clusters == p4_cluster_optimal) %>% 
+               compare_dtw_cluster_configs()),
   
   tar_target(p4_distance_optimal, 'dtw_basic'), # TODO: switch to `dtw`
   tar_target(p4_centroid_optimal, 'pam'), # DBA had issues with turning into a flat line.
