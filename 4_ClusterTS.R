@@ -43,7 +43,9 @@ p4_targets <- list(
   
   # TODO: work on how best to evaluate the clustering models
   # Probably won't be able to load all at once, as I have here.
-  tar_target(p4_dtw_tests_evaluate_viz, evaluate_dtw_clusters(p4_dtw_tests_out_qs))
+  tar_target(p4_dtw_tests_evaluate, 
+             evaluate_dtw_clusters(p4_dtw_tests_out_qs),
+             pattern = map(p4_dtw_tests_out_qs)),
   
   ##### USE OPTIMAL CLUSTERING MODEL ##### 
   

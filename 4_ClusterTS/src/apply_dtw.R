@@ -36,11 +36,18 @@ evaluate_dtw_clusters <- function(in_files) {
   dtw_names <- sprintf('%s_%s', clusters, windows)
   names(clust.out) <- dtw_names
   
-  # Now evaluate to find which number of clusters works best?
-  # TODO: Check out Hilary's resources for using "elbow method"
-  # instead? Often used with evaluating k-means
-  clust.out.eval <- clust.out %>% 
-    purrr::map(cvi) %>% 
+  # Attempt at sum of square residuals within each cluster
+  # to evaluate with the elbow method. Instead of residuals,
+  # I am summing the cluster differences (and not squaring 
+  # since the "distance" measure might not be a vertical line)
+  # sum_of_cldist <- map(clust.out, ~sum(.x@cldist[,1]))
+  cvi_plus_elbow <- function(x) {
+    c(cvi(x), ELBOW = sum(x@cldist[,1]))
+  }
+  
+  # Now evaluate to find which number of clusters works best
+  clust.out %>% 
+    purrr::map(cvi_plus_elbow) %>% 
     bind_rows(.id = 'clust_window') %>% 
     rename(
       # Consulted section 5.1 of https://rpubs.com/esobolewska/dtw-time-series
@@ -52,11 +59,14 @@ evaluate_dtw_clusters <- function(in_files) {
       `Davies-Bouldin index` = DB, # MINimize
       `Modified Davies-Bouldin index` = DBstar, # MINimize
       `Calinkski-Harabasz index` = CH, # MAXimize
-      `Score function` = SF # MAXimize
+      `Score function` = SF, # MAXimize
+      `Elbow method` = ELBOW # MINimize
     ) %>% 
     pivot_longer(cols = -clust_window, names_to = 'eval_metric') %>% 
     # This one has been zero for all tests so far, 2023-11-23
     filter(eval_metric != 'Score function') %>% 
+    # This one has been all over the place so far
+    filter(eval_metric != 'Modified Davies-Bouldin index') %>% 
     separate(clust_window, into = c('n_clusters', 'n_windows'), sep = '_') %>% 
     mutate(
       n_clusters = as.numeric(n_clusters), # It was a list name, so needed to make numeric for plotting
@@ -66,9 +76,6 @@ evaluate_dtw_clusters <- function(in_files) {
         yes = 'minimize', no = 'maximize')
     )
   
-  # for(clust_i in seq_along(clust.out)) {
-  #   plot(clust.out[[clust_i]])
-  # }
   
   ggplot(clust.out.eval, aes(x = n_clusters, y = value, color = n_windows)) +
     geom_line(aes(group=n_windows), size=2) +
