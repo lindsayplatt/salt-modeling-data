@@ -5,21 +5,22 @@ source('4_ClusterTS/src/ts_cluster_prep.R')
 source('4_ClusterTS/src/apply_dtw.R')
 source('4_ClusterTS/src/evaluate_dtw.R')
 
-
 p4_targets <- list(
-  
   
   ##### PREP DATA: specific changes needed for the clustering algorithm #####
   
-  ###### PREP DATA 1: Z-score SC data per site ######
+  ###### PREP DATA 1: Remove incomplete years & Z-score SC data per site ######
   
-  tar_target(p4_ts_sc_norm, normalize_data_bysite(p2_ts_sc, 'SpecCond')),
+  tar_target(p4_ts_sc_completeyrs, remove_incomplete_years(p2_ts_sc)),
+  tar_target(p4_ts_sc_norm, normalize_data_bysite(p4_ts_sc_completeyrs, 'SpecCond')),
   
   ###### PREP DATA 2: Split SC time series into list of individual site-years ######
   
   tar_target(p4_ts_sc_list, convert_ts_data_into_list(p4_ts_sc_norm, 'SpecCond')),
   
   ##### DETERMINE OPTIMAL CLUSTERING MODEL #####
+  
+  # TODO: now that incomplete years have been removed, need to re-run DTW tests.
   
   # 2 clusters with a 5-day window was running for over 2.5 hrs
   # and hadn't converged.

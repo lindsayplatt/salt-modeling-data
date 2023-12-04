@@ -1,4 +1,44 @@
 
+#' @title Remove site-years that are short.
+#' @description Some years start late or end early (at the ends of a site's time
+#' range). These years should not be included in the clustering model because we
+#' are only wanting to use complete years.
+#' 
+#' @param ts_data a tibble with at least the columns `site_no` and `date`
+#' 
+#' @return tibble with the same columns as `ts_data` but fewer rows
+#' 
+remove_incomplete_years <- function(ts_data) {
+  
+  # Count how many site-year time series we started with
+  n_siteyrs_all <- ts_data %>% 
+    select(site_no, year) %>% 
+    distinct() %>% nrow()
+  
+  ts_data_siteyr_complete <- ts_data %>% 
+    # Identify the start/end day for each annual ts
+    mutate(doy = yday(date)) %>% 
+    group_by(site_no, year) %>% 
+    mutate(first_day = min(doy),
+           last_day = max(doy)) %>% 
+    ungroup() %>% 
+    # Filter to site-years that are complete
+    filter(first_day == 1, last_day >= 365) %>% 
+    # Remove columns added in this function
+    select(-doy, -first_day, -last_day)
+  
+  # Count how many site-year time series remain
+  n_siteyrs_complete <- ts_data_siteyr_complete %>% 
+    select(site_no, year) %>% 
+    distinct() %>% nrow()
+  
+  message(sprintf('%s out of %s site-years remain (%s removed)',  
+                  n_siteyrs_complete, n_siteyrs_all, 
+                  n_siteyrs_all - n_siteyrs_complete))
+  
+  return(ts_data_siteyr_complete)
+}
+
 # Load the znorm function from an earlier phase script
 znorm <- function() {}
 insertSource("2_Prepare/src/attr_prep_fxns.R", functions="znorm") 
