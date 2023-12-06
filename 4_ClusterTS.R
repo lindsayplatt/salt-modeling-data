@@ -61,7 +61,7 @@ p4_targets <- list(
                filter(n_clusters == p4_cluster_optimal) %>% 
                compare_dtw_cluster_configs()),
   
-  tar_target(p4_distance_optimal, 'dtw_basic'), # TODO: switch to `dtw`
+  tar_target(p4_distance_optimal, 'dtw'), 
   tar_target(p4_centroid_optimal, 'pam'), # DBA had issues with turning into a flat line.
   tar_target(p4_cluster_optimal, 7),
   tar_target(p4_window_optimal, 20),
