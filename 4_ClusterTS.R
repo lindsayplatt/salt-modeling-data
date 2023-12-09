@@ -20,8 +20,6 @@ p4_targets <- list(
   
   ##### DETERMINE OPTIMAL CLUSTERING MODEL #####
   
-  # TODO: now that incomplete years have been removed, need to re-run DTW tests.
-  
   # 2 clusters with a 5-day window was running for over 2.5 hrs
   # and hadn't converged.
   # 3 clusters with 30 day window was running for 9 hours ... no progress.
