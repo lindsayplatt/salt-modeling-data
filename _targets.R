@@ -7,9 +7,11 @@ tar_option_set(
   packages = c(
     'arrow',
     'dataRetrieval',
+    'dtwclust',
     'EGRET',
     'feasts',
     'nhdplusTools',
+    'qs',
     'raster',
     'sbtools',
     'sf',
