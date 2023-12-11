@@ -79,6 +79,22 @@ identify_highSC_sites <- function(ts_data) {
     pull(site_no)
 }
 
+#' @title Find sites that have zero road salt
+#' @description Use the road salt attribute data per site (summarizing road salt
+#' applied within a 5 km radius, see `aggregate_road_salt_per_site()`) to keep 
+#' only those sites that had some road salt applied nearby.
+#' 
+#' @param roadSalt_attrs a tibble with the columns `site_no`, and `attr_roadSalt`
+#' 
+#' @return a vector of NWIS site character strings which do not have road salt 
+#' applied within a 5 km radius and should be removed.
+#' 
+identify_nonsalt_sites <- function(roadSalt_attrs) {
+  roadSalt_attrs %>% 
+    filter(attr_roadSalt == 0) %>% 
+    pull(site_no)
+}
+
 #' @title Filter data to sites that met certain criteria
 #' @description Using previously identified vectors of NWIS sites, filter the 
 #' data to only those of sites that we want to keep and remove any
@@ -100,7 +116,7 @@ filter_data_to_qualifying_sites <- function(site_data, keep_sites, remove_sites)
 
   message('Removing sites that did not meet temporal criteria: ', 
           sum(!unique(site_data$site_no) %in% keep_sites))
-  message('Removing additional sites that are ag/tidal/highSC: ',
+  message('Removing additional sites that are ag/tidal/highSC/nonsalt: ',
           sum(keep_sites %in% remove_sites))
 
   site_data %>% 
