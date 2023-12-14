@@ -12,6 +12,7 @@ tar_option_set(
     'feasts',
     'nhdplusTools',
     'qs',
+    'randomForest',
     'raster',
     'sbtools',
     'sf',
