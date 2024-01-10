@@ -12,7 +12,7 @@ visualize_numeric_attrs_by_cluster <- function(site_attr_data) {
     facet_wrap(vars(attribute), scales = 'free_y') +
     theme_bw() +
     scico::scale_fill_scico_d() +
-    xlab('Cluster (out of 7)') + ylab('Attribute value (various scales and units') +
+    xlab('Cluster (out of 7)') + ylab('Attribute value (various scales and units)') +
     ggtitle('Attributes by cluster group',
             subtitle = 'Note that some cluster groups are not represented (those clusters were not the most frequent for any site)') +
     theme(strip.background = element_rect(fill = 'white', color = 'transparent'))

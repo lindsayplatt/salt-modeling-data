@@ -80,7 +80,8 @@ visualize_attr_importance <- function(rf_model_importance, simple = FALSE) {
               axis.text.y = element_text(size=7),
               title = element_text(size=9, face='bold')) +
         ggtitle(sprintf('Cluster %s', unique(.x$cluster)))
-      if(!simple) p <- p + facet_grid(attribute_grp ~ ., scales='free_y')
+      if(!simple) p <- p + facet_grid(attribute_grp ~ ., scales='free_y') 
+      if(simple) p <- p + scale_color_identity()
       return(p)
     })
   return(plot_list)

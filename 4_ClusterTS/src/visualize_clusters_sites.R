@@ -30,7 +30,7 @@ visualize_cluster_sites_map <- function(site_clusters, sites_sf) {
             aes(color = cluster), 
             alpha=0.75) +
     guides(color = 'none') +
-    facet_wrap(vars(cluster_title), ncol=2) +
+    facet_wrap(vars(cluster_title), ncol=3) +
     theme_void()
   
 }

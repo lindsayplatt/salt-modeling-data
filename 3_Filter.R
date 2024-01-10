@@ -15,7 +15,7 @@ p3_targets <- list(
   
   # Before running WRTDS, remove any data that is too large of a gap to attempt
   # to fill. Only apply gap-filling to data more recent than the final large gap
-  # (currently defined as 3 years of sequential NAs)
+  # (currently defined as 2 years of sequential NAs)
   tar_target(p3_ts_sc_rmLargeGaps,
              filter_beyond_large_ts_gaps(p2_ts_sc_dv_feather,
                                          param_colname = 'SpecCond',
