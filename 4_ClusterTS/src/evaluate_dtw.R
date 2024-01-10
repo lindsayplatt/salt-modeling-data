@@ -231,3 +231,18 @@ visualize_cluster_ts <- function(dtw_clusters_ts, dtw_clusters_ts_centroids, par
     theme_bw() +
     ylab('Normalized SC')
 }
+
+# Show boxplot per cluster where each site is added as the 
+# fraction of years the site's TS appeared in its 'best' cluster.
+# Hopefully, most are > 50% of the time (which was true in Dec 2023).
+# This little code snippet was used to create a figure for the 
+# results slide deck but may not be implemented fully given the
+# upcoming changes.
+# tar_read(p4_dtw_clusters_bySite) %>%
+#   mutate(clusterf = factor(cluster)) %>% 
+#   ggplot(aes(x = clusterf, y = frac_years)) +
+#   geom_boxplot(fill='grey') +
+#   theme_bw() +
+#   ylab('Fraction of year') + xlab('Cluster') +
+#   ggtitle("Fraction of years each site appeared in its 'best' cluster",
+#           sub = 'Only cluster 1 and cluster 6 have values < 50%')
