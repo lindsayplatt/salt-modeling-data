@@ -54,3 +54,11 @@ visualize_categorical_attrs_by_cluster <- function(site_attr_data, plot_percent 
     theme(strip.background = element_rect(fill = 'white', color = 'transparent'))
   
 }
+
+# TODO: Use ANOVA to evaluate which attributes are different for clusters??
+# aov_output <- aov(avgSoilStorage ~ clusterf,
+#                   data=tar_read(p5_site_attr_rf))
+# # Test for normality of residuals
+# hist(aov_output$residuals)
+# 
+# summary(aov_output)

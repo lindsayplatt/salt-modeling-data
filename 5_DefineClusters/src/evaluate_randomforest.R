@@ -129,4 +129,22 @@ visualize_partial_dependence <- function(pdp_data) {
 }
 
 # TODO: SHAP eval???
-
+# library(kernelshap)
+# library(shapviz)
+# library(randomForest)
+# 
+# fit <- tar_read(p5_rf_model_optimal)
+# dat <- tar_read(p5_site_attr_rf)
+# 
+# # Step 1: Calculate Kernel SHAP values
+# # bg_X is usually a small (50-200 rows) subset of the data
+# set.seed(19)
+# s <- kernelshap(fit, dat[-1], bg_X = sample_n(dat, 50)) # Just 50 rows took like 30 min
+# s <- kernelshap(fit, dat[-1], bg_X = dat)
+# 
+# # Step 2: Turn them into a shapviz object
+# sv <- shapviz(s)
+# 
+# # Step 3: Gain insights...
+# sv_importance(sv, kind = "bee")
+# sv_dependence(sv, v = "roadSalt", color_var = "auto")
