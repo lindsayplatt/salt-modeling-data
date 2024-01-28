@@ -166,3 +166,36 @@ load_nhdplus_attribute_list <- function(in_file) {
   yaml::yaml.load_file(in_file) %>% 
     discard(is.null)
 } 
+
+#' @title Download NHD+ catchments
+#' @description Use `nhdplusTools` functions to download cacthments by COMID
+#' 
+#' @param out_file a character string with the file extension `.gpkg`
+#' @param comids character vector of NHD COMIDs to retrieve attribute values
+#' 
+#' @return the string to the local geopackage saved
+#' 
+download_nhdplus_catchments <- function(out_file, comids) {
+  # Some of the nhdplusTools errors still return the geometry we need.
+  # So, let's catch those and continue for now.
+  # I logged the issues here: https://github.com/DOI-USGS/nhdplusTools/issues/376
+  tryCatch({
+    subset_nhdplus(comids = as.integer(comids),
+                   output_file = out_file,
+                   nhdplus_data = "download", 
+                   flowline_only = FALSE,
+                   return_data = FALSE, 
+                   overwrite = TRUE)
+  }, error = function(e) {
+    if(grepl('st_cast for MULTIGEOMETRYCOLLECTION not supported', e$message) |
+       grepl('nrow(x) == length(value) is not TRUE', e$message, fixed=T) |
+       grepl('Loop 0 is not valid: Edge 11 crosses edge 13', e$message)) {
+      warning(sprintf('Caught error but could continue ... %s', e$message))
+      return(out_file)
+    } else {
+      stop(e$message)
+    }
+  })
+  
+  return(out_file)
+}
