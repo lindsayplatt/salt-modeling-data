@@ -279,6 +279,15 @@ p1_targets <- list(
   # is pasture/hay and CAT_NLCD19_82 is cultivated crops). Used during `3_Filter`.
   tar_target(p1_nhdplus_ag_vals_tbl, 
              download_nhdplus_attributes(attributes = c('CAT_NLCD19_81', 'CAT_NLCD19_82'),
-                                         comids = unique(p1_nwis_site_nhd_comid_xwalk$nhd_comid)))
+                                         comids = unique(p1_nwis_site_nhd_comid_xwalk$nhd_comid))),
+  
+  # Download NHD+ catchment data
+  tar_target(p1_nhdplus_comids, na.omit(unique(p1_nwis_site_nhd_comid_xwalk$nhd_comid))),
+  tar_target(p1_nhdplus_catchments_gpkg, 
+             download_nhdplus_catchments(out_file = sprintf('1_Download/out_nhdplus/nhdplus_catchment_%s.gpkg',
+                                                            p1_nhdplus_comids),
+                                         comids = p1_nhdplus_comids),
+             pattern = map(p1_nhdplus_comids), 
+             format = 'file')
   
 )

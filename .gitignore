@@ -24,6 +24,7 @@ _targets/*
 */tmp/*
 */out/*
 1_Download/out_nwis/*
+1_Download/out_nhdplus/*
 # But allow folder structure to be commited
 #   with a placeholder file
 !*/tmp/.placeholder

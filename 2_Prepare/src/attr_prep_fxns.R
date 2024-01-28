@@ -187,43 +187,56 @@ extract_mk_trend <- function(mk_output, max_pval = 0.05) {
   return(trend)
 }
 
-#' @title Aggregate road salt application values per site
+#' @title Aggregate road salt application values per polygon
 #' @description Extract and sum cell values from the road salt raster file
-#' to get a single road salt application rate value for each site.
+#' to get a single road salt application rate value for each polygon.
 #' 
 #' @param road_salt_tif filepath to the road salt tif file
-#' @param sites_sf a spatial data frame with locations for NWIS sites. Needs
-#' at least a `site_no` and `geometry` column.
+#' @param polys_sf a spatial data frame with polygons. Needs to be an `sf` class.
 #' 
-#' @return tibble with two columns `site_no` and `attr_roadSalt`
+#' @returns a tibble with the columns `nhd_comid` and `attr_roadSalt` with the
+#' total road salt per COMID catchment polygon
 #' 
-aggregate_road_salt_per_site <- function(road_salt_tif, sites_sf) {
+aggregate_road_salt_per_poly <- function(road_salt_tif, polys_sf) {
   
   # Load and reproject the road salt raster data
   road_salt_rast <- raster::raster(road_salt_tif)
   road_salt_rast_proj <- raster::projectRaster(road_salt_rast, 
-                                               crs = st_crs(sites_sf)$input)
+                                               crs = st_crs(polys_sf)$input)
   
-  road_salt_per_site <- road_salt_rast_proj %>% 
-    # Extract the cell values for cells within a 5 km radius of each site
-    # Note that this is not weighted based on how much of the cell is inside the
-    # buffered area around each site - it is either included or not based on the
-    # methods descriped in `raster::extract()`: "If the distance between the 
-    # sampling point and the center of a cell is less than or equal to the buffer, 
-    # the cell is included." AKA the cell's center must be within the buffer
-    raster::extract(sites_sf, 
-                    buffer=5000, # in meters
-                    df=TRUE) %>% 
+  # Now calculate the total amount of salt within each polygon. Note that for
+  # this function, sum = "the sum of non-NA raster cell values, multiplied by 
+  # the fraction of the cell that is covered by the polygon".
+  salt_per_poly <- exactextractr::exact_extract(road_salt_rast_proj, polys_sf, 'sum')
+  
+  # Now add to a table for export
+  road_salt_poly <- polys_sf %>% 
+    mutate(attr_roadSalt = salt_per_poly) %>% 
+    st_drop_geometry() %>% 
     as_tibble() %>% 
-    # Add the cells around a site together to get one value of 
-    # road salt applied per site.
-    group_by(ID) %>%
-    summarize(attr_roadSalt = sum(road_salt_2015, na.rm = TRUE)) %>% 
-    # Add site_no as a column
-    mutate(site_no = sites_sf$site_no) %>% 
-    dplyr::select(site_no, attr_roadSalt)
+    dplyr::select(nhd_comid, attr_roadSalt)
   
-  return(road_salt_per_site)
+  return(road_salt_poly)
+}
+
+#' @title Get road salt value per site
+#' @description Using road salt values per NHD+ COMID catchment, map road salt to
+#' NWIS sites based on the crosswalk from COMID to site.
+#' 
+#' @param road_salt_comid a tibble with at least the columns `nhd_comid` and
+#' `attr_roadSalt`. Note that as described in `extract_nhdplus_geopackage_layer()`,
+#' not all COMIDs had a catchment polygon that were downloaded (e.g. COMID `4672393`
+#' did not have a catchment polygon available) and therefore will not have a salt value. 
+#' @param comid_site_xwalk a tibble with at least the columns `site_no` and 
+#' `nhd_comid`. Note that not all sites are mapped to a COMID and may be NA.
+#' 
+#' @return tibble with two columns `site_no` and `attr_roadSalt`
+#' 
+map_catchment_roadSalt_to_site <- function(road_salt_comid, comid_site_xwalk) {
+  comid_site_xwalk %>% 
+    left_join(road_salt_comid, by = 'nhd_comid') %>% 
+    as_tibble() %>% 
+    dplyr::select(site_no, attr_roadSalt)
 }
 
 #' @title Pivot downloaded NHD attributes from long to wide
