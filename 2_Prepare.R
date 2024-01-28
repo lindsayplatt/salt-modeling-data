@@ -7,6 +7,8 @@ source('2_Prepare/src/ts_detrend_fxns.R')
 source('2_Prepare/src/ts_finalize_fxns.R')
 source('2_Prepare/src/attr_prep_fxns.R')
 source('2_Prepare/src/attr_combine_all.R')
+source('2_Prepare/src/extract_nhdplus_geopackage_layer.R')
+
 
 p2_targets <- list(
   
@@ -135,8 +137,18 @@ p2_targets <- list(
   
   ###### ATTR DATA 2: Extract road salt application per site ######
   
-  tar_target(p2_attr_roadSalt, aggregate_road_salt_per_site(road_salt_tif = p1_sb_road_salt_2015_tif, 
-                                                            sites_sf = p1_nwis_sc_sites_sf)),
+  # TODO: currently only summing each catchment. Should we be using all upstream? That would require downloading way more catchments.
+  # TODO: not all sites are mapped to COMIDs or had catchments available. We could look at using 5 km radius for site's without catchment polys.
+  
+  # First, extract the catchments as polygons
+  tar_target(p2_nhdplus_catchment_sf, extract_nhdplus_geopackage_layer(p1_nhdplus_catchments_gpkg)),
+  
+  # Second, summarize total salt per catchment
+  tar_target(p2_nhdplus_catchment_salt, aggregate_road_salt_per_poly(road_salt_tif = p1_sb_road_salt_2015_tif, 
+                                                                     polys_sf = p2_nhdplus_catchment_sf)),
+  
+  # Then, map total salt for each NHD COMID catchment polygon to sites
+  tar_target(p2_attr_roadSalt, map_catchment_roadSalt_to_site(p2_nhdplus_catchment_salt, p1_nwis_site_nhd_comid_xwalk)),
   
   ###### ATTR DATA 3: Calculate SC trend per site ######
   
