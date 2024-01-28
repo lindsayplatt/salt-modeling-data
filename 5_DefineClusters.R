@@ -1,10 +1,10 @@
 # Targets for applying a random forest to link attributes
 # to each timeseries cluster from `4_ClusterTS`
 
-source('5_DefineClusters/src/prep_attr_randomforest.R')
-source('5_DefineClusters/src/visualize_attributes_bycluster.R')
-source('5_DefineClusters/src/apply_randomforest.R')
-source('5_DefineClusters/src/evaluate_randomforest.R')
+# source('5_DefineClusters/src/prep_attr_randomforest.R')
+# source('5_DefineClusters/src/visualize_attributes_bycluster.R')
+# source('5_DefineClusters/src/apply_randomforest.R')
+# source('5_DefineClusters/src/evaluate_randomforest.R')
 
 p5_targets <- list(
   
