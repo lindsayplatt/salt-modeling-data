@@ -2,20 +2,23 @@
 
 source('4_EpisodicSalinization/src/find_event_peaks.R')
 source('4_EpisodicSalinization/src/summarize_sc_peaks.R')
+source('4_EpisodicSalinization/src/ts_normalization.R')
 
 # TODO: change the name once we are happy with skipping clustering. Don't want
 # to overwrite those targets yet since they were *LENGTHY* to build.
 p4b_targets <- list(
   
-  # TODO: scale this up to more sites. Do we batch them? Do we do each individually?
-  # Doing each individually here would create a lot of extra targets unnecessarily.
+  # Normalize the specific conductance before calculating peaks
+  tar_target(p4b_ts_sc_norm, normalize_data_bysite(p3_ts_sc_qualified, 'SpecCond')),
+  
+  # Calculate event peaks for all sites 
   tar_target(p4_ts_sc_peaks, {
-    p3_ts_sc_qualified %>%
       # filter(site_no %in% c('04208000', '01095220', '01645704', '01645762')) %>% 
+    p4b_ts_sc_norm %>% 
       split(.$site_no) %>%
       map(~find_event_peaks(ts_data = .x,
                             date_colname = 'dateTime',
-                            param_colname = 'SpecCond',
+                            param_colname = 'SpecCond_norm',
                             sb_pk_thresh = 0.000005,
                             sf_pk_thresh = 0.1) # Switch to a different number?
       ) %>%

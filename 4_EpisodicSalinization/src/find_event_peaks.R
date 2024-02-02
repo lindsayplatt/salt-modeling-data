@@ -30,7 +30,6 @@ find_event_peaks <- function(ts_data, date_colname, param_colname, sb_pk_thresh 
     rename_with(~gsub(param_colname, 'PARAM', .x)) %>% 
     # Remove NAs & make sure the plotting variable is greater than zero
     filter(!is.na(PARAM)) %>% 
-    filter(PARAM > 0) %>%
     # Make sure plotting variable is greater than zero
     # Calculate slope forward and backward
     mutate(slope_bkwd = (PARAM - lag(PARAM)/(Days - lag(Days))),
