@@ -25,7 +25,7 @@ p4b_targets <- list(
       bind_rows()
   }),
   
-  tar_target(p4_ts_sc_peak_summary, summarize_salt_peaks(p4_ts_sc_peaks)),
+  tar_target(p4_ts_sc_peak_summary, summarize_salt_peaks(p4_ts_sc_peaks, min_winter_perc = 0.40))
   tar_target(p4_episodic_sites, filter(p4_ts_sc_peak_summary, is_salt_site)$site_no)
   
   # Hilary's original list:
