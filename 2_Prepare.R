@@ -150,7 +150,9 @@ p2_targets <- list(
                                                                      polys_sf = p2_nhdplus_catchment_sf)),
   
   # Then, map salt for each NHD COMID catchment polygon to sites and calculate cumulative road salt
-  tar_target(p2_attr_roadSalt, map_catchment_roadSalt_to_site(p2_nhdplus_catchment_salt, p1_nwis_site_nhd_comid_xwalk)),
+  tar_target(p2_attr_roadSalt, map_catchment_roadSalt_to_site(road_salt_comid = p2_nhdplus_catchment_salt, 
+                                                              comid_site_xwalk = p1_nwis_site_nhd_comid_xwalk,
+                                                              comid_upstream_tbl = p1_nhdplus_comids_upstream)),
   
   ###### ATTR DATA 3: Calculate SC trend per site ######
   
