@@ -257,7 +257,7 @@ p1_targets <- list(
              identify_site_comids(p1_nwis_sc_sites_sf),
              pattern = map(p1_nwis_sc_sites_sf)),
   
-  ###### Download desired static catchment attributes from NHDPlus #####
+  ###### Download desired catchment polygons and static attributes from NHDPlus #####
   
   # Wieczorek, M.E., Jackson, S.E., and Schwarz, G.E., 2018, Select Attributes for 
   #   NHDPlus Version 2.1 Reach Catchments and Modified Network Routed Upstream Watersheds 
@@ -281,13 +281,24 @@ p1_targets <- list(
              download_nhdplus_attributes(attributes = c('CAT_NLCD19_81', 'CAT_NLCD19_82'),
                                          comids = unique(p1_nwis_site_nhd_comid_xwalk$nhd_comid))),
   
-  # Download NHD+ catchment data
+  # Prepare COMIDs to download so that polygons are only downloaded and stored once
   tar_target(p1_nhdplus_comids, na.omit(unique(p1_nwis_site_nhd_comid_xwalk$nhd_comid))),
+  tar_target(p1_nhdplus_comids_upstream, identify_upstream_comids(p1_nhdplus_comids), map(p1_nhdplus_comids)), # Identify upstream COMIDs
+  tarchetypes::tar_group_count(p1_nhdplus_comids_grp, 
+                               count = 500, # Set 500 groups to map over
+                               # Create unique vector of COMIDs to download catchments only once
+                               tibble(nhd_comid = unique(c(p1_nhdplus_comids, p1_nhdplus_comids_upstream$nhd_comid_upstream)))),
+  
+  # Download NHD+ catchment polygons by groups of COMIDs (should be 500 total branches with 
+  # ~1235 COMIDs each). This takes slightly over two hours to download over 600k COMID catchments
+  # TODO: There is still one group erroring:
+  #   p1_nhdplus_catchments_gpkg_a2e1fd07 (transfer closed with outstanding read data remaining; 
+  #   and then Error: _paths_ missing files: 1_Download/out_nhdplus/nhdplus_catchment_468.gpkg)
   tar_target(p1_nhdplus_catchments_gpkg, 
              download_nhdplus_catchments(out_file = sprintf('1_Download/out_nhdplus/nhdplus_catchment_%s.gpkg',
-                                                            p1_nhdplus_comids),
-                                         comids = p1_nhdplus_comids),
-             pattern = map(p1_nhdplus_comids), 
-             format = 'file')
+                                                            unique(p1_nhdplus_comids_grp$tar_group)),
+                                         comids = p1_nhdplus_comids_grp$nhd_comid),
+             pattern = map(p1_nhdplus_comids_grp), 
+             format = 'file', error = "continue")
   
 )

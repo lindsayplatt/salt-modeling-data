@@ -229,14 +229,27 @@ aggregate_road_salt_per_poly <- function(road_salt_tif, polys_sf) {
 #' did not have a catchment polygon available) and therefore will not have a salt value. 
 #' @param comid_site_xwalk a tibble with at least the columns `site_no` and 
 #' `nhd_comid`. Note that not all sites are mapped to a COMID and may be NA.
+#' @param comid_upstream_tbl a tibble with the columns `nhd_comid` and `nhd_comid_upstream`
+#' mapping all upstream comids to each COMID with an NWIS site. It should match
+#' the output of `identify_upstream_comids()`.
 #' 
-#' @return tibble with two columns `site_no` and `attr_roadSalt`
+#' @return tibble with three columns `site_no`, `attr_roadSalt`, and `attr_roadSaltCumulative`
 #' 
-map_catchment_roadSalt_to_site <- function(road_salt_comid, comid_site_xwalk) {
+map_catchment_roadSalt_to_site <- function(road_salt_comid, comid_site_xwalk, comid_upstream_tbl) {
+  
+  # Calculate cumulative road salt for each catchment and all upstream catchments
+  upstream_roadSalt <- comid_upstream_tbl %>% 
+    left_join(road_salt_comid, by = c('nhd_comid_upstream' = 'nhd_comid')) %>% 
+    group_by(nhd_comid) %>% 
+    summarize(attr_roadSaltCumulative = sum(attr_roadSalt), .groups='keep')
+  
   comid_site_xwalk %>% 
-    left_join(road_salt_comid, by = 'nhd_comid') %>% 
-    as_tibble() %>% 
-    dplyr::select(site_no, attr_roadSalt)
+    # Join in the road salt for just the one catchment
+    left_join(road_salt_comid, by = 'nhd_comid') %>%
+    as_tibble() %>%  
+    # Now join the upstream road salt for each site's COMID
+    left_join(upstream_roadSalt, by = 'nhd_comid') %>% 
+    dplyr::select(site_no, attr_roadSalt, attr_roadSaltCumulative)
 }
 
 #' @title Pivot downloaded NHD attributes from long to wide

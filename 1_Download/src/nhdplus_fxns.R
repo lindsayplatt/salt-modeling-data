@@ -180,6 +180,7 @@ download_nhdplus_catchments <- function(out_file, comids) {
   # So, let's catch those and continue for now.
   # I logged the issues here: https://github.com/DOI-USGS/nhdplusTools/issues/376
   tryCatch({
+    sf::sf_use_s2(FALSE)
     subset_nhdplus(comids = as.integer(comids),
                    output_file = out_file,
                    nhdplus_data = "download", 
@@ -189,13 +190,44 @@ download_nhdplus_catchments <- function(out_file, comids) {
   }, error = function(e) {
     if(grepl('st_cast for MULTIGEOMETRYCOLLECTION not supported', e$message) |
        grepl('nrow(x) == length(value) is not TRUE', e$message, fixed=T) |
-       grepl('Loop 0 is not valid: Edge 11 crosses edge 13', e$message)) {
+       grepl('Loop 0 is not valid: Edge 11 crosses edge 13', e$message) |
+       grepl('arguments have different crs', e$message)) {
       warning(sprintf('Caught error but could continue ... %s', e$message))
       return(out_file)
     } else {
       stop(e$message)
     }
+  }, warning = function(w) {
+    warning(sprintf('Caught error but could continue ... %s', w$message))
   })
   
   return(out_file)
+}
+
+#' @title Identify all upstream COMIDs
+#' @description Use `nhdplusTools` functions to get all upstream COMIDs
+#' for any one COMID that matches an NWIS site.
+#' 
+#' @param comid_in a single character string representing the NHD COMID
+#' 
+#' @return a tibble of COMIDs with two columns - `nhd_comid` which includes the
+#' COMID passed into the function and `nhd_comid_upstream` which are the COMIDs
+#' found to be upstream of the value in `nhd_comid`. Note that values in `nhd_comid`
+#' will repeat as necessary to align with however many `nhd_comid_upstream`
+#' values they have.
+#' 
+identify_upstream_comids <- function(comid_in) {
+  comids_ut <- navigate_nldi(
+      list(featureSource = "comid",
+           featureID = comid_in),
+      mode = "upstreamTributaries",
+      # Picking 1000 because that's a lot and the algorithm
+      # will just stop returning more comids when it reaches 
+      # the end of the upstream connections.
+      distance_km = 1000) %>% 
+    pluck('UT_flowlines', 'nhdplus_comid') %>%
+    as.integer()
+  
+  tibble(nhd_comid = comid_in,
+         nhd_comid_upstream = comids_ut)
 }

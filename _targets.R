@@ -5,6 +5,7 @@ library(tarchetypes)
 options(tidyverse.quiet = TRUE)
 tar_option_set(
   packages = c(
+    'archive',
     'arrow',
     'dataRetrieval',
     'dtwclust',
