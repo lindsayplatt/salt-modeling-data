@@ -289,34 +289,16 @@ p1_targets <- list(
                                # Create unique vector of COMIDs to download catchments only once
                                tibble(nhd_comid = unique(c(p1_nhdplus_comids, p1_nhdplus_comids_upstream$nhd_comid_upstream)))),
   
-  # Download the full NHD+ seamless National database as a geopackage and then subset after
-  # to avoid annoying errors with `arguments having different crs` in `subset_nhdplus()`
-  tar_target(p1_nhdplus_national_7z, {
-    out_dir <- '1_Download/out_nhdhr_network'
-    
-    # Attempt 1: use `nhdplusTools::download_nhdplusv2` but it mysteriously stops and doesn't finish the download.
-    # download_nhdplusv2(out_dir)
-    
-    # Attempt 2: use `download.file` and the URL to the file on the EPA website to manually 
-    # download the https://www.epa.gov/waterdata/nhdplus-national-data.
-    # download.file(url = 'https://dmap-data-commons-ow.s3.amazonaws.com/NHDPlusV21/Data/NationalData/NHDPlusV21_NationalData_Seamless_Geodatabase_Lower48_07.7z',
-    #               destfile = out_file)
-    
-    # Attempt 3: manually download the file from the EPA site and move into the folder I want
-    out_file <- file.path(out_dir, 'NHDPlusV21_NationalData_Seamless_Geodatabase_Lower48_07.7z')
-    
-    return(out_file)
-    }, format = 'file'),
-  # TODO: THIS FAILED WITH: Last error: archive_extract.cpp:166 archive_read_next_header(): Truncated 7-Zip file body
-  tar_target(p1_nhdplus_national_gpkg, archive_extract(p1_nhdplus_national_7z, dir = '1_Download/out_nhdhr_network'), format='file'),
-  
-  # Download NHD+ catchment polygons by groups of COMIDs (should be 500 total branches)
+  # Download NHD+ catchment polygons by groups of COMIDs (should be 500 total branches with 
+  # ~1235 COMIDs each). This takes slightly over two hours to download over 600k COMID catchments
+  # TODO: There is still one group erroring:
+  #   p1_nhdplus_catchments_gpkg_a2e1fd07 (transfer closed with outstanding read data remaining; 
+  #   and then Error: _paths_ missing files: 1_Download/out_nhdplus/nhdplus_catchment_468.gpkg)
   tar_target(p1_nhdplus_catchments_gpkg, 
              download_nhdplus_catchments(out_file = sprintf('1_Download/out_nhdplus/nhdplus_catchment_%s.gpkg',
                                                             unique(p1_nhdplus_comids_grp$tar_group)),
-                                         comids = p1_nhdplus_comids_grp$nhd_comid,
-                                         p1_nhdplus_national_gpkg),
+                                         comids = p1_nhdplus_comids_grp$nhd_comid),
              pattern = map(p1_nhdplus_comids_grp), 
-             format = 'file')
+             format = 'file', error = "continue")
   
 )
