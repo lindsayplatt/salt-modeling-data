@@ -11,6 +11,7 @@ tar_option_set(
     'dtwclust',
     'EGRET',
     'feasts',
+    'FlowScreen',
     'nhdplusTools',
     'qs',
     'randomForest',
