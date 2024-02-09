@@ -18,6 +18,13 @@ p5b_targets <- list(
   tar_target(p5_baseflow_sep, 
              delineate_baseflow(p5_q_grp, p3_static_attributes),
              pattern = map(p5_q_grp)),
+  
+  # Identify which site-days meet criteria for being a non-winter baseflow day
+  # defaults to Dec, Jan, Feb, Mar as "winter" and baseflow >= 90% of total daily flow
+  tar_target(p5_baseflow_days, identify_baseflow_days(p5_baseflow_sep)),
+  
+  # Filter SC data to only non-winter baseflow days
+  tar_target(p5_sc_baseflow, filter_ts_to_baseflow_days(p3_ts_sc_qualified, p5_baseflow_days, 'SpecCond')),
   tar_target(p5b_baseflow_sites, c())
   
 )
