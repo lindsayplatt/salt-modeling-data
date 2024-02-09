@@ -154,13 +154,7 @@ p2_targets <- list(
                                                               comid_site_xwalk = p1_nwis_site_nhd_comid_xwalk,
                                                               comid_upstream_tbl = p1_nhdplus_comids_upstream)),
   
-  ###### ATTR DATA 3: Calculate SC trend per site ######
-  
-  # Calculate SC trends to add as a static attribute
-  # This calculates the trend only for data that meets our criteria from 3_Filter
-  tar_target(p2_attr_sc_trends, calculate_sc_trend(p3_ts_sc_qualified, max_pval = 0.05)),
-  
-  ###### ATTR DATA 4: Pivot and link NHD+ attributes to sites ######
+  ###### ATTR DATA 3: Pivot and link NHD+ attributes to sites ######
   
   tar_target(p2_attr_nhd, prepare_nhd_attributes(p1_nhdplus_attr_vals_tbl,
                                                  p1_nwis_site_nhd_comid_xwalk)),
@@ -171,11 +165,10 @@ p2_targets <- list(
   
   # TODO: add GW signature? transmissivity? depth2wt?
   
-  ###### ATTR DATA 5: Combine all static attributes into one table ######
+  ###### ATTR DATA 4: Combine all static attributes into one table ######
   
   tar_target(p2_attr_all, combine_static_attributes(p2_attr_meanFlow,
                                                     p2_attr_roadSalt,
-                                                    p2_attr_sc_trends,
                                                     p2_attr_nhd))
   
 )
