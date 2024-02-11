@@ -1,6 +1,17 @@
 
 # TODO: documentation
-prep_attr_randomforest <- function(site_attr_data, sites_episodic, sites_baseflow) {
+prep_attr_randomforest <- function(site_attr_data, sites_episodic, site_baseflow_trend_info) {
+  
+  # Filter to just those sites with positive baseflow trends
+  sites_baseflow <- site_baseflow_trend_info %>% filter(baseflowTrend == 'positive') %>% pull(site_no)
+  
+  # TODO: expand categories later by considering a combination of episodic + trend type (rather than just positive)
+  #   Both episodic and positive baseflow trend
+  #   Episodic with negative baseflow trend
+  #   Episodic without a baseflow trend
+  #   Not episodic but with positive baseflow trend
+  #   Not episodic and with negative baseflow trend
+  #   Neither episodic nor baseflow trend
   
   site_attr_data %>% 
     mutate(site_category = case_when(
@@ -20,6 +31,8 @@ prep_attr_randomforest <- function(site_attr_data, sites_episodic, sites_baseflo
     # the streamDensity attribute cannot be used. 
     # TODO: Removing that attribute for now.
     select(-attr_streamDensity) %>% 
+    # TODO: Removing upstream salt for now because too many sites are missing it
+    select(-attr_roadSaltCumulative) %>% 
     # One site does not have a match in NHD+, so is missing all attributes - removing
     filter(site_no != '295501090190400') %>% 
     # One site is missing road salt (did not have a catchment in NHD+) - removing
@@ -27,8 +40,6 @@ prep_attr_randomforest <- function(site_attr_data, sites_episodic, sites_baseflo
     
     # Remove the columns that are not needed for the RF
     select(site_category_fact, starts_with('attr')) %>% 
-    # Don't need trend attributes
-    select(-starts_with("attr_Trend")) %>% 
     # Drop the `attr_` prefix so that the results are cleaner
     rename_with(~gsub("attr_", "", .x))
   

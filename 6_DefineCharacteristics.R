@@ -11,7 +11,7 @@ p6_targets <- list(
   
   ##### Prep data for RF #####
   
-  tar_target(p6_site_attr_rf, prep_attr_randomforest(p3_static_attributes, p4b_episodic_sites, p5b_baseflow_sites)),
+  tar_target(p6_site_attr_rf, prep_attr_randomforest(p3_static_attributes, p4_episodic_sites, p5_sc_baseflow_trend)),
   
   ##### Determine optimal RF configs #####
   
