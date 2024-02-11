@@ -10,6 +10,7 @@ tar_option_set(
     'dataRetrieval',
     'dtwclust',
     'EGRET',
+    'EnvStats',
     'feasts',
     'FlowScreen',
     'nhdplusTools',
