@@ -42,16 +42,15 @@ apply_SeasonalKendall <- function(ts_data, max_pval) {
   # that they will all either be going up or down. I think there may be instances where winter seasons are going
   # up but summer are going down?
   
-  # To use a Seasonal Mann-Kendall, first transform the data into monthly averages
-  # TODO: SHOULD BE MEDIAN
+  # To use a Seasonal Mann-Kendall, first transform the data into monthly medians
   # TODO: SWITCH TO EnvStats::kendallSeasonalTrendTest()
   ts_data_monthly <- ts_data %>% 
     mutate(year = lubridate::year(dateTime),
            month_num = sprintf('%02d', lubridate::month(dateTime))) %>% 
     group_by(year, month_num) %>% 
-    summarize(SpecCond_avg = mean(SpecCond), .groups="keep") %>% 
+    summarize(SpecCond_med = median(SpecCond), .groups="keep") %>% 
     ungroup() %>% 
-    pivot_wider(names_from = month_num, values_from = SpecCond_avg) %>% 
+    pivot_wider(names_from = month_num, values_from = SpecCond_med) %>% 
     # Arrange columns so January is first, then replace with abbreviations instead of numbers
     relocate(year, order(names(.))) %>% 
     rename_with(~month.abb[as.numeric(.x)], -year)
