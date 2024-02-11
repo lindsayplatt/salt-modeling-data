@@ -1,6 +1,7 @@
 # Targets for identifying sites that exhibit "baseflow salinization"
 
 source('5_BaseflowSalinization/src/delineate_baseflow.R')
+source('5_BaseflowSalinization/src/baseflow_qualification.R')
 source('5_BaseflowSalinization/src/calculate_sc_trend.R')
 
 # TODO: change the name once we are happy with skipping clustering. Don't want
@@ -27,7 +28,14 @@ p5b_targets <- list(
   # Filter SC data to only non-winter baseflow days
   tar_target(p5_sc_baseflow, filter_ts_to_baseflow_days(p3_ts_sc_qualified, p5_baseflow_days, 'SpecCond')),
   
-  tar_target(p5_sc_baseflow_trend, calculate_sc_trend(p5_sc_baseflow, max_pval = 0.05)),
+  # Calculate SC trends for non-winter baseflow days
+  # This calculates the trend only for data that meets our criteria from 3_Filter
+  # and has enough non-winter baseflow days that you can make the calculation
+  tar_target(p5_sc_baseflow_qualified_info, apply_baseflow_trend_criteria(p5_sc_baseflow)),
+  tar_target(p5_sc_baseflow_qualified_sites, identify_trend_sites(p5_sc_baseflow_qualified_info)),
+  tar_target(p5_sc_baseflow_qualified, filter(p5_sc_baseflow, site_no %in% p5_sc_baseflow_qualified_sites)),
+  
+  tar_target(p5_sc_baseflow_trend, calculate_sc_trend(p5_sc_baseflow_qualified, max_pval = 0.05)),
   
   tar_target(p5b_baseflow_sites, c())
   
