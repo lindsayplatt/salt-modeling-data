@@ -8,7 +8,9 @@ source('1_Download/src/retry_fxns.R')
 p1_targets <- list(
   
   # Define target listing the state abbreviations within the Contiguous United States (CONUS)
-  tar_target(p1_conus_state_cds, state.abb[!state.abb %in% c('AK', 'HI')]), 
+  tar_target(p1_conus_state_cds, c("CT", "DE", "IL", "IN", "IA", "KY", "ME", "MD", 
+                                   "MA", "MI", "MN", "MO", "NH", "NJ", "NY", "OH", 
+                                   "PA", "RI", "VT", "VA", "WV", "WI")), 
   
   ##### NWIS DATA: Download SC and Q {75 MIN} #####
   
