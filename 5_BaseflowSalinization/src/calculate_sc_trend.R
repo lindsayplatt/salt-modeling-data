@@ -12,7 +12,7 @@ calculate_sc_trend <- function(ts_data, max_pval = 0.05) {
   ts_data %>% 
     split(.$site_no) %>% 
     map(~{tibble(
-      attr_Trend = apply_SeasonalKendall(.x, max_pval = 0.05)
+      baseflowTrend = apply_SeasonalKendall(.x, max_pval = 0.05)
     )}) %>%
     bind_rows(.id = 'site_no')
 }
