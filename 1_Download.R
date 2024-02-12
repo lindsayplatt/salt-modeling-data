@@ -119,14 +119,15 @@ p1_targets <- list(
   # Separate by the service and download groups.
   # DV = daily data
   # UV = instantaneous data (downloading only if mean daily values aren't available
-  tar_target(p1_nwis_q_sites_query_uv, filter(p1_nwis_q_sites_query, query_service == 'uv')),
-  tar_target(p1_nwis_q_sites_query_uv_download_grps,
-             p1_nwis_q_sites_query_uv %>% 
-               # Set `max_results` much lower than default for `uv` because 1 day = 1440 records
-               add_download_grp(max_results = 15000) %>% 
-               group_by(task_num) %>% 
-               tar_group(),
-             iteration = 'group'),
+  # TODO: SOMEHOW HANDLE UV WHEN EMPTY?
+  # tar_target(p1_nwis_q_sites_query_uv, filter(p1_nwis_q_sites_query, query_service == 'uv')),
+  # tar_target(p1_nwis_q_sites_query_uv_download_grps,
+  #            p1_nwis_q_sites_query_uv %>% 
+  #              # Set `max_results` much lower than default for `uv` because 1 day = 1440 records
+  #              add_download_grp(max_results = 15000) %>% 
+  #              group_by(task_num) %>% 
+  #              tar_group(),
+  #            iteration = 'group'),
   tar_target(p1_nwis_q_sites_query_dv, filter(p1_nwis_q_sites_query, query_service == 'dv')),
   tar_target(p1_nwis_q_sites_query_dv_download_grps,
              p1_nwis_q_sites_query_dv %>% 
@@ -136,18 +137,18 @@ p1_targets <- list(
              iteration = 'group'),
   
   ###### NWIS DATA 8: Download the Q data and save as files in `1_Download/out_nwis` ######
-  tar_target(p1_nwis_q_data_uv_feather,
-             download_nwis_data(
-               out_file = sprintf('1_Download/out_nwis/q_uv_%03d.feather',
-                                  unique(p1_nwis_q_sites_query_uv_download_grps$task_num)),
-               site_numbers = p1_nwis_q_sites_query_uv_download_grps$site_no,
-               param_cd = p1_nwis_pcode_q,
-               start_date = p1_nwis_start_date,
-               end_date = p1_nwis_end_date,
-               service_cd = 'uv'
-             ),
-             pattern = map(p1_nwis_q_sites_query_uv_download_grps),
-             format = 'file'),
+  # tar_target(p1_nwis_q_data_uv_feather,
+  #            download_nwis_data(
+  #              out_file = sprintf('1_Download/out_nwis/q_uv_%03d.feather',
+  #                                 unique(p1_nwis_q_sites_query_uv_download_grps$task_num)),
+  #              site_numbers = p1_nwis_q_sites_query_uv_download_grps$site_no,
+  #              param_cd = p1_nwis_pcode_q,
+  #              start_date = p1_nwis_start_date,
+  #              end_date = p1_nwis_end_date,
+  #              service_cd = 'uv'
+  #            ),
+  #            pattern = map(p1_nwis_q_sites_query_uv_download_grps),
+  #            format = 'file'),
   tar_target(p1_nwis_q_data_dv_feather, 
              download_nwis_data(
                out_file = sprintf('1_Download/out_nwis/q_dv_%03d.feather', 
@@ -171,10 +172,13 @@ p1_targets <- list(
   # that may have data for parameter codes that contain `tidally filtered`
   # discharge, velocity, or gage height, indicating tidal influence
   tar_target(p1_nwis_sc_sites_tidal, 
-             whatNWISsites(siteNumber = p1_nwis_sc_sites_query$site_no,
-                           parameterCd = c("72137", "72138", "72139", "72168", 
-                                           "72169", "72170", "72171")) %>% 
-               pull(site_no)),
+             # TODO: add in method for handling when none of them have tidal influence
+             c()
+             # whatNWISsites(siteNumber = p1_nwis_sc_sites_query$site_no,
+             #               parameterCd = c("72137", "72138", "72139", "72168", 
+             #                               "72169", "72170", "72171")) %>% 
+             #   pull(site_no)
+             ),
   
   ##### SCIENCEBASE DATASET DOWNLOADS {< 1 MIN} #####
   
