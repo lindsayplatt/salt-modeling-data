@@ -38,8 +38,8 @@ prep_attr_randomforest <- function(site_attr_data, sites_episodic, site_baseflow
     # One site is missing road salt (did not have a catchment in NHD+) - removing
     filter(site_no != '01542500') %>% 
     
-    # Remove the columns that are not needed for the RF
-    select(site_category_fact, starts_with('attr')) %>% 
+    # Remove the columns that are not needed for the RF (except site_no)
+    select(site_no, site_category_fact, starts_with('attr')) %>% 
     # Drop the `attr_` prefix so that the results are cleaner
     rename_with(~gsub("attr_", "", .x))
   
