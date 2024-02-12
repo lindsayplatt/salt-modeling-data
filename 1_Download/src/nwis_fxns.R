@@ -91,12 +91,12 @@ inventory_nwis_data <- function(site_numbers, param_cd, start_date, end_date) {
     # Add other info about the data stream back in
     left_join(data_info, by = c('site_no', query_service = 'data_type_cd', 'stat_cd')) %>%  
     # Cleanup table to return
-    select(site_no, query_service, 
-           datastream_name = loc_web_ds, # This is sometimes used to distinguish multiple sensors at one site
-           begin_date, end_date, 
-           days_count = count_nu, 
-           year_span, year_coverage, 
-           gap_pct)
+    dplyr::select(site_no, query_service, 
+                  datastream_name = loc_web_ds, # This is sometimes used to distinguish multiple sensors at one site
+                  begin_date, end_date, 
+                  days_count = count_nu, 
+                  year_span, year_coverage, 
+                  gap_pct)
     
 }
 
@@ -139,7 +139,7 @@ filter_to_min_data_standards <- function(data_info, min_yrs, min_end_date) {
     filter(year_coverage >= min_yrs) %>% 
     filter(end_date >= min_end_date) %>% 
     # Need `days_count` for splitting queries for download later
-    select(site_no, query_service, days_count)
+    dplyr::select(site_no, query_service, days_count)
 }
 
 #' @title Define data download groups
@@ -173,7 +173,7 @@ add_download_grp <- function(data_info, max_results = 250000, max_sites = 2000) 
     group_by(task_num_by_group, task_num_by_results) %>% 
     mutate(task_num = cur_group_id()) %>% 
     ungroup() %>% 
-    select(site_no, task_num)
+    dplyr::select(site_no, task_num)
 }
 
 #' @title Download data from NWIS
@@ -246,7 +246,7 @@ download_nwis_data <- function(out_file, site_numbers, param_cd, start_date,
   # Rename & select certain columns + save the data as a file 
   nwis_data %>% 
     renameNWISColumns() %>% 
-    select(site_no, dateTime, contains('SpecCond'), contains('Flow')) %>%
+    dplyr::select(site_no, dateTime, contains('SpecCond'), contains('Flow')) %>%
     write_feather(out_file)
   
   return(out_file)
