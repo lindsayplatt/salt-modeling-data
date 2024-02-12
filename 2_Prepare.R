@@ -111,20 +111,21 @@ p2_targets <- list(
   ###### ATTR DATA 1: Collapse Q time series to mean Q per site ######
   
   # First, convert instantaneous Q to daily Q
-  tar_target(p2_attr_q_uv_to_dv_feather, 
-             calculate_dv_from_uv(out_file = file.path('2_Prepare/tmp/', 
-                                                       gsub('uv', 'uv_to_dv', 
-                                                            basename(p1_nwis_q_data_uv_feather))),
-                                  in_file = p1_nwis_q_data_uv_feather,
-                                  site_tz_xwalk = p1_nwis_sc_sites_metadata,
-                                  param_colname = 'Flow'),
-             pattern = map(p1_nwis_q_data_uv_feather),
-             format = 'file'),
+  # TODO: REINSTATE WHEN WE SOLVE HOW TO HANDLE WHEN THIS RETURNS NOTHING.
+  # tar_target(p2_attr_q_uv_to_dv_feather, 
+  #            calculate_dv_from_uv(out_file = file.path('2_Prepare/tmp/', 
+  #                                                      gsub('uv', 'uv_to_dv', 
+  #                                                           basename(p1_nwis_q_data_uv_feather))),
+  #                                 in_file = p1_nwis_q_data_uv_feather,
+  #                                 site_tz_xwalk = p1_nwis_sc_sites_metadata,
+  #                                 param_colname = 'Flow'),
+  #            pattern = map(p1_nwis_q_data_uv_feather),
+  #            format = 'file'),
   
   # Then, combine all daily Q
   tar_target(p2_attr_q_dv_feather, 
              combine_all_dv_data(out_file = '2_Prepare/tmp/attr_q_dv.feather',
-                                 in_files = c(p2_attr_q_uv_to_dv_feather,
+                                 in_files = c(#p2_attr_q_uv_to_dv_feather,
                                               p1_nwis_q_data_dv_feather),
                                  param_colname = 'Flow'),
              format = 'file'),
