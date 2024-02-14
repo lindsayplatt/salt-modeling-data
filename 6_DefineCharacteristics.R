@@ -43,7 +43,7 @@ p6_targets <- list(
                                                                          simple = TRUE)),
   tar_target(p6_rf_attr_partdep, calculate_partial_dependence(p6_rf_model_optimal, 
                                                               p6_site_attr_rf)),
-  tar_target(p6_rf_attr_partdep_viz, visualize_partial_dependence(p6_rf_attr_partdep)),
+  tar_target(p6_rf_attr_partdep_viz, visualize_partial_dependence(p6_rf_attr_partdep, p6_site_attr_rf)),
   
   ###### Visualize site category attribute distributions ######
   
@@ -84,7 +84,7 @@ p6_targets <- list(
                                                                           simple = TRUE)),
   tar_target(p6b_rf_attr_partdep, calculate_partial_dependence(p6b_rf_model_optimal, 
                                                                p6b_site_attr_rf)),
-  tar_target(p6b_rf_attr_partdep_viz, visualize_partial_dependence(p6b_rf_attr_partdep)),
+  tar_target(p6b_rf_attr_partdep_viz, visualize_partial_dependence(p6b_rf_attr_partdep, p6b_site_attr_rf)),
   
   ###### Visualize site category attribute distributions ######
   
@@ -125,7 +125,7 @@ p6_targets <- list(
                                                                           simple = TRUE)),
   tar_target(p6c_rf_attr_partdep, calculate_partial_dependence(p6c_rf_model_optimal, 
                                                                p6c_site_attr_rf)),
-  tar_target(p6c_rf_attr_partdep_viz, visualize_partial_dependence(p6c_rf_attr_partdep)),
+  tar_target(p6c_rf_attr_partdep_viz, visualize_partial_dependence(p6c_rf_attr_partdep, p6c_site_attr_rf)),
   
   ###### Visualize site category attribute distributions ######
   

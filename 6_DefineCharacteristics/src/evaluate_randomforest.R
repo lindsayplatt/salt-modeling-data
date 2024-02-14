@@ -120,11 +120,21 @@ calculate_partial_dependence <- function(rf_model, site_attr_data) {
 }
 
 # TODO: DOCUMENTATION
-visualize_partial_dependence <- function(pdp_data) {
-  ggplot(pdp_data, aes(attr_val, attr_partdep, color = site_category)) +
+visualize_partial_dependence <- function(pdp_data, real_attribute_values) {
+  
+  # Use the actual values of the attributes to add a rug on the bottom so 
+  # we can tell which patterns of dependence for given attributes are 
+  # maybe just artifacts of a lack of input data.
+  real_attribute_values_to_plot <- real_attribute_values %>% 
+    pivot_longer(-site_category_fact, names_to = 'attribute', values_to = 'attr_val') %>% 
+    rename(site_category = site_category_fact) %>% 
+    filter(attribute %in% unique(pdp_data$attribute))
+    
+  ggplot(pdp_data, aes(x = attr_val, color = site_category)) +
     facet_wrap(vars(attribute), scales = 'free_x') +
-    scico::scale_color_scico_d() +
-    geom_line(linewidth = 1) +
+    scico::scale_color_scico_d(begin = 0, end = 0.75) +
+    geom_line(aes(y = attr_partdep), linewidth = 1) +
+    geom_rug(data=real_attribute_values_to_plot, sides='b') +
     theme_bw() +
     theme(strip.background = element_blank())
 }
