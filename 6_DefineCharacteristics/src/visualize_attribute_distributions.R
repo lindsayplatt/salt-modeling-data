@@ -45,10 +45,10 @@ visualize_catgory_sites_map <- function(site_attributes, sites_sf, states_to_inc
   ggplot() +
     add_state_basemap(states_to_include) +
     geom_sf(data=category_sites_sf, 
-            aes(color = site_category_fact), 
-            alpha=0.75, shape=17, size=2) +
+            aes(fill = site_category_fact), 
+            alpha=0.75, shape=24, size=2) +
     guides(color = 'none') +
-    scico::scale_color_scico_d() +
+    scico::scale_fill_scico_d(begin = 0, end = 0.75) +
     facet_wrap(vars(category_title), ncol=2) +
     theme_void()
   
