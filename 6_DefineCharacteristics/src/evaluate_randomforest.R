@@ -20,14 +20,14 @@ calculate_attr_importance <- function(rf_model) {
   # Prepare mean importance data
   rf_means_importance <- rf_model$importance %>% 
     as_tibble(rownames = 'attribute') %>% 
-    mutate(site_category = 'means')  %>% 
+    mutate(site_category = 'Overall mean')  %>% 
     dplyr::select(attribute, site_category, importance = MeanDecreaseAccuracy) %>% 
     distinct()
   
   # Prepare mean importance SD data
   rf_means_importance_sd <- rf_model$importanceSD %>% 
     as_tibble(rownames = 'attribute') %>% 
-    mutate(site_category = 'means') %>% 
+    mutate(site_category = 'Overall mean') %>% 
     dplyr::select(attribute, site_category, importance_sd = MeanDecreaseAccuracy) %>% 
     distinct()
   
@@ -54,40 +54,30 @@ calculate_attr_importance <- function(rf_model) {
 }
 
 # TODO: DOCUMENTATION
-visualize_attr_importance <- function(rf_model_importance, simple = FALSE) {
+visualize_attr_importance <- function(rf_model_importance) {
   # TODO: save as file
   
+  data_to_plot <- rf_model_importance %>% 
+    # Order the attributes based on importance values *within* each site category
+    # Thanks to https://stackoverflow.com/questions/72147790/ggplot-facet-different-y-axis-order-based-on-value!
+    mutate(attribute = tidytext::reorder_within(attribute, importance, within = site_category)) 
+  
   # Var importance per site category, ordered by attribute importance
-  plot_list <- rf_model_importance %>% 
-    split(.$site_category) %>% 
-    map(~{
-      # Arrange each category's data based on its own order
-      data_to_plot <- .x %>% 
-        arrange(importance) %>% 
-        mutate(attributef = factor(attribute, ordered = T,
-                                   levels = unique(.$attribute))) %>% 
-        rowwise() %>% 
-        mutate(attribute_grp = ifelse(simple, 'black', attribute_grp))
-      p <- ggplot(data_to_plot, aes(x = importance, y=attributef,
-                                    color = attribute_grp)) +
-        geom_point() +
-        geom_segment(aes(x = importance - importance_sd,
-                         xend = importance + importance_sd,
-                         yend = attributef)) +
-        guides(color = 'none') +
-        theme_bw() +
-        theme(axis.title.y = element_blank(),
-              axis.title.x = element_blank(),
-              axis.text.y = element_text(size=7),
-              title = element_text(size=9, face='bold')) +
-        ggtitle(sprintf('%s', unique(.x$site_category)))
-      if(!simple) p <- p + facet_grid(attribute_grp ~ ., scales='free_y') 
-      if(simple) p <- p + scale_color_identity()
-      return(p)
-    })
-  return(plot_list)
-  # Put all together
-  # cowplot::plot_grid(plotlist = plot_list, nrow = 1)
+  ggplot(data_to_plot, aes(x = importance, y = attribute,
+                           color = attribute_grp)) +
+    geom_point() +
+    geom_segment(aes(x = importance - importance_sd,
+                     xend = importance + importance_sd,
+                     yend = attribute)) +
+    facet_wrap(vars(site_category), scales = 'free', nrow = 1) +
+    tidytext::scale_y_reordered() +
+    theme_bw() +
+    theme(axis.title.y = element_blank(),
+          axis.title.x = element_blank(),
+          axis.text.y = element_text(size=9),
+          strip.background = element_blank(),
+          strip.text = element_text(face = 'bold', size = 12))
+  
 }
 
 # TODO: DOCUMENTATION

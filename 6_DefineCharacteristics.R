@@ -39,8 +39,6 @@ p6_targets <- list(
   
   tar_target(p6_rf_attr_importance, calculate_attr_importance(p6_rf_model_optimal)),
   tar_target(p6_rf_attr_importance_viz, visualize_attr_importance(p6_rf_attr_importance)),
-  tar_target(p6_rf_attr_importance_simple_viz, visualize_attr_importance(p6_rf_attr_importance,
-                                                                         simple = TRUE)),
   tar_target(p6_rf_attr_partdep, calculate_partial_dependence(p6_rf_model_optimal, 
                                                               p6_site_attr_rf)),
   tar_target(p6_rf_attr_partdep_viz, visualize_partial_dependence(p6_rf_attr_partdep, p6_site_attr_rf)),
@@ -80,8 +78,6 @@ p6_targets <- list(
   
   tar_target(p6b_rf_attr_importance, calculate_attr_importance(p6b_rf_model_optimal)),
   tar_target(p6b_rf_attr_importance_viz, visualize_attr_importance(p6b_rf_attr_importance)),
-  tar_target(p6b_rf_attr_importance_simple_viz, visualize_attr_importance(p6b_rf_attr_importance,
-                                                                          simple = TRUE)),
   tar_target(p6b_rf_attr_partdep, calculate_partial_dependence(p6b_rf_model_optimal, 
                                                                p6b_site_attr_rf)),
   tar_target(p6b_rf_attr_partdep_viz, visualize_partial_dependence(p6b_rf_attr_partdep, p6b_site_attr_rf)),
@@ -121,8 +117,6 @@ p6_targets <- list(
   
   tar_target(p6c_rf_attr_importance, calculate_attr_importance(p6c_rf_model_optimal)),
   tar_target(p6c_rf_attr_importance_viz, visualize_attr_importance(p6c_rf_attr_importance)),
-  tar_target(p6c_rf_attr_importance_simple_viz, visualize_attr_importance(p6c_rf_attr_importance,
-                                                                          simple = TRUE)),
   tar_target(p6c_rf_attr_partdep, calculate_partial_dependence(p6c_rf_model_optimal, 
                                                                p6c_site_attr_rf)),
   tar_target(p6c_rf_attr_partdep_viz, visualize_partial_dependence(p6c_rf_attr_partdep, p6c_site_attr_rf)),
@@ -139,22 +133,19 @@ p6_targets <- list(
     
     # Prep plot views for each type
     both_rf_plots <- list(
-      cowplot::plot_grid(plotlist = p6_rf_attr_importance_simple_viz[-4], nrow=1),
-      cowplot::plot_grid(plotlist = p6_rf_attr_importance_viz[-4], nrow=1),
+      p6_rf_attr_importance_viz,
       p6_rf_attr_partdep_viz,
       p6_category_map
     )
     
     episodic_rf_plots <- list(
-      cowplot::plot_grid(plotlist = p6b_rf_attr_importance_simple_viz[c('Episodic','Not episodic')], nrow=1),
-      cowplot::plot_grid(plotlist = p6b_rf_attr_importance_viz[c('Episodic','Not episodic')], nrow=1),
+      p6b_rf_attr_importance_viz,
       p6b_rf_attr_partdep_viz,
       p6b_category_map
     )
     
     baseflow_rf_plots <- list(
-      cowplot::plot_grid(plotlist = p6c_rf_attr_importance_simple_viz[c('negative','none', 'positive')], nrow=1),
-      cowplot::plot_grid(plotlist = p6c_rf_attr_importance_viz[c('negative','none', 'positive')], nrow=1),
+      p6c_rf_attr_importance_viz,
       p6c_rf_attr_partdep_viz,
       p6c_category_map
     )
