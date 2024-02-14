@@ -175,3 +175,20 @@ prepare_nhd_attributes <- function(nhd_attribute_table, comid_site_xwalk) {
       attr_streamDensity = 'CAT_STRM_DENS')))
   
 }
+
+# TODO: DOCUMENTATION IF WE USE THIS
+prepare_sb_gw_attrs <- function(transmissivity_csv, depth2wt_csv, comid_site_xwalk) {
+  
+  trnmsv <- read_csv(transmissivity_csv, show_col_types = FALSE) %>% 
+    mutate(nhd_comid = comid) %>% 
+    select(nhd_comid, attr_transmissivity = trans250)
+  
+  dtw <- read_csv(depth2wt_csv, show_col_types = FALSE) %>% 
+    mutate(nhd_comid = comid) %>% 
+    select(nhd_comid, attr_zellSanfordDepthToWT = dtw250)
+  
+  comid_site_xwalk %>% 
+    left_join(trnmsv, by = 'nhd_comid') %>% 
+    left_join(dtw, by = 'nhd_comid') %>% 
+    select(site_no, starts_with('attr_'))
+}

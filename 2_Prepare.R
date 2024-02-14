@@ -165,11 +165,15 @@ p2_targets <- list(
                                                     p1_nwis_site_nhd_comid_xwalk)),
   
   # TODO: add GW signature? transmissivity? depth2wt?
+  tar_target(p2_attr_trnmsv_and_depth2wt, prepare_sb_gw_attrs(p1_sb_transmissivity_csv,
+                                                              p1_sb_depth2wt_csv, 
+                                                              p1_nwis_site_nhd_comid_xwalk)),
   
   ###### ATTR DATA 4: Combine all static attributes into one table ######
   
   tar_target(p2_attr_all, combine_static_attributes(p2_attr_meanFlow,
                                                     p2_attr_roadSalt,
-                                                    p2_attr_nhd))
+                                                    p2_attr_nhd,
+                                                    p2_attr_trnmsv_and_depth2wt))
   
 )
