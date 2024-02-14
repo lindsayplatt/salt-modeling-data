@@ -1,36 +1,33 @@
 
-#' @title Calculate static mean Q for each site
+#' @title Calculate static Q metrics for each site
 #' @description Using the daily timeseries data for streamflow, calculate a single
-#' mean value per site to serve as a static attribute.
+#' value per site to serve as a static attribute, including median flow, high and
+#' low percentiles, and flow based on specific seasons.
 #' 
 #' @param data_q a tibble containing all daily flow records with at least the 
 #' columns `site_no`, `dateTime`, and `Flow`.
 #' 
-#' @return a feather file containing only one value for each site; it should have 
-#' the columns `site_no` and `attr_meanFlow`.
+#' @return a feather file containing only one row for each site; it should have 
+#' the columns `site_no` and any number of columns with the naming pattern 
+#' `attr_[metric]Flow`.
 #'
-calculate_mean_q_per_site <- function(data_q) {
+calculate_q_stats_per_site <- function(data_q) {
   
   overall_q <- data_q %>% 
     group_by(site_no) %>% 
-    summarize(attr_meanFlow = mean(Flow, na.rm = TRUE),
-              attr_medianFlow = median(Flow, na.rm = TRUE),
-              attr_iqrFlow = iqr(Flow, na.rm = TRUE))
-  # TODO: NEED TO UPDATE FUNCTION NAME TO BE MORE ABOUT GENERAL 
-  # ATTRIBUTES RELATED TO STREAM FLOW
+    summarize(attr_medianFlow = median(Flow, na.rm = TRUE),
+              attr_p05Flow = quantile(Flow, na.rm = TRUE, probs = 0.05),
+              attr_p95Flow = quantile(Flow, na.rm = TRUE, probs = 0.95))
+  
   seasonal_q <- data_q %>% 
     mutate(isWinter = month(dateTime) %in% c(12, 1, 2, 3)) %>% 
     group_by(site_no) %>% 
-    summarize(attr_meanNonWinterFlow = mean(Flow[!isWinter], na.rm = TRUE),
-              attr_meanWinterFlow = mean(Flow[isWinter], na.rm = TRUE),
-              attr_medianNonWinterFlow = median(Flow[!isWinter], na.rm = TRUE),
+    summarize(attr_medianNonWinterFlow = median(Flow[!isWinter], na.rm = TRUE),
               attr_medianWinterFlow = median(Flow[isWinter], na.rm = TRUE),
-              attr_maxNonWinterFlow = max(Flow[!isWinter], na.rm = TRUE),
-              attr_maxWinterFlow = max(Flow[isWinter], na.rm = TRUE),
-              attr_minNonWinterFlow = min(Flow[!isWinter], na.rm = TRUE),
-              attr_minWinterFlow = min(Flow[isWinter], na.rm = TRUE),
-              attr_iqrNonWinterFlow = iqr(Flow[!isWinter], na.rm = TRUE),
-              attr_iqrWinterFlow = iqr(Flow[isWinter], na.rm = TRUE))
+              attr_p05NonWinterFlow = quantile(Flow[!isWinter], na.rm = TRUE, probs = 0.05),
+              attr_p95NonWinterFlow = quantile(Flow[!isWinter], na.rm = TRUE, probs = 0.95),
+              attr_p05WinterFlow = quantile(Flow[isWinter], na.rm = TRUE, probs = 0.05),
+              attr_p95WinterFlow = quantile(Flow[isWinter], na.rm = TRUE, probs = 0.95))
   
   left_join(overall_q, seasonal_q, by = 'site_no')
 }
