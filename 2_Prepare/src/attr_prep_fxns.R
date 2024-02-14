@@ -10,9 +10,29 @@
 #' the columns `site_no` and `attr_meanFlow`.
 #'
 calculate_mean_q_per_site <- function(data_q) {
-  data_q %>% 
+  
+  overall_q <- data_q %>% 
     group_by(site_no) %>% 
-    summarize(attr_meanFlow = mean(Flow, na.rm = TRUE))
+    summarize(attr_meanFlow = mean(Flow, na.rm = TRUE),
+              attr_medianFlow = median(Flow, na.rm = TRUE),
+              attr_iqrFlow = iqr(Flow, na.rm = TRUE))
+  # TODO: NEED TO UPDATE FUNCTION NAME TO BE MORE ABOUT GENERAL 
+  # ATTRIBUTES RELATED TO STREAM FLOW
+  seasonal_q <- data_q %>% 
+    mutate(isWinter = month(dateTime) %in% c(12, 1, 2, 3)) %>% 
+    group_by(site_no) %>% 
+    summarize(attr_meanNonWinterFlow = mean(Flow[!isWinter], na.rm = TRUE),
+              attr_meanWinterFlow = mean(Flow[isWinter], na.rm = TRUE),
+              attr_medianNonWinterFlow = median(Flow[!isWinter], na.rm = TRUE),
+              attr_medianWinterFlow = median(Flow[isWinter], na.rm = TRUE),
+              attr_maxNonWinterFlow = max(Flow[!isWinter], na.rm = TRUE),
+              attr_maxWinterFlow = max(Flow[isWinter], na.rm = TRUE),
+              attr_minNonWinterFlow = min(Flow[!isWinter], na.rm = TRUE),
+              attr_minWinterFlow = min(Flow[isWinter], na.rm = TRUE),
+              attr_iqrNonWinterFlow = iqr(Flow[!isWinter], na.rm = TRUE),
+              attr_iqrWinterFlow = iqr(Flow[isWinter], na.rm = TRUE))
+  
+  left_join(overall_q, seasonal_q, by = 'site_no')
 }
 
 #' @title Z-normalize a set of values
