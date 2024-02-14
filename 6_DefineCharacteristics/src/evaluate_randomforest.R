@@ -5,7 +5,7 @@ calculate_attr_importance <- function(rf_model) {
   rf_importance <- rf_model$importance %>% 
     as_tibble(rownames = 'attribute') %>% 
     dplyr::select(-MeanDecreaseGini, -MeanDecreaseAccuracy) %>% 
-    pivot_longer(matches('Both|Baseflow|Episodic|Neither'), 
+    pivot_longer(matches('Both|Baseflow|Episodic|Neither|negative|none|positive'), 
                  names_to = 'site_category',
                  values_to = 'importance') 
   
@@ -13,7 +13,7 @@ calculate_attr_importance <- function(rf_model) {
   rf_importance_sd <- rf_model$importanceSD %>% 
     as_tibble(rownames = 'attribute') %>% 
     dplyr::select(-MeanDecreaseAccuracy) %>% 
-    pivot_longer(matches('Both|Baseflow|Episodic|Neither'), 
+    pivot_longer(matches('Both|Baseflow|Episodic|Neither|negative|none|positive'), 
                  names_to = 'site_category',
                  values_to = 'importance_sd')
   
@@ -46,7 +46,8 @@ calculate_attr_importance <- function(rf_model) {
       attribute %in% c('vegIndAutumn', 'pctLowDev', 'pctHighDev', 'vegIndSummer',
                        'vegIndWinter', 'topoWetInd', 'vegIndSpring', 'numDams2013',
                        'roadStreamXings', 'roadDensity') ~ 'landcover',
-      attribute %in% c('meanFlow', 'avgRunoff', 'avgBasinSlope', 'avgStreamSlope') ~ 'basin',
+      grepl('Flow', attribute) ~ 'basin',
+      attribute %in% c('avgRunoff', 'avgBasinSlope', 'avgStreamSlope') ~ 'basin',
       .default = NA_character_
     ))
   
