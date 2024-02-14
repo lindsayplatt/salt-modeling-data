@@ -8,7 +8,6 @@ tar_option_set(
     'archive',
     'arrow',
     'dataRetrieval',
-    'dtwclust',
     'EGRET',
     'EnvStats',
     'feasts',
@@ -33,12 +32,7 @@ source('4_EpisodicSalinization.R')
 source('5_BaseflowSalinization.R')
 source('6_DefineCharacteristics.R')
 
-# TODO: DELETE THESE LATER
-source('4_ClusterTS.R')
-source('5_DefineClusters.R')
-
 select <- dplyr::select # The raster pkg keeps overriding this one so make sure this is correct
 
 c(p1_targets, p2_targets, p3_targets,
-  p4_targets, p5_targets, # TODO: DELETE THESE ONES!
-  p4b_targets, p5b_targets, p6_targets)
+  p4_targets, p5_targets, p6_targets)
