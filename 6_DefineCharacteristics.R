@@ -133,27 +133,30 @@ p6_targets <- list(
     
     # Prep plot views for each type
     both_rf_plots <- list(
+      p6_attrs_num_viz,
       p6_rf_attr_importance_viz,
       p6_rf_attr_partdep_viz,
       p6_category_map
     )
     
     episodic_rf_plots <- list(
+      p6b_attrs_num_viz, 
       p6b_rf_attr_importance_viz,
       p6b_rf_attr_partdep_viz,
       p6b_category_map
     )
     
     baseflow_rf_plots <- list(
+      p6c_attrs_num_viz, 
       p6c_rf_attr_importance_viz,
       p6c_rf_attr_partdep_viz,
       p6c_category_map
     )
     
     pdf(out_file, width = 30, height = 15)
-    print(cowplot::plot_grid(plotlist = both_rf_plots, nrow=2, rel_heights = c(0.40, 0.60)))
-    print(cowplot::plot_grid(plotlist = episodic_rf_plots, nrow=2, rel_heights = c(0.40, 0.60)))
-    print(cowplot::plot_grid(plotlist = baseflow_rf_plots, nrow=2, rel_heights = c(0.40, 0.60)))
+    print(cowplot::plot_grid(plotlist = both_rf_plots, nrow=2))
+    print(cowplot::plot_grid(plotlist = episodic_rf_plots, nrow=2))
+    print(cowplot::plot_grid(plotlist = baseflow_rf_plots, nrow=2))
     dev.off()
     return(out_file)
   }, format = 'file')
