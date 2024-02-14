@@ -1,10 +1,9 @@
 
 # TODO: documentation
-# map over `p3_attr_q_qualified` by site
-delineate_baseflow <- function(ts_q, site_attr_data) {
+delineate_baseflow <- function(ts_q, site_bfi_data) {
   
   # Use a custom input for the BFI based on known info for this site.
-  bfi <- site_attr_data %>% 
+  bfi <- site_bfi_data %>% 
     filter(site_no == unique(ts_q$site_no)) %>% 
     # Change from percent to fraction for `bf_eckhardt()`
     mutate(bfi = attr_baseFlowInd/100) %>% 
@@ -14,7 +13,7 @@ delineate_baseflow <- function(ts_q, site_attr_data) {
   # case, assume BFI is the average for the sites in this dataset ...
   # TODO: BETTER ASSUMPTION HERE
   if(is.na(bfi)) {
-    bfi <- mean(site_attr_data$attr_baseFlowInd, na.rm=T)/100
+    bfi <- mean(site_bfi_data$attr_baseFlowInd, na.rm=T)/100
   }
   
   # Use a constant for alpha as suggested by Eckhardt 2012 for perennial stream

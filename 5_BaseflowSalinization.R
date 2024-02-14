@@ -15,8 +15,9 @@ p5_targets <- list(
   # Calculate how much of daily flow is baseflow vs quickflow using 
   # Rumsey et al 2023 methods: `FlowScreen::bf_eckhardt()` with the
   # constant `a=0.97` as suggested in Eckhardt 2012 for perennial streams
+  tar_target(p5_bfi, select(p3_static_attributes, site_no, attr_baseFlowInd)), 
   tar_target(p5_baseflow_sep, 
-             delineate_baseflow(p5_q_grp, p3_static_attributes),
+             delineate_baseflow(p5_q_grp, p5_bfi),
              pattern = map(p5_q_grp)),
   
   # Identify which site-days meet criteria for being a non-winter baseflow day
