@@ -16,18 +16,18 @@ calculate_q_stats_per_site <- function(data_q) {
   overall_q <- data_q %>% 
     group_by(site_no) %>% 
     summarize(attr_medianFlow = median(Flow, na.rm = TRUE),
-              attr_p05Flow = quantile(Flow, na.rm = TRUE, probs = 0.05),
-              attr_p95Flow = quantile(Flow, na.rm = TRUE, probs = 0.95))
+              attr_p05Flow = quantile(Flow, na.rm = TRUE, probs = 0.05, names=F),
+              attr_p95Flow = quantile(Flow, na.rm = TRUE, probs = 0.95, names=F))
   
   seasonal_q <- data_q %>% 
     mutate(isWinter = month(dateTime) %in% c(12, 1, 2, 3)) %>% 
     group_by(site_no) %>% 
     summarize(attr_medianNonWinterFlow = median(Flow[!isWinter], na.rm = TRUE),
               attr_medianWinterFlow = median(Flow[isWinter], na.rm = TRUE),
-              attr_p05NonWinterFlow = quantile(Flow[!isWinter], na.rm = TRUE, probs = 0.05),
-              attr_p95NonWinterFlow = quantile(Flow[!isWinter], na.rm = TRUE, probs = 0.95),
-              attr_p05WinterFlow = quantile(Flow[isWinter], na.rm = TRUE, probs = 0.05),
-              attr_p95WinterFlow = quantile(Flow[isWinter], na.rm = TRUE, probs = 0.95))
+              attr_p05NonWinterFlow = quantile(Flow[!isWinter], na.rm = TRUE, probs = 0.05, names=F),
+              attr_p95NonWinterFlow = quantile(Flow[!isWinter], na.rm = TRUE, probs = 0.95, names=F),
+              attr_p05WinterFlow = quantile(Flow[isWinter], na.rm = TRUE, probs = 0.05, names=F),
+              attr_p95WinterFlow = quantile(Flow[isWinter], na.rm = TRUE, probs = 0.95, names=F))
   
   left_join(overall_q, seasonal_q, by = 'site_no')
 }
