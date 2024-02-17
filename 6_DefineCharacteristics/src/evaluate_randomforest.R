@@ -5,7 +5,7 @@ calculate_attr_importance <- function(rf_model) {
   rf_importance <- rf_model$importance %>% 
     as_tibble(rownames = 'attribute') %>% 
     dplyr::select(-MeanDecreaseGini, -MeanDecreaseAccuracy) %>% 
-    pivot_longer(matches('Both|Baseflow|Episodic|Neither'), 
+    pivot_longer(matches('Both|Baseflow|Episodic|Neither|negative|none|positive'), 
                  names_to = 'site_category',
                  values_to = 'importance') 
   
@@ -13,21 +13,21 @@ calculate_attr_importance <- function(rf_model) {
   rf_importance_sd <- rf_model$importanceSD %>% 
     as_tibble(rownames = 'attribute') %>% 
     dplyr::select(-MeanDecreaseAccuracy) %>% 
-    pivot_longer(matches('Both|Baseflow|Episodic|Neither'), 
+    pivot_longer(matches('Both|Baseflow|Episodic|Neither|negative|none|positive'), 
                  names_to = 'site_category',
                  values_to = 'importance_sd')
   
   # Prepare mean importance data
   rf_means_importance <- rf_model$importance %>% 
     as_tibble(rownames = 'attribute') %>% 
-    mutate(site_category = 'means')  %>% 
+    mutate(site_category = 'Overall mean')  %>% 
     dplyr::select(attribute, site_category, importance = MeanDecreaseAccuracy) %>% 
     distinct()
   
   # Prepare mean importance SD data
   rf_means_importance_sd <- rf_model$importanceSD %>% 
     as_tibble(rownames = 'attribute') %>% 
-    mutate(site_category = 'means') %>% 
+    mutate(site_category = 'Overall mean') %>% 
     dplyr::select(attribute, site_category, importance_sd = MeanDecreaseAccuracy) %>% 
     distinct()
   
@@ -46,47 +46,38 @@ calculate_attr_importance <- function(rf_model) {
       attribute %in% c('vegIndAutumn', 'pctLowDev', 'pctHighDev', 'vegIndSummer',
                        'vegIndWinter', 'topoWetInd', 'vegIndSpring', 'numDams2013',
                        'roadStreamXings', 'roadDensity') ~ 'landcover',
-      attribute %in% c('meanFlow', 'avgRunoff', 'avgBasinSlope', 'avgStreamSlope') ~ 'basin',
+      grepl('Flow', attribute) ~ 'basin',
+      attribute %in% c('avgRunoff', 'avgBasinSlope', 'avgStreamSlope') ~ 'basin',
       .default = NA_character_
     ))
   
 }
 
 # TODO: DOCUMENTATION
-visualize_attr_importance <- function(rf_model_importance, simple = FALSE) {
+visualize_attr_importance <- function(rf_model_importance) {
   # TODO: save as file
   
+  data_to_plot <- rf_model_importance %>% 
+    # Order the attributes based on importance values *within* each site category
+    # Thanks to https://stackoverflow.com/questions/72147790/ggplot-facet-different-y-axis-order-based-on-value!
+    mutate(attribute = tidytext::reorder_within(attribute, importance, within = site_category)) 
+  
   # Var importance per site category, ordered by attribute importance
-  plot_list <- rf_model_importance %>% 
-    split(.$site_category) %>% 
-    map(~{
-      # Arrange each category's data based on its own order
-      data_to_plot <- .x %>% 
-        arrange(importance) %>% 
-        mutate(attributef = factor(attribute, ordered = T,
-                                   levels = unique(.$attribute))) %>% 
-        rowwise() %>% 
-        mutate(attribute_grp = ifelse(simple, 'black', attribute_grp))
-      p <- ggplot(data_to_plot, aes(x = importance, y=attributef,
-                                    color = attribute_grp)) +
-        geom_point() +
-        geom_segment(aes(x = importance - importance_sd,
-                         xend = importance + importance_sd,
-                         yend = attributef)) +
-        guides(color = 'none') +
-        theme_bw() +
-        theme(axis.title.y = element_blank(),
-              axis.title.x = element_blank(),
-              axis.text.y = element_text(size=7),
-              title = element_text(size=9, face='bold')) +
-        ggtitle(sprintf('%s', unique(.x$site_category)))
-      if(!simple) p <- p + facet_grid(attribute_grp ~ ., scales='free_y') 
-      if(simple) p <- p + scale_color_identity()
-      return(p)
-    })
-  return(plot_list)
-  # Put all together
-  # cowplot::plot_grid(plotlist = plot_list, nrow = 1)
+  ggplot(data_to_plot, aes(x = importance, y = attribute,
+                           color = attribute_grp)) +
+    geom_point() +
+    geom_segment(aes(x = importance - importance_sd,
+                     xend = importance + importance_sd,
+                     yend = attribute)) +
+    facet_wrap(vars(site_category), scales = 'free', nrow = 1) +
+    tidytext::scale_y_reordered() +
+    theme_bw() +
+    theme(axis.title.y = element_blank(),
+          axis.title.x = element_blank(),
+          axis.text.y = element_text(size=9),
+          strip.background = element_blank(),
+          strip.text = element_text(face = 'bold', size = 12))
+  
 }
 
 # TODO: DOCUMENTATION
@@ -119,11 +110,21 @@ calculate_partial_dependence <- function(rf_model, site_attr_data) {
 }
 
 # TODO: DOCUMENTATION
-visualize_partial_dependence <- function(pdp_data) {
-  ggplot(pdp_data, aes(attr_val, attr_partdep, color = site_category)) +
+visualize_partial_dependence <- function(pdp_data, real_attribute_values) {
+  
+  # Use the actual values of the attributes to add a rug on the bottom so 
+  # we can tell which patterns of dependence for given attributes are 
+  # maybe just artifacts of a lack of input data.
+  real_attribute_values_to_plot <- real_attribute_values %>% 
+    pivot_longer(-site_category_fact, names_to = 'attribute', values_to = 'attr_val') %>% 
+    rename(site_category = site_category_fact) %>% 
+    filter(attribute %in% unique(pdp_data$attribute))
+    
+  ggplot(pdp_data, aes(x = attr_val, color = site_category)) +
     facet_wrap(vars(attribute), scales = 'free_x') +
-    scico::scale_color_scico_d() +
-    geom_line(linewidth = 1) +
+    scico::scale_color_scico_d(begin = 0, end = 0.75) +
+    geom_line(aes(y = attr_partdep), linewidth = 1) +
+    geom_rug(data=real_attribute_values_to_plot, sides='b') +
     theme_bw() +
     theme(strip.background = element_blank())
 }

@@ -1,18 +1,35 @@
 
-#' @title Calculate static mean Q for each site
+#' @title Calculate static Q metrics for each site
 #' @description Using the daily timeseries data for streamflow, calculate a single
-#' mean value per site to serve as a static attribute.
+#' value per site to serve as a static attribute, including median flow, high and
+#' low percentiles, and flow based on specific seasons.
 #' 
 #' @param data_q a tibble containing all daily flow records with at least the 
 #' columns `site_no`, `dateTime`, and `Flow`.
 #' 
-#' @return a feather file containing only one value for each site; it should have 
-#' the columns `site_no` and `attr_meanFlow`.
+#' @return a feather file containing only one row for each site; it should have 
+#' the columns `site_no` and any number of columns with the naming pattern 
+#' `attr_[metric]Flow`.
 #'
-calculate_mean_q_per_site <- function(data_q) {
-  data_q %>% 
+calculate_q_stats_per_site <- function(data_q) {
+  
+  overall_q <- data_q %>% 
     group_by(site_no) %>% 
-    summarize(attr_meanFlow = mean(Flow, na.rm = TRUE))
+    summarize(attr_medianFlow = median(Flow, na.rm = TRUE),
+              attr_p05Flow = quantile(Flow, na.rm = TRUE, probs = 0.05),
+              attr_p95Flow = quantile(Flow, na.rm = TRUE, probs = 0.95))
+  
+  seasonal_q <- data_q %>% 
+    mutate(isWinter = month(dateTime) %in% c(12, 1, 2, 3)) %>% 
+    group_by(site_no) %>% 
+    summarize(attr_medianNonWinterFlow = median(Flow[!isWinter], na.rm = TRUE),
+              attr_medianWinterFlow = median(Flow[isWinter], na.rm = TRUE),
+              attr_p05NonWinterFlow = quantile(Flow[!isWinter], na.rm = TRUE, probs = 0.05),
+              attr_p95NonWinterFlow = quantile(Flow[!isWinter], na.rm = TRUE, probs = 0.95),
+              attr_p05WinterFlow = quantile(Flow[isWinter], na.rm = TRUE, probs = 0.05),
+              attr_p95WinterFlow = quantile(Flow[isWinter], na.rm = TRUE, probs = 0.95))
+  
+  left_join(overall_q, seasonal_q, by = 'site_no')
 }
 
 #' @title Z-normalize a set of values
@@ -154,4 +171,21 @@ prepare_nhd_attributes <- function(nhd_attribute_table, comid_site_xwalk) {
       attr_roadDensity = 'CAT_TOTAL_ROAD_DENS',
       attr_streamDensity = 'CAT_STRM_DENS')))
   
+}
+
+# TODO: DOCUMENTATION IF WE USE THIS
+prepare_sb_gw_attrs <- function(transmissivity_csv, depth2wt_csv, comid_site_xwalk) {
+  
+  trnmsv <- read_csv(transmissivity_csv, show_col_types = FALSE) %>% 
+    mutate(nhd_comid = comid) %>% 
+    select(nhd_comid, attr_transmissivity = trans250)
+  
+  dtw <- read_csv(depth2wt_csv, show_col_types = FALSE) %>% 
+    mutate(nhd_comid = comid) %>% 
+    select(nhd_comid, attr_zellSanfordDepthToWT = dtw250)
+  
+  comid_site_xwalk %>% 
+    left_join(trnmsv, by = 'nhd_comid') %>% 
+    left_join(dtw, by = 'nhd_comid') %>% 
+    select(site_no, starts_with('attr_'))
 }

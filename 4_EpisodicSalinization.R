@@ -28,6 +28,6 @@ p4_targets <- list(
              summarize_salt_peaks(p4_ts_sc_peaks, min_winter_perc = 0.40, min_perc_diff = 0.10)),
   tar_target(p4_episodic_sites, filter(p4_ts_sc_peak_summary, is_salt_site)$site_no)
   
-  # TODO: revisit three that are still questionable - c('02042500', '04024000', '04067500')
+  # TODO: revisit three that are still questionable - c('02042500', '04024000', '04067500', '01408000', '01650800')
   
 )
