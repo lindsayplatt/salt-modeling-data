@@ -97,7 +97,7 @@ calculate_catchment_areas <- function(polys_sf, comid_upstream_tbl, comid_site_x
 #' @param road_salt_tif filepath to the road salt tif file
 #' @param polys_sf a spatial data frame with polygons. Needs to be an `sf` class.
 #' 
-#' @returns a tibble with the columns `nhd_comid` and `road_salt_lbs` with the
+#' @returns a tibble with the columns `nhd_comid` and `road_salt_kgs` with the
 #' total road salt per COMID catchment polygon
 #' 
 aggregate_road_salt_per_poly <- function(road_salt_tif, polys_sf) {
@@ -114,10 +114,12 @@ aggregate_road_salt_per_poly <- function(road_salt_tif, polys_sf) {
   
   # Now add to a table for export
   road_salt_poly <- polys_sf %>% 
-    mutate(road_salt_lbs = salt_per_poly) %>% 
+    mutate(road_salt_lbs = salt_per_poly,
+           # Convert from pounds to kilograms (2.205 lb/kg)
+           road_salt_kgs = road_salt_lbs / 2.205) %>% 
     st_drop_geometry() %>% 
     as_tibble() %>% 
-    dplyr::select(nhd_comid, road_salt_lbs)
+    dplyr::select(nhd_comid, road_salt_kgs)
   
   return(road_salt_poly)
 }
@@ -127,7 +129,7 @@ aggregate_road_salt_per_poly <- function(road_salt_tif, polys_sf) {
 #' NWIS sites based on the crosswalk from COMID to site.
 #' 
 #' @param road_salt_comid a tibble with at least the columns `nhd_comid` and
-#' `road_salt_lbs`. Note that as described in `extract_nhdplus_geopackage_layer()`,
+#' `road_salt_kgs`. Note that as described in `extract_nhdplus_geopackage_layer()`,
 #' not all COMIDs had a catchment polygon that were downloaded (e.g. COMID `4672393`
 #' did not have a catchment polygon available) and therefore will not have a salt value.
 #' @param basin_areas a tibble with at least the columns `site_no`, `attr_areaSqKm`,
@@ -151,8 +153,8 @@ map_catchment_roadSalt_to_site <- function(road_salt_comid, basin_areas, comid_s
   comid_roadSalt <- comid_upstream_tbl %>% 
     left_join(road_salt_comid, by = c('nhd_comid_upstream' = 'nhd_comid')) %>% 
     group_by(nhd_comid) %>% 
-    summarize(roadSalt = road_salt_lbs[nhd_comid_upstream == nhd_comid],
-              roadSaltCumulative = sum(road_salt_lbs, na.rm=TRUE),
+    summarize(roadSalt = road_salt_kgs[nhd_comid_upstream == nhd_comid],
+              roadSaltCumulative = sum(road_salt_kgs, na.rm=TRUE),
               .groups='keep')
 
   comid_site_xwalk %>% 
