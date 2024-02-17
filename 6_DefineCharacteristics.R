@@ -45,7 +45,8 @@ p6_targets <- list(
   
   ###### Visualize site category attribute distributions ######
   
-  tar_target(p6_attrs_num_viz, visualize_numeric_attrs(p6_site_attr_rf_optimal)),
+  tar_target(p6_attrs_num_viz, visualize_numeric_attrs(p6_site_attr)),
+  tar_target(p6_attrs_num_optimal_viz, visualize_numeric_attrs(p6_site_attr_rf_optimal)),
   tar_target(p6_category_map, visualize_catgory_sites_map(p6_site_attr, p1_nwis_sc_sites_sf, p1_conus_state_cds)),
   
   ##### Run random forest for just episodic #####
