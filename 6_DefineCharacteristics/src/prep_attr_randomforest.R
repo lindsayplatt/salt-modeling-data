@@ -55,7 +55,7 @@ prep_attr_randomforest <- function(site_attr_data, sites_episodic = NULL, site_b
     # TODO: Removing that attribute for now.
     select(-attr_streamDensity) %>% 
     # TODO: Removing upstream salt for now because too many sites are missing it
-    select(-attr_roadSaltCumulative) %>% 
+    select(-attr_roadSaltCumulativePerSqKm) %>% 
     # One site does not have a match in NHD+, so is missing all attributes - removing
     filter(site_no != '295501090190400') %>% 
     # One site is missing road salt (did not have a catchment in NHD+) - removing

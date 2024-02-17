@@ -81,17 +81,17 @@ identify_highSC_sites <- function(ts_data) {
 
 #' @title Find sites that have zero road salt
 #' @description Use the road salt attribute data per site (summarizing road salt
-#' applied within a 5 km radius, see `aggregate_road_salt_per_site()`) to keep 
-#' only those sites that had some road salt applied nearby.
+#' applied within the NHD+ catchment, see `aggregate_road_salt_per_poly()`) to keep 
+#' only those sites that had some road salt within their catchment.
 #' 
-#' @param roadSalt_attrs a tibble with the columns `site_no`, and `attr_roadSalt`
+#' @param roadSalt_attrs a tibble with the columns `site_no`, and `attr_roadSaltPerSqKm`
 #' 
 #' @return a vector of NWIS site character strings which do not have road salt 
-#' applied within a 5 km radius and should be removed.
+#' applied within their catchment and should be removed.
 #' 
 identify_nonsalt_sites <- function(roadSalt_attrs) {
   roadSalt_attrs %>% 
-    filter(attr_roadSalt == 0) %>% 
+    filter(attr_roadSaltPerSqKm == 0) %>% 
     pull(site_no)
 }
 
