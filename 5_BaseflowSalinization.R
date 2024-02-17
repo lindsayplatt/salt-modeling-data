@@ -4,9 +4,7 @@ source('5_BaseflowSalinization/src/delineate_baseflow.R')
 source('5_BaseflowSalinization/src/baseflow_qualification.R')
 source('5_BaseflowSalinization/src/calculate_sc_trend.R')
 
-# TODO: change the name once we are happy with skipping clustering. Don't want
-# to overwrite yet.
-p5b_targets <- list(
+p5_targets <- list(
   
   # Prepare to map over each site
   tar_target(p5_q_grp, p3_attr_q_qualified %>% 
