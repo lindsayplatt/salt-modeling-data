@@ -137,11 +137,12 @@ p2_targets <- list(
   
   ###### ATTR DATA 2: Extract road salt application per site ######
   
-  # TODO: not all sites are mapped to COMIDs or had catchments available. We could look at using 5 km radius for site's without catchment polys.
+  # TODO: not all sites are mapped to COMIDs or had catchments available. 
+  # We could look at using 5 km radius for site's without catchment polys.
   
   # Each COMID and site will have a value for salt application for just the
-  # individual COMID catchment (`attr_roadSalt`) but also a total including
-  # all NHD+ catchments upstream (`attr_roadSaltCumulative`).
+  # individual COMID catchment (`attr_roadSaltPerSqKm`) but also a total including
+  # all NHD+ catchments upstream (`attr_roadSaltCumulativePerSqKm`).
   
   # Extract the catchments as polygons and summarize total salt per catchment
   # This includes any catchments that will only be used for upstream calculations
@@ -149,8 +150,14 @@ p2_targets <- list(
   tar_target(p2_nhdplus_catchment_salt, aggregate_road_salt_per_poly(road_salt_tif = p1_sb_road_salt_2015_tif, 
                                                                      polys_sf = p2_nhdplus_catchment_sf)),
   
+  # Calculate the total area of each catchment & its upstream catchements
+  tar_target(p2_attr_basinArea, calculate_catchment_areas(polys_sf = p2_nhdplus_catchment_sf,
+                                                          comid_upstream_tbl = p1_nhdplus_comids_upstream,
+                                                          comid_site_xwalk = p1_nwis_site_nhd_comid_xwalk)),
+  
   # Then, map salt for each NHD COMID catchment polygon to sites and calculate cumulative road salt
   tar_target(p2_attr_roadSalt, map_catchment_roadSalt_to_site(road_salt_comid = p2_nhdplus_catchment_salt, 
+                                                              basin_areas = p2_attr_basinArea,
                                                               comid_site_xwalk = p1_nwis_site_nhd_comid_xwalk,
                                                               comid_upstream_tbl = p1_nhdplus_comids_upstream)),
   
@@ -171,6 +178,7 @@ p2_targets <- list(
   ###### ATTR DATA 4: Combine all static attributes into one table ######
   
   tar_target(p2_attr_all, combine_static_attributes(p2_attr_flow,
+                                                    p2_attr_basinArea, 
                                                     p2_attr_roadSalt,
                                                     p2_attr_nhd,
                                                     p2_attr_trnmsv_and_depth2wt))

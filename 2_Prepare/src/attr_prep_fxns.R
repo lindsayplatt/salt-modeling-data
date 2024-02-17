@@ -47,6 +47,49 @@ znorm <- function(ts){
   (ts - ts.mean)/ts.dev
 }
 
+#' @title Get area of catchment and watershed (cumulative catchments)
+#' @description Using the column of polygon area per catchment returned by 
+#' NHD+ and saved as `areasqkm`, this function calculates the area per
+#' individual catchment and the total cumulative area for catchments upstream
+#' of the featured COMID (including that COMIDs area). This is used downstream
+#' as an attribute but also to calculate road salt application per sq km.
+#' 
+#' @param polys_sf a spatial data frame with polygons. Needs to be an `sf` 
+#' class. Should have at least the columns `nhd_comid` and `areasqkm`.
+#' @param comid_upstream_tbl a tibble with the columns `nhd_comid` and `nhd_comid_upstream`
+#' mapping all upstream comids to each COMID with an NWIS site. It should match
+#' the output of `identify_upstream_comids()`.
+#' @param comid_site_xwalk a tibble with at least the columns `site_no` and 
+#' `nhd_comid`. Note that not all sites are mapped to a COMID and may be NA.
+#' 
+#' @return tibble with four columns `site_no`, `attr_areaSqKm`,
+#'  `attr_areaCumulativeSqKm`, `attr_areaRatio`, and `numNACatchments`. The ratio
+#'  shows how big this catchment is compared to its full watershed. Values near 
+#'  1 indicate that this catchment is either a headwaters catchment -OR- we are
+#'  currently missing data for the upstream catchments.
+#' 
+calculate_catchment_areas <- function(polys_sf, comid_upstream_tbl, comid_site_xwalk) {
+  # Using area that is given already - I checked and they are very similar 
+  # to calculating the area using `st_area()`.
+  catchment_area_tbl <- polys_sf %>% 
+    st_drop_geometry() %>% 
+    select(nhd_comid_upstream = nhd_comid, area_sqkm = areasqkm)
+  
+  comid_upstream_tbl %>% 
+    left_join(catchment_area_tbl, by = 'nhd_comid_upstream') %>% 
+    # Per NHD COMID, calculate the area of *just* that catchment and
+    # the area of all upstream catchments. 
+    group_by(nhd_comid) %>% 
+    summarize(attr_areaSqKm = area_sqkm[nhd_comid_upstream == nhd_comid],
+              attr_areaCumulativeSqKm = sum(area_sqkm, na.rm=TRUE),
+              attr_areaRatio = attr_areaSqKm / attr_areaCumulativeSqKm,
+              numNACatchments = sum(is.na(area_sqkm))) %>% 
+    ungroup() %>% 
+    # Map these attributes from NHD COMIDs to NWIS sites
+    right_join(comid_site_xwalk, by = 'nhd_comid') %>%
+    select(site_no, attr_areaSqKm, attr_areaCumulativeSqKm, attr_areaRatio, numNACatchments)
+}
+
 #' @title Aggregate road salt application values per polygon
 #' @description Extract and sum cell values from the road salt raster file
 #' to get a single road salt application rate value for each polygon.
@@ -54,7 +97,7 @@ znorm <- function(ts){
 #' @param road_salt_tif filepath to the road salt tif file
 #' @param polys_sf a spatial data frame with polygons. Needs to be an `sf` class.
 #' 
-#' @returns a tibble with the columns `nhd_comid` and `attr_roadSalt` with the
+#' @returns a tibble with the columns `nhd_comid` and `road_salt_lbs` with the
 #' total road salt per COMID catchment polygon
 #' 
 aggregate_road_salt_per_poly <- function(road_salt_tif, polys_sf) {
@@ -71,10 +114,10 @@ aggregate_road_salt_per_poly <- function(road_salt_tif, polys_sf) {
   
   # Now add to a table for export
   road_salt_poly <- polys_sf %>% 
-    mutate(attr_roadSalt = salt_per_poly) %>% 
+    mutate(road_salt_lbs = salt_per_poly) %>% 
     st_drop_geometry() %>% 
     as_tibble() %>% 
-    dplyr::select(nhd_comid, attr_roadSalt)
+    dplyr::select(nhd_comid, road_salt_lbs)
   
   return(road_salt_poly)
 }
@@ -84,32 +127,44 @@ aggregate_road_salt_per_poly <- function(road_salt_tif, polys_sf) {
 #' NWIS sites based on the crosswalk from COMID to site.
 #' 
 #' @param road_salt_comid a tibble with at least the columns `nhd_comid` and
-#' `attr_roadSalt`. Note that as described in `extract_nhdplus_geopackage_layer()`,
+#' `road_salt_lbs`. Note that as described in `extract_nhdplus_geopackage_layer()`,
 #' not all COMIDs had a catchment polygon that were downloaded (e.g. COMID `4672393`
-#' did not have a catchment polygon available) and therefore will not have a salt value. 
+#' did not have a catchment polygon available) and therefore will not have a salt value.
+#' @param basin_areas a tibble with at least the columns `site_no`, `attr_areaSqKm`,
+#' and `attr_areaCumulativeSqKm` representing catchment and upstream basin total area.
 #' @param comid_site_xwalk a tibble with at least the columns `site_no` and 
 #' `nhd_comid`. Note that not all sites are mapped to a COMID and may be NA.
 #' @param comid_upstream_tbl a tibble with the columns `nhd_comid` and `nhd_comid_upstream`
 #' mapping all upstream comids to each COMID with an NWIS site. It should match
 #' the output of `identify_upstream_comids()`.
 #' 
-#' @return tibble with three columns `site_no`, `attr_roadSalt`, and `attr_roadSaltCumulative`
+#' @return tibble with three columns `site_no`, `attr_roadSaltPerSqKm`,
+#'  `attr_roadSaltCumulativePerSqKm`, and `attr_roadSaltRatio` (the ratio of 
+#'  salt per sq km applied in the catchment vs all upstream catchments; values
+#'  larger than 1 mean more salt/km2 applied in this catchment compared to the
+#'  rest of the upstream watershed, and values less than one mean less salt/km2
+#'  applied in this catchment compared to its upstream watershed).
 #' 
-map_catchment_roadSalt_to_site <- function(road_salt_comid, comid_site_xwalk, comid_upstream_tbl) {
+map_catchment_roadSalt_to_site <- function(road_salt_comid, basin_areas, comid_site_xwalk, comid_upstream_tbl) {
   
   # Calculate cumulative road salt for each catchment and all upstream catchments
-  upstream_roadSalt <- comid_upstream_tbl %>% 
+  comid_roadSalt <- comid_upstream_tbl %>% 
     left_join(road_salt_comid, by = c('nhd_comid_upstream' = 'nhd_comid')) %>% 
     group_by(nhd_comid) %>% 
-    summarize(attr_roadSaltCumulative = sum(attr_roadSalt), .groups='keep')
-  
+    summarize(roadSalt = road_salt_lbs[nhd_comid_upstream == nhd_comid],
+              roadSaltCumulative = sum(road_salt_lbs, na.rm=TRUE),
+              .groups='keep')
+
   comid_site_xwalk %>% 
-    # Join in the road salt for just the one catchment
-    left_join(road_salt_comid, by = 'nhd_comid') %>%
-    as_tibble() %>%  
-    # Now join the upstream road salt for each site's COMID
-    left_join(upstream_roadSalt, by = 'nhd_comid') %>% 
-    dplyr::select(site_no, attr_roadSalt, attr_roadSaltCumulative)
+    # Now join the road salt data per catchment & by upstream catchment
+    left_join(comid_roadSalt, by = 'nhd_comid') %>% 
+    # Now do the same but for catchment area 
+    left_join(basin_areas, by = 'site_no') %>% 
+    # Now calculate road salt per area
+    mutate(attr_roadSaltPerSqKm = roadSalt / attr_areaSqKm,
+           attr_roadSaltCumulativePerSqKm = roadSaltCumulative / attr_areaCumulativeSqKm,
+           attr_roadSaltRatio = attr_roadSaltPerSqKm / attr_roadSaltCumulativePerSqKm) %>% 
+    dplyr::select(site_no, attr_roadSaltPerSqKm, attr_roadSaltCumulativePerSqKm, attr_roadSaltRatio)
 }
 
 #' @title Pivot downloaded NHD attributes from long to wide
