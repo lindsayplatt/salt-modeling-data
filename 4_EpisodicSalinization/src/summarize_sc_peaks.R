@@ -3,63 +3,95 @@
 #' @description Using peaks identified with `find_event_peaks()`, this function
 #' will summarize peaks per site based on whether or not they occurred during
 #' winter. Then, it will add a new field indicating whether the site qualifies
-#' as an "episodic winter salting site", meaning that on average specific
-#' conductance peaks occur during the winter a minimum percent of the time and
-#' the difference between winter and non-winter average specific conductance is 
-#' greater than some minimum percent.
+#' as an "episodic winter salting site", meaning that specific conductance
+#' peaks occur during the winter a minimum percent of the time, the difference
+#' between winter and non-winter average specific conductance is greater than 
+#' some minimum percent, and the annual maximum specific conductance occurs during
+#' the winter a minimum percent of the time.
 #' 
 #' @param ts_peak_data a tibble output from `find_event_peaks()` with at least the 
 #' columns `site_no`, `dateTime`, and `peak_flag`.
 #' @param winter_months a numeric vector indicating which months should be 
 #' considered "winter"; defaults to `c(12,1,2,3)` or Dec, Jan, Feb, and Mar.
-#' @param min_winter_perc a single numeric value indicating the percentage of 
+#' @param min_perc_peaks_winter a single numeric value indicating the percentage of 
 #' time the peak values should occur in winter to qualify the site as an episodic
 #' winter salting site. Given as a fraction; defaults to `0.50` (or 50%).
 #' @param min_perc_diff a single numeric value indicating the minimum percent  
 #' difference between average winter and non-winter specific conductance to 
 #' qualify the site as an episodic winter salting site. Given as a fraction; 
 #' defaults to `0.10` (or 10%).
+#' @param min_perc_winter_higher a single numeric value indicating the percentage
+#' of years that the maximum annual specific conductance for a particular site
+#' should occur during the winter in order to qualify as an episodic winter
+#' salting site. Given as a fraction; defaults to `0.75` (or 75%).
 #' 
 summarize_salt_peaks <- function(ts_peak_data, winter_months = c(12,1,2,3), 
-                                 min_winter_perc = 0.50, min_perc_diff = 0.10) {
+                                 min_perc_peaks_winter = 0.50, min_perc_diff = 0.10, 
+                                 min_perc_winter_higher = 0.75) {
   
-  # Calculate total peaks by site, year, and season
-  peak_summary <- ts_peak_data %>% 
-    # Add some additional date-time columns
-    mutate(year = year(dateTime), 
-           month = month(dateTime)) %>% 
+  # Calculate maximum SpC by site, year, and season. Then determine annual 
+  # seasonal maximums to use when qualifying a site as an episodic site or
+  # not because winter maximums should be greater than non-winter maximums 
+  # a majority of the time series to qualify
+  salt_sites_max_info <- ts_peak_data %>% 
     # Create a winter flag - if month in (12,1,2,3)
-    mutate(is_winter = month %in% winter_months) %>% 
-    # mutate(is_winter = factor(is_winter, levels = c(TRUE, FALSE))) %>% 
-    # Count the total number of peaks per site, year, and winter/non-winter
-    # and add the average annual winter/non-winter specific conductance
+    mutate(year = year(dateTime), 
+           is_winter = month(dateTime) %in% winter_months) %>% 
     group_by(site_no, year, is_winter) %>% 
-    summarize(n_peaks_season_annual = sum(peak_flag, na.rm = T), 
-              avg_sc_season_annual = mean(SpecCond, na.rm = T), .groups='keep')
+    # Calculate two maximums per year - one for winter, one for not winter
+    summarize(maxSpC = max(SpecCond, na.rm=TRUE), .groups = 'keep') %>% 
+    # Pivot wider so that the winter and non-winter maximums are each their own column
+    mutate(is_winter = ifelse(is_winter, 'winterSpCMax', 'notWinterSpCMax')) %>% 
+    pivot_wider(names_from = is_winter, values_from = maxSpC) %>% 
+    # Get rid of years that don't have a value for both winter/not winter
+    filter(!is.na(winterSpCMax) & !is.na(notWinterSpCMax)) %>% 
+    # Summarize the total number of years and the number of years where the
+    # winter maximum was higher than the non-winter maximum
+    group_by(site_no) %>% 
+    summarize(n_years = n(), 
+              n_winter_higher = sum(winterSpCMax > notWinterSpCMax), 
+              .groups = 'keep') %>% 
+    # Calculate the percent that the winter maximum was higher
+    mutate(perc_winter_max_higher = n_winter_higher / n_years) %>% 
+    select(site_no, perc_winter_max_higher)
   
-  # To qualify as winter salting sites for this analysis, more than  
-  # `min_winter_perc` of the SpC peaks need to happen during winter 
-  # on average and the percent difference between winter and non-winter 
-  # SpC averages should be greater than `min_perc_diff`
-  salt_sites_info <- peak_summary %>% 
-    # Calculate percent of peaks in winter/non-winter for each year
-    group_by(site_no, year) %>% 
-    mutate(n_peaks_annual = sum(n_peaks_season_annual, na.rm=TRUE)) %>% 
-    mutate(peaks_perc_annual = n_peaks_season_annual/n_peaks_annual) %>% 
-    # Find the average percentage of peaks per season & calculate
-    # the average specific conductance for each season
-    group_by(site_no, is_winter) %>%  
-    summarize(peaks_perc = mean(peaks_perc_annual, na.rm=TRUE), 
-              sc_season = mean(avg_sc_season_annual, na.rm=TRUE), .groups='keep') %>% 
+  salt_sites_info <- ts_peak_data %>% 
+    # Create a winter flag - if month in (12,1,2,3)
+    mutate(is_winter = month(dateTime) %in% winter_months) %>% 
+    # Tally number of peaks and calculate average SpC for winter/non-winter 
+    group_by(site_no, is_winter) %>% 
+    summarize(n_peaks = sum(peak_flag, na.rm=T),
+              avg_sc = mean(SpecCond, na.rm = T),
+              .groups = 'keep') %>% 
+    # Calculate the percent of peaks per season
+    group_by(site_no) %>% 
+    mutate(n_peaks_total = sum(n_peaks, na.rm=TRUE),
+           peaks_perc = n_peaks/n_peaks_total) %>% 
+    select(site_no, is_winter, peaks_perc, avg_sc) %>% 
     # Munge the data so that there is a column per metric per season
     pivot_longer(cols = -c(site_no, is_winter), names_to = 'metric') %>% 
     mutate(metric_season = sprintf('%s_%s', metric, ifelse(is_winter, 'winterYes', 'winterNo'))) %>% 
     pivot_wider(id_cols = site_no, names_from = metric_season, values_from = value) %>%
-    mutate(sc_perc_diff = ((sc_season_winterYes - sc_season_winterNo) / sc_season_winterYes)) %>% 
-    select(site_no, peaks_perc_winterYes, sc_perc_diff) %>% 
-    # Now determine if it is a salt site based on the percent of peaks occurring 
-    # in winter and the difference between the average winter/non-winter SC
-    mutate(is_salt_site = peaks_perc_winterYes > min_winter_perc & sc_perc_diff > min_perc_diff)
+    # Calculate the percent difference between winter and non-winter average SpC
+    group_by(site_no) %>% 
+    mutate(sc_perc_diff = ((avg_sc_winterYes - avg_sc_winterNo) / avg_sc_winterYes)) %>%
+    select(site_no, peaks_perc_winterYes, sc_perc_diff)
   
-  return(salt_sites_info)
+  # Now join these data for each site and determine which sites meet criteria 
+  # for being considered 'episodic'. To qualify as winter salting sites for 
+  # this analysis, 1) more than `min_perc_peaks_winter` of the SpC peaks need to happen 
+  # during winter, 2) the percent difference between winter and non-winter
+  # SpC averages should be greater than `min_perc_diff`, and 3) the maximum annual
+  # SpC value should occur in winter more than `min_perc_winter_higher` percent
+  salt_sites_info %>% 
+    # Join in the data about winter maximums
+    left_join(salt_sites_max_info, by = 'site_no') %>% 
+    mutate(is_salt_site = 
+             # More than `min_perc_peaks_winter` percent of global peaks must occur in winter
+             peaks_perc_winterYes > min_perc_peaks_winter & 
+             # The non-winter and winter mean SpC must be more than `min_perc_diff` percent different
+             sc_perc_diff > min_perc_diff &
+             # Maximum annual SpC should occur in winter more than `` percent of the years
+             perc_winter_max_higher > min_perc_winter_higher)
+  
 }
