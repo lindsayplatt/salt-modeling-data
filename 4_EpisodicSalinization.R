@@ -25,9 +25,10 @@ p4_targets <- list(
   # Now summarize the peak information and filter to just those sites that meet 
   # our criteria for exhibiting "episodic" patterns in winter.
   tar_target(p4_ts_sc_peak_summary, 
-             summarize_salt_peaks(p4_ts_sc_peaks, min_winter_perc = 0.40, min_perc_diff = 0.10)),
+             summarize_salt_peaks(p4_ts_sc_peaks, 
+                                  min_perc_peaks_winter = 0.40, 
+                                  min_perc_diff = 0.10,
+                                  min_perc_winter_higher = 0.75)),
   tar_target(p4_episodic_sites, filter(p4_ts_sc_peak_summary, is_salt_site)$site_no)
-  
-  # TODO: revisit three that are still questionable - c('02042500', '04024000', '04067500', '01408000', '01650800')
   
 )

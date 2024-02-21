@@ -96,11 +96,9 @@ find_event_peaks <- function(ts_data, date_colname, param_colname, sb_pk_thresh 
     }
   }
   
-  medianSpC <- quantile(ts_data$SpecCond, 0.50)
-
-  # Edit peak events to only include days where SpC was above the median
+  # Edit peak events to only include days where SpC was above the 75th percentile
   ts_peaks <- ts_data %>%
-    mutate(peak_flag = peak_flag & event_flag > 0 & SpecCond > medianSpC) %>%
+    mutate(peak_flag = peak_flag & event_flag > 0 & SpecCond > quantile(ts_data$SpecCond, 0.75)) %>%
     select(-Days, -slope_bkwd, -slope_fwd)
   
   return(ts_peaks)
