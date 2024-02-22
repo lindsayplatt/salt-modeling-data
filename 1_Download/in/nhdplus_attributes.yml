@@ -31,7 +31,7 @@ Climate:
 Climate and Water Balance:
   - CAT_WBM_PPT # avg precip from Water Balance Model, 2000-2014
   - CAT_WBM_RUN # avg runoff from WBM 2000-2014
-  - CAT_WBM_SNW # avg snowfall from WBM 2000-2014; should be similar to `CAT_WBM_DT_SNW_2012` but not detrended
+  - CAT_WBM_SNW # avg snowfall from WBM 2000-2014; 
   - CAT_WBM_STO # avg soil moisture storage from WBM 2000-2014
   # Also has average monthly runoff; could do something with "winter months runoff"?
 
@@ -56,7 +56,7 @@ Hydrologic:
   # instead of earlier ones used from Climate/water balance themes
 
 Hydrologic Modifications:
-  - CAT_NDAMS2013 # Number of dams in the catchment
+  # NONE
 
 Land Cover:
   # I filtered to NLCD 2019 options but there are many years represented
@@ -95,16 +95,13 @@ Regions:
 
 Soils:
   # Soil characteristics of interest
-  - CAT_OM # organic matter, % MAYBE DELETE??
   - CAT_PERMAVE # soil permeability, inches/hour
   - CAT_AWCAVE # available water capacity, fraction
-  - CAT_SALINAVE # mean soil salinity
   # Could consider all the attributes about hydrologic soil groups but a lot
   # of those characteristics can be covered from the other soil characteristics
 
 Topographic:
   - CAT_BASIN_SLOPE # avg basin slope, %
-  - CAT_STREAM_SLOPE # flowline slope, %
   - CAT_TOTAL_ROAD_DENS # road density
   - CAT_STRM_DENS # stream density
 

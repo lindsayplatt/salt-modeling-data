@@ -191,7 +191,6 @@ prepare_nhd_attributes <- function(nhd_attribute_table, comid_site_xwalk) {
       attr_avgDepth2WT = 'CAT_EWT',
       attr_avgGWRecharge = 'CAT_RECHG',
       attr_topoWetInd = 'CAT_TWI',
-      attr_numDams2013 = 'CAT_NDAMS2013',
       attr_pctOpenWater = 'CAT_NLCD19_11',
       attr_pctOpenDev = 'CAT_NLCD19_21',
       attr_pctLowDev = 'CAT_NLCD19_22',
@@ -208,12 +207,9 @@ prepare_nhd_attributes <- function(nhd_attribute_table, comid_site_xwalk) {
       attr_vegIndSummer = 'CAT_EVI_JAS_2012',
       attr_vegIndWinter = 'CAT_EVI_JFM_2012',
       attr_vegIndAutumn = 'CAT_EVI_OND_2011',
-      attr_pctSoilOM = 'CAT_OM',
       attr_soilPerm = 'CAT_PERMAVE',
       attr_availWaterCap = 'CAT_AWCAVE',
-      attr_meanSoilSalinity = 'CAT_SALINAVE',
       attr_avgBasinSlope = 'CAT_BASIN_SLOPE',
-      attr_avgStreamSlope = 'CAT_STREAM_SLOPE',
       attr_roadDensity = 'CAT_TOTAL_ROAD_DENS',
       attr_streamDensity = 'CAT_STRM_DENS'))) %>% 
     # Combine some of the land use categories
