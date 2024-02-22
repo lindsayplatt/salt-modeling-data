@@ -217,7 +217,6 @@ prepare_nhd_attributes <- function(nhd_attribute_table, comid_site_xwalk) {
       attr_meanSoilSalinity = 'CAT_SALINAVE',
       attr_avgBasinSlope = 'CAT_BASIN_SLOPE',
       attr_avgStreamSlope = 'CAT_STREAM_SLOPE',
-      attr_roadStreamXings = 'CAT_RDX',
       attr_roadDensity = 'CAT_TOTAL_ROAD_DENS',
       attr_streamDensity = 'CAT_STRM_DENS'))) %>% 
     # Combine some of the land use categories

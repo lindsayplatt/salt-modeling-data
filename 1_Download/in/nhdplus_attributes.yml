@@ -109,7 +109,6 @@ Soils:
 Topographic:
   - CAT_BASIN_SLOPE # avg basin slope, %
   - CAT_STREAM_SLOPE # flowline slope, %
-  - CAT_RDX # number of road/stream intersections
   - CAT_TOTAL_ROAD_DENS # road density
   - CAT_STRM_DENS # stream density
 
