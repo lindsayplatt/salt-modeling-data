@@ -26,8 +26,7 @@ Chemical:
   # Consider atmospheric deposition of chloride in the future?
 
 Climate:
-  - CAT_PRSNOW # percent of precip that is snow, mean 1901-2000
-  - CAT_WBM_DT_SNW_2012 # avg & detrended snowfall between 2000-2014
+  # NONE
 
 Climate and Water Balance:
   - CAT_WBM_PPT # avg precip from Water Balance Model, 2000-2014

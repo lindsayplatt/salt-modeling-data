@@ -182,8 +182,6 @@ prepare_nhd_attributes <- function(nhd_attribute_table, comid_site_xwalk) {
                   -nhd_comid, -with_retry) %>% 
     # Rename the columns
     rename(any_of(c(
-      attr_pctSnow = 'CAT_PRSNOW',
-      attr_avgSnowDetrended = 'CAT_WBM_DT_SNW_2012',
       attr_avgPrecip = 'CAT_WBM_PPT',
       attr_avgRunoff = 'CAT_WBM_RUN',
       attr_avgSnow = 'CAT_WBM_SNW',
