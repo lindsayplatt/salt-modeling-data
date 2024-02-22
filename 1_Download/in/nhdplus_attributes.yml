@@ -94,11 +94,7 @@ Regions:
   - CAT_EVI_OND_2011 # autumn vegetation index
 
 Soils:
-  # Soil type by SAND + SILT + CLAY percentages
-  - CAT_SANDAVE # sand %
-  - CAT_SILTAVE # silt %
-  - CAT_CLAYAVE # clay %
-  # Other soil characteristics of interest
+  # Soil characteristics of interest
   - CAT_OM # organic matter, % MAYBE DELETE??
   - CAT_PERMAVE # soil permeability, inches/hour
   - CAT_AWCAVE # available water capacity, fraction
