@@ -276,16 +276,12 @@ p1_targets <- list(
   tar_target(p1_nhdplus_attr_list, load_nhdplus_attribute_list(p1_nhdplus_attr_yml)),
   
   # Download catchment attributes data for each COMID
+  # Needs to include attributes relating to agriculture (CAT_NLCD19_81 is pasture/hay 
+  # and CAT_NLCD19_82 is cultivated crops) to be used during `3_Filter`.
   tar_target(p1_nhdplus_attr_vals_tbl, 
              download_nhdplus_attributes(attributes = unlist(p1_nhdplus_attr_list),
                                          comids = unique(p1_nwis_site_nhd_comid_xwalk$nhd_comid)),
              pattern = map(p1_nhdplus_attr_list)),
-  
-  # Download catchment attributes relating to agriculture for each COMID (CAT_NLCD19_81 
-  # is pasture/hay and CAT_NLCD19_82 is cultivated crops). Used during `3_Filter`.
-  tar_target(p1_nhdplus_ag_vals_tbl, 
-             download_nhdplus_attributes(attributes = c('CAT_NLCD19_81', 'CAT_NLCD19_82'),
-                                         comids = unique(p1_nwis_site_nhd_comid_xwalk$nhd_comid))),
   
   # Prepare COMIDs to download so that polygons are only downloaded and stored once
   tar_target(p1_nhdplus_comids, na.omit(unique(p1_nwis_site_nhd_comid_xwalk$nhd_comid))),

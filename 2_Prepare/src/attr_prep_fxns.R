@@ -209,8 +209,18 @@ prepare_nhd_attributes <- function(nhd_attribute_table, comid_site_xwalk) {
       attr_avgGWRecharge = 'CAT_RECHG',
       attr_topoWetInd = 'CAT_TWI',
       attr_numDams2013 = 'CAT_NDAMS2013',
-      attr_pctHighDev = 'CAT_NLCD19_24',
+      attr_pctOpenWater = 'CAT_NLCD19_11',
+      attr_pctOpenDev = 'CAT_NLCD19_21',
       attr_pctLowDev = 'CAT_NLCD19_22',
+      attr_pctMediumDev = 'CAT_NLCD19_23',
+      attr_pctHighDev = 'CAT_NLCD19_24',
+      attr_pctForestDecid = 'CAT_NLCD19_41',
+      attr_pctForestEverg = 'CAT_NLCD19_42',
+      attr_pctForestMixed = 'CAT_NLCD19_43',
+      attr_pctAgPasture = 'CAT_NLCD19_81',
+      attr_pctAgCrop = 'CAT_NLCD19_82',
+      attr_pctWetlandWoody = 'CAT_NLCD19_90',
+      attr_pctWetlandHerbaceous = 'CAT_NLCD19_95',
       attr_vegIndSpring = 'CAT_EVI_AMJ_2012',
       attr_vegIndSummer = 'CAT_EVI_JAS_2012',
       attr_vegIndWinter = 'CAT_EVI_JFM_2012',
@@ -226,7 +236,17 @@ prepare_nhd_attributes <- function(nhd_attribute_table, comid_site_xwalk) {
       attr_avgStreamSlope = 'CAT_STREAM_SLOPE',
       attr_roadStreamXings = 'CAT_RDX',
       attr_roadDensity = 'CAT_TOTAL_ROAD_DENS',
-      attr_streamDensity = 'CAT_STRM_DENS')))
+      attr_streamDensity = 'CAT_STRM_DENS'))) %>% 
+    # Combine some of the land use categories
+    mutate(attr_pctForested = attr_pctForestDecid + attr_pctForestEverg + attr_pctForestMixed,
+           attr_pctWetland = attr_pctWetlandWoody + attr_pctWetlandHerbaceous,
+           attr_pctAgriculture = attr_pctAgPasture + attr_pctAgCrop,
+           attr_pctDeveloped = attr_pctOpenDev + attr_pctLowDev + attr_pctMediumDev + attr_pctHighDev) %>%
+    # Now remove the attributes that made up those now combined classes
+    select(-c(attr_pctForestDecid, attr_pctForestEverg, attr_pctForestMixed,
+              attr_pctWetlandWoody, attr_pctWetlandHerbaceous,
+              attr_pctAgPasture, attr_pctAgCrop,
+              attr_pctOpenDev, attr_pctLowDev, attr_pctMediumDev, attr_pctHighDev))
   
 }
 

@@ -39,16 +39,16 @@ identify_temporal_qualifying_sites <- function(ts_data, min_years = 5, min_recen
 #' differently than other streams SC data, unrelated to road salt application. 
 #' Sites with over 75% agriculture in their catchments will be flagged here.
 #' 
-#' @param nhd_ag_attrs a tibble with the columns `site_no`, `CAT_NLCD19_81`, and
-#' `CAT_NLCD19_82` which give percentages of the catchment for each site that is
-#' covered with pasture/hay or cultivated crops, respectively.
+#' @param nhd_ag_attrs a tibble with the columns `site_no`, and `attr_pctAgriculture` 
+#' which gives the total percentages of the catchment for each site that is
+#' covered with pasture/hay (`CAT_NLCD19_81`) + cultivated crops (`CAT_NLCD19_82`).
 #' 
 #' @return a vector of NWIS site character strings whose `ts_data` fit into the
 #' `agriculture` category and should be removed.
 #' 
 identify_ag_sites <- function(nhd_ag_attrs) {
   nhd_ag_attrs %>% 
-    filter(CAT_NLCD19_81 > 75 | CAT_NLCD19_82 > 75) %>% 
+    filter(attr_pctAgriculture > 75) %>% 
     pull(site_no)
 }
 
