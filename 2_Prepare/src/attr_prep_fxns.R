@@ -180,16 +180,25 @@ prepare_nhd_attributes <- function(nhd_attribute_table, comid_site_xwalk) {
     # Keep only the site_no and NHD attribute columns
     dplyr::select(site_no, everything(), 
                   -nhd_comid, -with_retry) %>% 
-    # Combine the monthly runoff into seasons & then remove the combined values
+    # Combine the monthly runoff into seasons 
     rowwise() %>% 
     mutate(attr_avgRunoffWinter = mean(c(CAT_WB5100_DEC,CAT_WB5100_JAN, CAT_WB5100_FEB, CAT_WB5100_MAR)),
            attr_avgRunoffSpring = mean(c(CAT_WB5100_APR, CAT_WB5100_MAY)),
            attr_avgRunoffSummer = mean(c(CAT_WB5100_JUN, CAT_WB5100_JUL, CAT_WB5100_AUG)),
            attr_avgRunoffFall = mean(c(CAT_WB5100_SEP, CAT_WB5100_OCT, CAT_WB5100_NOV))) %>% 
-    select(-matches('[A-Z]{3}_WB5100_[A-Z]{3}')) %>% 
     # Calculate runoff-precip ratio
     mutate(attr_runoffPrecipRatio = CAT_WBM_RUN/CAT_WBM_PPT) %>% 
-    # Rename the columns
+    # Combine some of the land-use categories
+    mutate(
+      # Forested = deciduous forest + evergreen forest + mixed forest
+      attr_pctForested = CAT_NLCD19_41 + CAT_NLCD19_42 + CAT_NLCD19_43,
+      # Wetland = woody wetland + herbaceous wetland
+      attr_pctWetland = CAT_NLCD19_90 + CAT_NLCD19_95,
+      # Agriculture = pasture/hay + cropland
+      attr_pctAgriculture = CAT_NLCD19_81 + CAT_NLCD19_82,
+      # Developed = open (<20% impervious) + low (20-49%) + medium (50-79%) + high (80-100%)
+      attr_pctDeveloped = CAT_NLCD19_21 + CAT_NLCD19_22 + CAT_NLCD19_23 + CAT_NLCD19_24) %>% 
+    # Rename the columns whose values are used as-is
     rename(any_of(c(
       attr_avgSnow = 'CAT_WBM_SNW',
       attr_avgSoilStorage = 'CAT_WBM_STO',
@@ -199,32 +208,11 @@ prepare_nhd_attributes <- function(nhd_attribute_table, comid_site_xwalk) {
       attr_avgGWRecharge = 'CAT_RECHG',
       attr_topoWetInd = 'CAT_TWI',
       attr_pctOpenWater = 'CAT_NLCD19_11',
-      attr_pctOpenDev = 'CAT_NLCD19_21',
-      attr_pctLowDev = 'CAT_NLCD19_22',
-      attr_pctMediumDev = 'CAT_NLCD19_23',
-      attr_pctHighDev = 'CAT_NLCD19_24',
-      attr_pctForestDecid = 'CAT_NLCD19_41',
-      attr_pctForestEverg = 'CAT_NLCD19_42',
-      attr_pctForestMixed = 'CAT_NLCD19_43',
-      attr_pctAgPasture = 'CAT_NLCD19_81',
-      attr_pctAgCrop = 'CAT_NLCD19_82',
-      attr_pctWetlandWoody = 'CAT_NLCD19_90',
-      attr_pctWetlandHerbaceous = 'CAT_NLCD19_95',
       attr_soilPerm = 'CAT_PERMAVE',
       attr_availWaterCap = 'CAT_AWCAVE',
       attr_avgBasinSlope = 'CAT_BASIN_SLOPE',
       attr_roadDensity = 'CAT_TOTAL_ROAD_DENS',
       attr_streamDensity = 'CAT_STRM_DENS'))) %>% 
-    # Combine some of the land use categories
-    mutate(attr_pctForested = attr_pctForestDecid + attr_pctForestEverg + attr_pctForestMixed,
-           attr_pctWetland = attr_pctWetlandWoody + attr_pctWetlandHerbaceous,
-           attr_pctAgriculture = attr_pctAgPasture + attr_pctAgCrop,
-           attr_pctDeveloped = attr_pctOpenDev + attr_pctLowDev + attr_pctMediumDev + attr_pctHighDev) %>%
-    # Now remove the attributes that made up those now combined classes
-    select(-c(attr_pctForestDecid, attr_pctForestEverg, attr_pctForestMixed,
-              attr_pctWetlandWoody, attr_pctWetlandHerbaceous,
-              attr_pctAgPasture, attr_pctAgCrop,
-              attr_pctOpenDev, attr_pctLowDev, attr_pctMediumDev, attr_pctHighDev)) %>% 
     # Select only the final attributes
     select(site_no, starts_with('attr_'))
   
