@@ -38,11 +38,10 @@ Climate:
 
 Climate and Water Balance:
   # Attributes per reach/catchment
-  - CAT_WBM_PPT # avg precip from WBM (keep to calculate runoff-precip ratio)
-  - CAT_WBM_RUN # avg runoff from WBM 2000-2014
+  - CAT_WBM_PPT # avg precip from WBM (used to calculate runoff-precip ratio)
+  - CAT_WBM_RUN # avg runoff from WBM 2000-2014 (used to calculate runoff-precip ratio)
   - CAT_WBM_STO # avg soil moisture storage from WBM 2000-2014
-  # Monthly avg runoff
-  - CAT_WB5100_JAN
+  - CAT_WB5100_JAN # Monthly avg runoff
   - CAT_WB5100_FEB
   - CAT_WB5100_MAR
   - CAT_WB5100_APR
@@ -71,35 +70,24 @@ Hydrologic:
   - CAT_CONTACT # number of days that infiltrated water resides in the saturated subsurface zone of the basin before discharging into the stream)
   - CAT_EWT # avg depth to water table relative to land surface; if we use this, we should drop the other depth2wt value)
   - CAT_RECHG # mean annual GW recharge
-  # This theme also has some attributes related to runoff, could consider these 
-  # instead of earlier ones used from Climate/water balance themes
 
 Hydrologic Modifications:
   # NONE
 
 Land Cover:
   # I filtered to NLCD 2019 options but there are many years represented
-  
   - CAT_NLCD19_11 # NLCD 2019 "Open Water"
-  
-  # Developed, somewhat impervious land
   - CAT_NLCD19_21 # NLCD 2019 "Developed, Open" which equals <20% impervious
   - CAT_NLCD19_22 # NLCD 2019 "Developed, low intensity" which equals 20-49% impervious
   - CAT_NLCD19_23 # NLCD 2019 "Developed, medium intensity" which equals 50-79% impervious
   - CAT_NLCD19_24 # NLCD 2019 "Developed, high intensity" which equals 80-100% impervious
-  # Forest
   - CAT_NLCD19_41 # Deciduous Forest
   - CAT_NLCD19_42 # Evergreen Forest
   - CAT_NLCD19_43 # Mixed Forest
-  # Agriculture/grazing
   - CAT_NLCD19_81 # Pasture/Hay
   - CAT_NLCD19_82 # Cultivated Crops
-  # Wetlands
   - CAT_NLCD19_90 # Woody Wetlands
   - CAT_NLCD19_95 # Emergent Herbaceous Wetlands
-
-  # ALSO: consider using some of these attribute values to remove sites that may be tidal or
-  # agricultural? E.g. CAT_ESTUARY, CAT_NLCD19_82 (cultivated crops), CAT_NLCD19_81 (pasture/hay)
 
 Population:
   # NONE
@@ -111,8 +99,6 @@ Regions:
 Soils:
   # Soil characteristics of interest
   - CAT_PERMAVE # soil permeability, inches/hour
-  # Could consider all the attributes about hydrologic soil groups but a lot
-  # of those characteristics can be covered from the other soil characteristics
 
 Topographic:
   - CAT_BASIN_SLOPE # avg basin slope, %

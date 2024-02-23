@@ -180,14 +180,17 @@ prepare_nhd_attributes <- function(nhd_attribute_table, comid_site_xwalk) {
     # Keep only the site_no and NHD attribute columns
     dplyr::select(site_no, everything(), 
                   -nhd_comid, -with_retry) %>% 
+    
     # Combine the monthly runoff into seasons 
     rowwise() %>% 
     mutate(attr_avgRunoffWinter = mean(c(CAT_WB5100_DEC,CAT_WB5100_JAN, CAT_WB5100_FEB, CAT_WB5100_MAR)),
            attr_avgRunoffSpring = mean(c(CAT_WB5100_APR, CAT_WB5100_MAY)),
            attr_avgRunoffSummer = mean(c(CAT_WB5100_JUN, CAT_WB5100_JUL, CAT_WB5100_AUG)),
            attr_avgRunoffFall = mean(c(CAT_WB5100_SEP, CAT_WB5100_OCT, CAT_WB5100_NOV))) %>% 
+    
     # Calculate runoff-precip ratio
     mutate(attr_runoffPrecipRatio = CAT_WBM_RUN/CAT_WBM_PPT) %>% 
+    
     # Combine some of the land-use categories
     mutate(
       # Forested = deciduous forest + evergreen forest + mixed forest
@@ -198,8 +201,10 @@ prepare_nhd_attributes <- function(nhd_attribute_table, comid_site_xwalk) {
       attr_pctAgriculture = CAT_NLCD19_81 + CAT_NLCD19_82,
       # Developed = open (<20% impervious) + low (20-49%) + medium (50-79%) + high (80-100%)
       attr_pctDeveloped = CAT_NLCD19_21 + CAT_NLCD19_22 + CAT_NLCD19_23 + CAT_NLCD19_24) %>% 
+    
     # Calculate snow in mm from precip total
     mutate(attr_avgSnow = CAT_PPT7100_ANN*CAT_PRSNOW/100) %>% 
+    
     # Rename the columns whose values are used as-is
     rename(any_of(c(
       attr_annualPrecip = 'CAT_PPT7100_ANN', # in mm
@@ -214,7 +219,8 @@ prepare_nhd_attributes <- function(nhd_attribute_table, comid_site_xwalk) {
       attr_soilPerm = 'CAT_PERMAVE', # inches per hour
       attr_avgBasinSlope = 'CAT_BASIN_SLOPE',
       attr_roadDensity = 'CAT_TOTAL_ROAD_DENS'))) %>% 
-    # Select only the final attributes
+    
+    # Select only the final attributes, which are those prefixed with `attr_`
     select(site_no, starts_with('attr_'))
   
 }
