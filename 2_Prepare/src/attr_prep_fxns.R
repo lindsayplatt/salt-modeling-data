@@ -206,8 +206,8 @@ prepare_nhd_attributes <- function(nhd_attribute_table, comid_site_xwalk) {
       attr_firstFreezeDay = 'CAT_FSTFZ6190',
       attr_lastFreezeDay = 'CAT_LSTFZ6190',
       attr_avgSoilStorage = 'CAT_WBM_STO', # soil moisture storage, millimeters
-      attr_baseFlowInd = 'CAT_BFI',
-      attr_daysInSubsurface = 'CAT_CONTACT',
+      attr_baseFlowInd = 'CAT_BFI', # Units are percent. Base flow is the component of streamflow that can be attributed to ground-water discharge into streams
+      attr_daysInSubsurface = 'CAT_CONTACT', # contact time, the length of time it takes for water to drain along subsurface flow paths to the stream; Units are days. Contact time is computed from basin topography, soil porosity, and soil hydraulic conductivity
       attr_avgDepth2WT = 'CAT_EWT',
       attr_avgGWRecharge = 'CAT_RECHG',
       attr_topoWetInd = 'CAT_TWI',
