@@ -201,6 +201,7 @@ prepare_nhd_attributes <- function(nhd_attribute_table, comid_site_xwalk) {
     # Rename the columns whose values are used as-is
     rename(any_of(c(
       attr_avgSnow = 'CAT_WBM_SNW',
+      attr_avgTemp = 'CAT_WBM_TAV',
       attr_avgSoilStorage = 'CAT_WBM_STO',
       attr_baseFlowInd = 'CAT_BFI',
       attr_daysInSubsurface = 'CAT_CONTACT',
