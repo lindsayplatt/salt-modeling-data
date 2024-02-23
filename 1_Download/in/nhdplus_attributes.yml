@@ -1,6 +1,9 @@
 # NHDPlus Attributes to use as static attributes
 # linked to stream sites by COMID
 
+# https://www.sciencebase.gov/catalog/item/5669a79ee4b08895842a1d47 <-- NHD+ Catchment Data Release
+# https://pubs.usgs.gov/of/2019/1096/ofr20191096.pdf <-- NHD+ User Guide (extensive info!)
+
 # To explore these and come up with this list, I 
 # looked through descriptions of all 4,720 attributes 
 # prefixed with `CAT_` using the following code:
