@@ -213,8 +213,7 @@ prepare_nhd_attributes <- function(nhd_attribute_table, comid_site_xwalk) {
       attr_pctOpenWater = 'CAT_NLCD19_11',
       attr_soilPerm = 'CAT_PERMAVE',
       attr_avgBasinSlope = 'CAT_BASIN_SLOPE',
-      attr_roadDensity = 'CAT_TOTAL_ROAD_DENS',
-      attr_streamDensity = 'CAT_STRM_DENS'))) %>% 
+      attr_roadDensity = 'CAT_TOTAL_ROAD_DENS'))) %>% 
     # Select only the final attributes
     select(site_no, starts_with('attr_'))
   
