@@ -111,7 +111,6 @@ Regions:
 Soils:
   # Soil characteristics of interest
   - CAT_PERMAVE # soil permeability, inches/hour
-  - CAT_AWCAVE # available water capacity, fraction
   # Could consider all the attributes about hydrologic soil groups but a lot
   # of those characteristics can be covered from the other soil characteristics
 

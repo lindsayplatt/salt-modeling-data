@@ -212,7 +212,6 @@ prepare_nhd_attributes <- function(nhd_attribute_table, comid_site_xwalk) {
       attr_avgGWRecharge = 'CAT_RECHG', # in mm/year
       attr_pctOpenWater = 'CAT_NLCD19_11',
       attr_soilPerm = 'CAT_PERMAVE',
-      attr_availWaterCap = 'CAT_AWCAVE',
       attr_avgBasinSlope = 'CAT_BASIN_SLOPE',
       attr_roadDensity = 'CAT_TOTAL_ROAD_DENS',
       attr_streamDensity = 'CAT_STRM_DENS'))) %>% 
