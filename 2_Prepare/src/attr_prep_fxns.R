@@ -198,11 +198,14 @@ prepare_nhd_attributes <- function(nhd_attribute_table, comid_site_xwalk) {
       attr_pctAgriculture = CAT_NLCD19_81 + CAT_NLCD19_82,
       # Developed = open (<20% impervious) + low (20-49%) + medium (50-79%) + high (80-100%)
       attr_pctDeveloped = CAT_NLCD19_21 + CAT_NLCD19_22 + CAT_NLCD19_23 + CAT_NLCD19_24) %>% 
+    # Calculate snow in mm from precip total
+    mutate(attr_avgSnow = CAT_PPT7100_ANN*CAT_PRSNOW/100) %>% 
     # Rename the columns whose values are used as-is
     rename(any_of(c(
-      attr_avgSnow = 'CAT_WBM_SNW',
-      attr_avgTemp = 'CAT_WBM_TAV',
-      attr_avgSoilStorage = 'CAT_WBM_STO',
+      attr_annualPrecip = 'CAT_PPT7100_ANN', # in mm
+      attr_firstFreezeDay = 'CAT_FSTFZ6190',
+      attr_lastFreezeDay = 'CAT_LSTFZ6190',
+      attr_avgSoilStorage = 'CAT_WBM_STO', # soil moisture storage, millimeters
       attr_baseFlowInd = 'CAT_BFI',
       attr_daysInSubsurface = 'CAT_CONTACT',
       attr_avgDepth2WT = 'CAT_EWT',
