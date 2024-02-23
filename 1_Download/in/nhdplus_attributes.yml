@@ -71,7 +71,6 @@ Hydrologic:
   - CAT_CONTACT # number of days that infiltrated water resides in the saturated subsurface zone of the basin before discharging into the stream)
   - CAT_EWT # avg depth to water table relative to land surface; if we use this, we should drop the other depth2wt value)
   - CAT_RECHG # mean annual GW recharge
-  - CAT_TWI # topographic wetness index = `wetness index is used to predict spatial patterns of soil moisture and depth to the water table` - Wolock and McCabe, 2000)
   # This theme also has some attributes related to runoff, could consider these 
   # instead of earlier ones used from Climate/water balance themes
 

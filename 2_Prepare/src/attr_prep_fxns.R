@@ -210,7 +210,6 @@ prepare_nhd_attributes <- function(nhd_attribute_table, comid_site_xwalk) {
       attr_daysInSubsurface = 'CAT_CONTACT', # contact time, the length of time it takes for water to drain along subsurface flow paths to the stream; Units are days. Contact time is computed from basin topography, soil porosity, and soil hydraulic conductivity
       attr_avgDepth2WT = 'CAT_EWT',
       attr_avgGWRecharge = 'CAT_RECHG',
-      attr_topoWetInd = 'CAT_TWI',
       attr_pctOpenWater = 'CAT_NLCD19_11',
       attr_soilPerm = 'CAT_PERMAVE',
       attr_availWaterCap = 'CAT_AWCAVE',
