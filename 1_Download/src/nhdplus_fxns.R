@@ -167,6 +167,31 @@ load_nhdplus_attribute_list <- function(in_file) {
     discard(is.null)
 } 
 
+#' @title Get NHD+ attribute metadata
+#' @description Use `nhdplusTools` functions retrieve metadata for attributes 
+#' downloaded in `download_nhdplus_attributes()`
+#' 
+#' @param downloaded_attributes a data.table object from the function 
+#' `download_nhdplus_attributes()` that has at least the column `nhd_attr_id` 
+#' representing the NHD+ attributes that were downloaded.
+#' 
+#' @return a table of metadata for each downloaded attribute with the 
+#' columns `ID`, `themeLabel`, `units`, and `description`
+#' 
+get_nhdplus_attribute_definitions <- function(downloaded_attributes) {
+  
+  # Get around the issue I logged at https://github.com/DOI-USGS/nhdplusTools/issues/365
+  nhdplusTools::nhdplusTools_data_dir(tools::R_user_dir("nhdplusTools"))
+  
+  # Load the metadata
+  get_characteristics_metadata() %>% 
+    # Filter to only those that appear in our attribute table list
+    filter(ID %in% unique(downloaded_attributes$nhd_attr_id)) %>% 
+    # Select only the necessary metadata columns
+    select(ID, themeLabel, units, description) 
+  
+}
+
 #' @title Download NHD+ catchments
 #' @description Use `nhdplusTools` functions to download cacthments by COMID
 #' 

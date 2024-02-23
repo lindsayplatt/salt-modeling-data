@@ -278,6 +278,10 @@ p1_targets <- list(
                                          comids = unique(p1_nwis_site_nhd_comid_xwalk$nhd_comid)),
              pattern = map(p1_nhdplus_attr_list)),
   
+  # Save attributes with their definitions and commit to the repo
+  tar_target(p1_nhdplus_attr_definitions, 
+             get_nhdplus_attribute_definitions(p1_nhdplus_attr_vals_tbl)),
+  
   # Prepare COMIDs to download so that polygons are only downloaded and stored once
   tar_target(p1_nhdplus_comids, na.omit(unique(p1_nwis_site_nhd_comid_xwalk$nhd_comid))),
   tar_target(p1_nhdplus_comids_upstream, identify_upstream_comids(p1_nhdplus_comids), map(p1_nhdplus_comids)), # Identify upstream COMIDs
