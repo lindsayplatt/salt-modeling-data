@@ -87,11 +87,7 @@ Population:
   # The impervious land cover and road density attributes are better measures for our purposes
 
 Regions:
-  # Vegetation indices by season in 2012 (0-1, 0 being low vegetation, 1 being high vegetation)
-  - CAT_EVI_AMJ_2012 # spring vegetation index
-  - CAT_EVI_JAS_2012 # summer vegetation index
-  - CAT_EVI_JFM_2012 # winter vegetation index
-  - CAT_EVI_OND_2011 # autumn vegetation index
+  # NONE
 
 Soils:
   # Soil characteristics of interest
