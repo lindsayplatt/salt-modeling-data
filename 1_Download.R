@@ -215,11 +215,6 @@ p1_targets <- list(
   #   for the contiguous United States. Water Resources Research, 55, e2019WR026724. 
   #   https://doi.org/10.1029/2019WR026724.
   
-  tar_target(p1_sb_transmissivity_csv, 
-             item_file_download(sb_id = '60be54f6d34e86b9389117f9',
-                                names = 'trans.csv',
-                                destinations = '1_Download/out/transmissivity.csv'), 
-             format = 'file'),
   tar_target(p1_sb_depth2wt_csv, 
              item_file_download(sb_id = '60be54f6d34e86b9389117f9',
                                 names = 'dtw.csv',
@@ -276,16 +271,16 @@ p1_targets <- list(
   tar_target(p1_nhdplus_attr_list, load_nhdplus_attribute_list(p1_nhdplus_attr_yml)),
   
   # Download catchment attributes data for each COMID
+  # Needs to include attributes relating to agriculture (CAT_NLCD19_81 is pasture/hay 
+  # and CAT_NLCD19_82 is cultivated crops) to be used during `3_Filter`.
   tar_target(p1_nhdplus_attr_vals_tbl, 
              download_nhdplus_attributes(attributes = unlist(p1_nhdplus_attr_list),
                                          comids = unique(p1_nwis_site_nhd_comid_xwalk$nhd_comid)),
              pattern = map(p1_nhdplus_attr_list)),
   
-  # Download catchment attributes relating to agriculture for each COMID (CAT_NLCD19_81 
-  # is pasture/hay and CAT_NLCD19_82 is cultivated crops). Used during `3_Filter`.
-  tar_target(p1_nhdplus_ag_vals_tbl, 
-             download_nhdplus_attributes(attributes = c('CAT_NLCD19_81', 'CAT_NLCD19_82'),
-                                         comids = unique(p1_nwis_site_nhd_comid_xwalk$nhd_comid))),
+  # Save attributes with their definitions and commit to the repo
+  tar_target(p1_nhdplus_attr_definitions, 
+             get_nhdplus_attribute_definitions(p1_nhdplus_attr_vals_tbl)),
   
   # Prepare COMIDs to download so that polygons are only downloaded and stored once
   tar_target(p1_nhdplus_comids, na.omit(unique(p1_nwis_site_nhd_comid_xwalk$nhd_comid))),

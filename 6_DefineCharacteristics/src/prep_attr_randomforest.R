@@ -49,11 +49,6 @@ prep_attr_randomforest <- function(site_attr_data, sites_episodic = NULL, site_b
     
     # TODO: Figure out better way to handle missing data below.
     
-    # Note that `attr_streamDensity` is missing for 3 sites
-    # and either those sites will need to be removed OR 
-    # the streamDensity attribute cannot be used. 
-    # TODO: Removing that attribute for now.
-    select(-attr_streamDensity) %>% 
     # TODO: Removing upstream salt for now because too many sites are missing it
     select(-attr_roadSaltCumulativePerSqKm) %>% 
     # One site does not have a match in NHD+, so is missing all attributes - removing

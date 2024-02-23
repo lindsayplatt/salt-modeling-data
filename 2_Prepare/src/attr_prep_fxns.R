@@ -12,24 +12,9 @@
 #' `attr_[metric]Flow`.
 #'
 calculate_q_stats_per_site <- function(data_q) {
-  
-  overall_q <- data_q %>% 
+  data_q %>% 
     group_by(site_no) %>% 
-    summarize(attr_medianFlow = median(Flow, na.rm = TRUE),
-              attr_p05Flow = quantile(Flow, na.rm = TRUE, probs = 0.05, names=F),
-              attr_p95Flow = quantile(Flow, na.rm = TRUE, probs = 0.95, names=F))
-  
-  seasonal_q <- data_q %>% 
-    mutate(isWinter = month(dateTime) %in% c(12, 1, 2, 3)) %>% 
-    group_by(site_no) %>% 
-    summarize(attr_medianNonWinterFlow = median(Flow[!isWinter], na.rm = TRUE),
-              attr_medianWinterFlow = median(Flow[isWinter], na.rm = TRUE),
-              attr_p05NonWinterFlow = quantile(Flow[!isWinter], na.rm = TRUE, probs = 0.05, names=F),
-              attr_p95NonWinterFlow = quantile(Flow[!isWinter], na.rm = TRUE, probs = 0.95, names=F),
-              attr_p05WinterFlow = quantile(Flow[isWinter], na.rm = TRUE, probs = 0.05, names=F),
-              attr_p95WinterFlow = quantile(Flow[isWinter], na.rm = TRUE, probs = 0.95, names=F))
-  
-  left_join(overall_q, seasonal_q, by = 'site_no')
+    summarize(attr_medianFlow = median(Flow, na.rm = TRUE))
 }
 
 #' @title Z-normalize a set of values
@@ -195,54 +180,60 @@ prepare_nhd_attributes <- function(nhd_attribute_table, comid_site_xwalk) {
     # Keep only the site_no and NHD attribute columns
     dplyr::select(site_no, everything(), 
                   -nhd_comid, -with_retry) %>% 
-    # Rename the columns
+    
+    # Combine the monthly runoff (in mm) into seasons 
+    # TODO: what if I summed these instead?
+    rowwise() %>% 
+    mutate(attr_avgRunoffWinter = mean(c(CAT_WB5100_DEC,CAT_WB5100_JAN, CAT_WB5100_FEB, CAT_WB5100_MAR)),
+           attr_avgRunoffSpring = mean(c(CAT_WB5100_APR, CAT_WB5100_MAY)),
+           attr_avgRunoffSummer = mean(c(CAT_WB5100_JUN, CAT_WB5100_JUL, CAT_WB5100_AUG)),
+           attr_avgRunoffFall = mean(c(CAT_WB5100_SEP, CAT_WB5100_OCT, CAT_WB5100_NOV))) %>% 
+    
+    # Calculate runoff-precip ratio (unitless)
+    mutate(attr_runoffPrecipRatio = CAT_WBM_RUN/CAT_WBM_PPT) %>% 
+    
+    # Combine some of the land-use categories (in % catchment area)
+    mutate(
+      # Forested = deciduous forest + evergreen forest + mixed forest
+      attr_pctForested = CAT_NLCD19_41 + CAT_NLCD19_42 + CAT_NLCD19_43,
+      # Wetland = woody wetland + herbaceous wetland
+      attr_pctWetland = CAT_NLCD19_90 + CAT_NLCD19_95,
+      # Agriculture = pasture/hay + cropland
+      attr_pctAgriculture = CAT_NLCD19_81 + CAT_NLCD19_82,
+      # Developed = open (<20% impervious) + low (20-49%) + medium (50-79%) + high (80-100%)
+      attr_pctDeveloped = CAT_NLCD19_21 + CAT_NLCD19_22 + CAT_NLCD19_23 + CAT_NLCD19_24) %>% 
+    
+    # Calculate snow (in mm) from precip total
+    mutate(attr_avgSnow = CAT_PPT7100_ANN*CAT_PRSNOW/100) %>% 
+    
+    # Rename the columns whose values are used as-is
     rename(any_of(c(
-      attr_pctSnow = 'CAT_PRSNOW',
-      attr_avgSnowDetrended = 'CAT_WBM_DT_SNW_2012',
-      attr_avgPrecip = 'CAT_WBM_PPT',
-      attr_avgRunoff = 'CAT_WBM_RUN',
-      attr_avgSnow = 'CAT_WBM_SNW',
-      attr_avgSoilStorage = 'CAT_WBM_STO',
-      attr_baseFlowInd = 'CAT_BFI',
-      attr_daysInSubsurface = 'CAT_CONTACT',
-      attr_avgDepth2WT = 'CAT_EWT',
-      attr_avgGWRecharge = 'CAT_RECHG',
-      attr_topoWetInd = 'CAT_TWI',
-      attr_numDams2013 = 'CAT_NDAMS2013',
-      attr_pctHighDev = 'CAT_NLCD19_24',
-      attr_pctLowDev = 'CAT_NLCD19_22',
-      attr_vegIndSpring = 'CAT_EVI_AMJ_2012',
-      attr_vegIndSummer = 'CAT_EVI_JAS_2012',
-      attr_vegIndWinter = 'CAT_EVI_JFM_2012',
-      attr_vegIndAutumn = 'CAT_EVI_OND_2011',
-      attr_pctSoilSand = 'CAT_SANDAVE',
-      attr_pctSoilSilt = 'CAT_SILTAVE',
-      attr_pctSoilClay = 'CAT_CLAYAVE',
-      attr_pctSoilOM = 'CAT_OM',
-      attr_soilPerm = 'CAT_PERMAVE',
-      attr_availWaterCap = 'CAT_AWCAVE',
-      attr_meanSoilSalinity = 'CAT_SALINAVE',
-      attr_avgBasinSlope = 'CAT_BASIN_SLOPE',
-      attr_avgStreamSlope = 'CAT_STREAM_SLOPE',
-      attr_roadStreamXings = 'CAT_RDX',
-      attr_roadDensity = 'CAT_TOTAL_ROAD_DENS',
-      attr_streamDensity = 'CAT_STRM_DENS')))
+      attr_annualPrecip = 'CAT_PPT7100_ANN', # in mm
+      attr_freezeDayFirst = 'CAT_FSTFZ6190', # day of year
+      attr_freezeDayLast = 'CAT_LSTFZ6190', # day of year
+      attr_baseFlowInd = 'CAT_BFI', # % total flow
+      attr_subsurfaceContact = 'CAT_CONTACT', # days
+      attr_avgDepth2WT = 'CAT_EWT', # in meters
+      attr_avgGWRecharge = 'CAT_RECHG', # in mm/year
+      attr_pctOpenWater = 'CAT_NLCD19_11', # % catchment area
+      attr_soilPerm = 'CAT_PERMAVE', # inches per hour
+      attr_avgBasinSlope = 'CAT_BASIN_SLOPE', # % rise
+      attr_roadDensity = 'CAT_TOTAL_ROAD_DENS' # kilometer of roads per square kilometer
+    ))) %>% 
+    
+    # Select only the final attributes, which are those prefixed with `attr_`
+    select(site_no, starts_with('attr_'))
   
 }
 
 # TODO: DOCUMENTATION IF WE USE THIS
-prepare_sb_gw_attrs <- function(transmissivity_csv, depth2wt_csv, comid_site_xwalk) {
-  
-  trnmsv <- read_csv(transmissivity_csv, show_col_types = FALSE) %>% 
-    mutate(nhd_comid = comid) %>% 
-    select(nhd_comid, attr_transmissivity = trans250)
+prepare_sb_gw_attrs <- function(depth2wt_csv, comid_site_xwalk) {
   
   dtw <- read_csv(depth2wt_csv, show_col_types = FALSE) %>% 
     mutate(nhd_comid = comid) %>% 
     select(nhd_comid, attr_zellSanfordDepthToWT = dtw250)
   
   comid_site_xwalk %>% 
-    left_join(trnmsv, by = 'nhd_comid') %>% 
     left_join(dtw, by = 'nhd_comid') %>% 
     select(site_no, starts_with('attr_'))
 }
