@@ -181,17 +181,18 @@ prepare_nhd_attributes <- function(nhd_attribute_table, comid_site_xwalk) {
     dplyr::select(site_no, everything(), 
                   -nhd_comid, -with_retry) %>% 
     
-    # Combine the monthly runoff into seasons 
+    # Combine the monthly runoff (in mm) into seasons 
+    # TODO: what if I summed these instead?
     rowwise() %>% 
     mutate(attr_avgRunoffWinter = mean(c(CAT_WB5100_DEC,CAT_WB5100_JAN, CAT_WB5100_FEB, CAT_WB5100_MAR)),
            attr_avgRunoffSpring = mean(c(CAT_WB5100_APR, CAT_WB5100_MAY)),
            attr_avgRunoffSummer = mean(c(CAT_WB5100_JUN, CAT_WB5100_JUL, CAT_WB5100_AUG)),
            attr_avgRunoffFall = mean(c(CAT_WB5100_SEP, CAT_WB5100_OCT, CAT_WB5100_NOV))) %>% 
     
-    # Calculate runoff-precip ratio
+    # Calculate runoff-precip ratio (unitless)
     mutate(attr_runoffPrecipRatio = CAT_WBM_RUN/CAT_WBM_PPT) %>% 
     
-    # Combine some of the land-use categories
+    # Combine some of the land-use categories (in % catchment area)
     mutate(
       # Forested = deciduous forest + evergreen forest + mixed forest
       attr_pctForested = CAT_NLCD19_41 + CAT_NLCD19_42 + CAT_NLCD19_43,
@@ -202,23 +203,23 @@ prepare_nhd_attributes <- function(nhd_attribute_table, comid_site_xwalk) {
       # Developed = open (<20% impervious) + low (20-49%) + medium (50-79%) + high (80-100%)
       attr_pctDeveloped = CAT_NLCD19_21 + CAT_NLCD19_22 + CAT_NLCD19_23 + CAT_NLCD19_24) %>% 
     
-    # Calculate snow in mm from precip total
+    # Calculate snow (in mm) from precip total
     mutate(attr_avgSnow = CAT_PPT7100_ANN*CAT_PRSNOW/100) %>% 
     
     # Rename the columns whose values are used as-is
     rename(any_of(c(
       attr_annualPrecip = 'CAT_PPT7100_ANN', # in mm
-      attr_firstFreezeDay = 'CAT_FSTFZ6190', # day of year
-      attr_lastFreezeDay = 'CAT_LSTFZ6190', # day of year
-      attr_avgSoilStorage = 'CAT_WBM_STO', # soil moisture storage, millimeters
-      attr_baseFlowInd = 'CAT_BFI', # Units are percent. Base flow is the component of streamflow that can be attributed to ground-water discharge into streams
-      attr_daysInSubsurface = 'CAT_CONTACT', # contact time, the length of time it takes for water to drain along subsurface flow paths to the stream; Units are days. Contact time is computed from basin topography, soil porosity, and soil hydraulic conductivity
+      attr_freezeDayFirst = 'CAT_FSTFZ6190', # day of year
+      attr_freezeDayLast = 'CAT_LSTFZ6190', # day of year
+      attr_baseFlowInd = 'CAT_BFI', # % total flow
+      attr_subsurfaceContact = 'CAT_CONTACT', # days
       attr_avgDepth2WT = 'CAT_EWT', # in meters
       attr_avgGWRecharge = 'CAT_RECHG', # in mm/year
-      attr_pctOpenWater = 'CAT_NLCD19_11',
+      attr_pctOpenWater = 'CAT_NLCD19_11', # % catchment area
       attr_soilPerm = 'CAT_PERMAVE', # inches per hour
-      attr_avgBasinSlope = 'CAT_BASIN_SLOPE',
-      attr_roadDensity = 'CAT_TOTAL_ROAD_DENS'))) %>% 
+      attr_avgBasinSlope = 'CAT_BASIN_SLOPE', # % rise
+      attr_roadDensity = 'CAT_TOTAL_ROAD_DENS' # kilometer of roads per square kilometer
+    ))) %>% 
     
     # Select only the final attributes, which are those prefixed with `attr_`
     select(site_no, starts_with('attr_'))
