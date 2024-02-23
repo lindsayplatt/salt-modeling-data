@@ -14,8 +14,8 @@
 #   split(.$themeLabel) %>% 
 #   map(~{
 #     # CAT = catchment
-#     # ACC = accumulated
-#     # TOT = total
+#     # ACC = accumulated using divergent routing
+#     # TOT = accumulated using total upstream
 #     # Using `CAT`
 #     dplyr::select(.x, ID, description) %>%
 #       filter(grepl('^CAT_', ID))
