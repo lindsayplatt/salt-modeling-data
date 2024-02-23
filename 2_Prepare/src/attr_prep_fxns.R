@@ -211,7 +211,7 @@ prepare_nhd_attributes <- function(nhd_attribute_table, comid_site_xwalk) {
       attr_avgDepth2WT = 'CAT_EWT', # in meters
       attr_avgGWRecharge = 'CAT_RECHG', # in mm/year
       attr_pctOpenWater = 'CAT_NLCD19_11',
-      attr_soilPerm = 'CAT_PERMAVE',
+      attr_soilPerm = 'CAT_PERMAVE', # inches per hour
       attr_avgBasinSlope = 'CAT_BASIN_SLOPE',
       attr_roadDensity = 'CAT_TOTAL_ROAD_DENS'))) %>% 
     # Select only the final attributes
@@ -220,18 +220,13 @@ prepare_nhd_attributes <- function(nhd_attribute_table, comid_site_xwalk) {
 }
 
 # TODO: DOCUMENTATION IF WE USE THIS
-prepare_sb_gw_attrs <- function(transmissivity_csv, depth2wt_csv, comid_site_xwalk) {
-  
-  trnmsv <- read_csv(transmissivity_csv, show_col_types = FALSE) %>% 
-    mutate(nhd_comid = comid) %>% 
-    select(nhd_comid, attr_transmissivity = trans250)
+prepare_sb_gw_attrs <- function(depth2wt_csv, comid_site_xwalk) {
   
   dtw <- read_csv(depth2wt_csv, show_col_types = FALSE) %>% 
     mutate(nhd_comid = comid) %>% 
     select(nhd_comid, attr_zellSanfordDepthToWT = dtw250)
   
   comid_site_xwalk %>% 
-    left_join(trnmsv, by = 'nhd_comid') %>% 
     left_join(dtw, by = 'nhd_comid') %>% 
     select(site_no, starts_with('attr_'))
 }

@@ -215,11 +215,6 @@ p1_targets <- list(
   #   for the contiguous United States. Water Resources Research, 55, e2019WR026724. 
   #   https://doi.org/10.1029/2019WR026724.
   
-  tar_target(p1_sb_transmissivity_csv, 
-             item_file_download(sb_id = '60be54f6d34e86b9389117f9',
-                                names = 'trans.csv',
-                                destinations = '1_Download/out/transmissivity.csv'), 
-             format = 'file'),
   tar_target(p1_sb_depth2wt_csv, 
              item_file_download(sb_id = '60be54f6d34e86b9389117f9',
                                 names = 'dtw.csv',
