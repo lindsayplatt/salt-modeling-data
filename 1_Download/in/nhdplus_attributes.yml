@@ -32,11 +32,24 @@ Climate:
   # NONE
 
 Climate and Water Balance:
+  # Attributes per reach/catchment
   - CAT_WBM_PPT # avg precip from Water Balance Model, 2000-2014
   - CAT_WBM_RUN # avg runoff from WBM 2000-2014
   - CAT_WBM_SNW # avg snowfall from WBM 2000-2014; 
   - CAT_WBM_STO # avg soil moisture storage from WBM 2000-2014
-  # Also has average monthly runoff; could do something with "winter months runoff"?
+  # Monthly avg runoff
+  - CAT_WB5100_JAN
+  - CAT_WB5100_FEB
+  - CAT_WB5100_MAR
+  - CAT_WB5100_APR
+  - CAT_WB5100_MAY
+  - CAT_WB5100_JUN
+  - CAT_WB5100_JUL
+  - CAT_WB5100_AUG
+  - CAT_WB5100_SEP
+  - CAT_WB5100_OCT
+  - CAT_WB5100_NOV
+  - CAT_WB5100_DEC
 
 Climate Water Balance:
   # NONE

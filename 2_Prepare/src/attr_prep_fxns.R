@@ -180,10 +180,17 @@ prepare_nhd_attributes <- function(nhd_attribute_table, comid_site_xwalk) {
     # Keep only the site_no and NHD attribute columns
     dplyr::select(site_no, everything(), 
                   -nhd_comid, -with_retry) %>% 
+    # Combine the monthly runoff into seasons & then remove the combined values
+    rowwise() %>% 
+    mutate(attr_avgRunoffWinter = mean(c(CAT_WB5100_DEC,CAT_WB5100_JAN, CAT_WB5100_FEB, CAT_WB5100_MAR)),
+           attr_avgRunoffSpring = mean(c(CAT_WB5100_APR, CAT_WB5100_MAY)),
+           attr_avgRunoffSummer = mean(c(CAT_WB5100_JUN, CAT_WB5100_JUL, CAT_WB5100_AUG)),
+           attr_avgRunoffFall = mean(c(CAT_WB5100_SEP, CAT_WB5100_OCT, CAT_WB5100_NOV))) %>% 
+    select(-matches('[A-Z]{3}_WB5100_[A-Z]{3}')) %>% 
+    # Calculate runoff-precip ratio
+    mutate(attr_runoffPrecipRatio = CAT_WBM_RUN/CAT_WBM_PPT) %>% 
     # Rename the columns
     rename(any_of(c(
-      attr_avgPrecip = 'CAT_WBM_PPT',
-      attr_avgRunoff = 'CAT_WBM_RUN',
       attr_avgSnow = 'CAT_WBM_SNW',
       attr_avgSoilStorage = 'CAT_WBM_STO',
       attr_baseFlowInd = 'CAT_BFI',
@@ -217,7 +224,9 @@ prepare_nhd_attributes <- function(nhd_attribute_table, comid_site_xwalk) {
     select(-c(attr_pctForestDecid, attr_pctForestEverg, attr_pctForestMixed,
               attr_pctWetlandWoody, attr_pctWetlandHerbaceous,
               attr_pctAgPasture, attr_pctAgCrop,
-              attr_pctOpenDev, attr_pctLowDev, attr_pctMediumDev, attr_pctHighDev))
+              attr_pctOpenDev, attr_pctLowDev, attr_pctMediumDev, attr_pctHighDev)) %>% 
+    # Select only the final attributes
+    select(site_no, starts_with('attr_'))
   
 }
 
