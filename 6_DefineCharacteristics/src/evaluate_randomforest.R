@@ -37,17 +37,15 @@ calculate_attr_importance <- function(rf_model) {
               by = c('attribute', 'site_category')) %>% 
     dplyr::select(attribute, site_category, everything()) %>% 
     mutate(attribute_grp = case_when(
-      attribute %in% c('avgSnow', 'avgPrecip', 'avgSnowDetrended', 'pctSnow') ~ 'meteo',
-      attribute %in% c('TrendSeasonalMK', 'TrendMannKendall', 'TrendMannKendall_DS',
-                       'roadSalt', 'meanSoilSalinity') ~ 'salt',
-      attribute %in% c('pctSoilOM', 'avgGWRecharge', 'daysInSubsurface', 'avgSoilStorage',
-                       'pctSoilClay', 'pctSoilSand', 'pctSoilSilt', 'soilPerm', 
-                       'availWaterCap', 'baseFlowInd', 'avgDepth2WT') ~ 'gw',
-      attribute %in% c('vegIndAutumn', 'pctLowDev', 'pctHighDev', 'vegIndSummer',
-                       'vegIndWinter', 'topoWetInd', 'vegIndSpring', 'numDams2013',
-                       'roadStreamXings', 'roadDensity') ~ 'landcover',
-      grepl('Flow', attribute) ~ 'basin',
-      attribute %in% c('avgRunoff', 'avgBasinSlope', 'avgStreamSlope') ~ 'basin',
+      attribute %in% c('annualPrecip', 'avgSnow', 'freezeDayFirst', 'freezeDayLast') ~ 'meteo',
+      attribute %in% c('roadSaltPerSqKm', 'roadSaltRatio') ~ 'salt',
+      attribute %in% c('avgDepth2WT', 'avgGWRecharge', 'baseFlowInd',
+                       'soilPerm', 'subsurfaceContact', 'zellSanfordDepthToWT') ~ 'gw',
+      attribute %in% c('pctAgriculture', 'pctDeveloped', 'pctForested', 
+                       'pctOpenWater', 'pctWetland', 'roadDensity') ~ 'landcover',
+      grepl('Runoff', attribute) ~ 'basin',
+      attribute %in% c('areaCumulativeSqKm', 'areaRatio', 'areaSqKm',
+                       'avgBasinSlope', 'medianFlow', 'runoffPrecipRatio') ~ 'basin',
       .default = NA_character_
     ))
   
