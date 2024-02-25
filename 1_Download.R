@@ -134,15 +134,13 @@ p1_targets <- list(
   # Identify which of the sites have tidal influence, which will be used
   # in filtering or grouping later in the pipeline, by querying for sites
   # that may have data for parameter codes that contain `tidally filtered`
-  # discharge, velocity, or gage height, indicating tidal influence
+  # discharge, velocity, or gage height, indicating tidal influence.
+  # Returns empty vector when none of the sites have tidal influence
   tar_target(p1_nwis_sc_sites_tidal, 
-             # TODO: add in method for handling when none of them have tidal influence
-             c()
-             # whatNWISsites(siteNumber = p1_nwis_sc_sites_query$site_no,
-             #               parameterCd = c("72137", "72138", "72139", "72168", 
-             #                               "72169", "72170", "72171")) %>% 
-             #   pull(site_no)
-             ),
+             whatNWISdata(siteNumber = p1_nwis_sc_sites_query$site_no,
+                          parameterCd = c("72137", "72138", "72139", "72168",
+                                          "72169", "72170", "72171")) %>%
+               pull(site_no) %>% unique()),
   
   ##### SCIENCEBASE DATASET DOWNLOADS {< 1 MIN} #####
   
