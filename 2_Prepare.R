@@ -171,7 +171,6 @@ p2_targets <- list(
   # Isolate the agriculture-specific attribute
   tar_target(p2_ag_attr_nhd, p2_attr_nhd %>% select(site_no, attr_pctAgriculture)),
   
-  # TODO: add GW signature? 
   tar_target(p2_attr_depth2wt, prepare_sb_gw_attrs(p1_sb_depth2wt_csv, 
                                                    p3_nwis_site_nhd_comid_xwalk)),
   
