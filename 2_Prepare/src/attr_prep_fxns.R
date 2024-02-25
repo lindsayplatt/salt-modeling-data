@@ -150,7 +150,7 @@ map_catchment_roadSalt_to_site <- function(road_salt_comid, basin_areas, comid_s
     # Now calculate road salt per area
     mutate(attr_roadSaltPerSqKm = roadSalt / attr_areaSqKm,
            attr_roadSaltCumulativePerSqKm = roadSaltCumulative / attr_areaCumulativeSqKm,
-           attr_roadSaltRatio = attr_roadSaltPerSqKm / attr_roadSaltCumulativePerSqKm) %>% 
+           attr_roadSaltRatio = roadSalt / roadSaltCumulative) %>% 
     dplyr::select(site_no, attr_roadSaltPerSqKm, attr_roadSaltCumulativePerSqKm, attr_roadSaltRatio)
 }
 

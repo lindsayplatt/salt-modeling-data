@@ -38,7 +38,7 @@ calculate_attr_importance <- function(rf_model) {
     dplyr::select(attribute, site_category, everything()) %>% 
     mutate(attribute_grp = case_when(
       attribute %in% c('annualPrecip', 'avgSnow', 'freezeDayFirst', 'freezeDayLast') ~ 'meteo',
-      attribute %in% c('roadSaltPerSqKm', 'roadSaltRatio') ~ 'salt',
+      attribute %in% c('roadSaltPerSqKm', 'roadSaltCumulativePerSqKm', 'roadSaltRatio') ~ 'salt',
       attribute %in% c('avgDepth2WT', 'avgGWRecharge', 'baseFlowInd',
                        'soilPerm', 'subsurfaceContact', 'zellSanfordDepthToWT') ~ 'gw',
       attribute %in% c('pctAgriculture', 'pctDeveloped', 'pctForested', 

@@ -31,11 +31,11 @@ extract_nhdplus_geopackage_layer <- function(in_files, gpkg_layer = 'CatchmentSP
     st_read(.x, gpkg_layer, quiet = TRUE) %>%
       st_transform(crs = crs_out) %>% {
         if(gpkg_layer == 'NHDFlowline_Network') {
-          # Now fix issues for the flowlines layer so that we can bind columns that are different types
-          mutate(., hwtype = ifelse(hwtype == " ", NA, hwtype)) %>% 
-            # In particular, there is a general issue where NA columns become character
-            # and should be numeric & sometimes `elevfixed` gets a value of "0" and should be numeric
-            mutate(across(where(is.character) & (where(is.na) | elevfixed), as.numeric)) 
+          # Now choose which columns we want from the flowlines layer (there are 
+          # many but some issues with data type and binding rows later, so only
+          # keep the ones that we need to avoid these potential issues).
+          select(., comid, lengthkm, streamleve, streamorde, 
+                 fromnode, tonode, areasqkm)
         } else {
           .
         }

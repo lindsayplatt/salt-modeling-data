@@ -46,16 +46,6 @@ prep_attr_randomforest <- function(site_attr_data, sites_episodic = NULL, site_b
     # Make the site category a factor so that random forest
     # is doing classification, not regression
     mutate(site_category_fact = factor(site_category)) %>% 
-    
-    # TODO: Figure out better way to handle missing data below.
-    
-    # TODO: Removing upstream salt for now because too many sites are missing it
-    select(-attr_roadSaltCumulativePerSqKm) %>% 
-    # One site does not have a match in NHD+, so is missing all attributes - removing
-    filter(site_no != '295501090190400') %>% 
-    # One site is missing road salt (did not have a catchment in NHD+) - removing
-    filter(site_no != '01542500') %>% 
-    
     # Remove the columns that are not needed for the RF (except site_no)
     select(site_no, site_category_fact, starts_with('attr')) %>% 
     # Drop the `attr_` prefix so that the results are cleaner
