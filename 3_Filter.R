@@ -1,9 +1,28 @@
 # Targets for filtering sites and data based on specific citeria
 
+source('3_Filter/src/nhd_catchments.R')
 source('3_Filter/src/ts_gap_filtering.R')
 source('3_Filter/src/ts_qualification.R')
 
 p3_targets <- list(
+  
+  ##### NHD+ FILTERING: Filter NHD+ COMIDs with no drainage area #####
+  
+  # Identify the COMIDs that do not have any drainage area, then remove and use
+  # the updated COMID lists in subsequent functions.
+  tar_target(p3_nhd_comid_zero_areas, identify_nonexistent_catchments(p2_nhdplus_flowlines_ALL_sf)),
+  tar_target(p3_nhdplus_flowlines_sf, p2_nhdplus_flowlines_ALL_sf %>% 
+               filter(!nhd_comid %in% p3_nhd_comid_zero_areas)),
+  tar_target(p3_nwis_site_nhd_comid_xwalk, p1_nwis_site_nhd_comid_ALL_xwalk %>% 
+               filter(!nhd_comid %in% p3_nhd_comid_zero_areas)),
+  tar_target(p3_nhdplus_comids_upstream, p1_nhdplus_comids_upstream_ALL %>% 
+               filter(!nhd_comid %in% p3_nhd_comid_zero_areas,
+                      !nhd_comid_upstream %in% p3_nhd_comid_zero_areas)),
+  
+  # Identify any sites who correspond to a COMID with no drainage area to remove
+  tar_target(p3_nwis_site_with_zero_nhd_area, p1_nwis_site_nhd_comid_ALL_xwalk %>% 
+               filter(nhd_comid %in% p3_nhd_comid_zero_areas) %>% 
+               pull(site_no)),
   
   ##### TS FILTERING: Filter sites and data as part of processing in `2_Prepare` #####
   
@@ -47,7 +66,8 @@ p3_targets <- list(
                                              remove_sites = c(p1_nwis_sc_sites_tidal,
                                                               p3_ts_sc_ag_sites,
                                                               p3_ts_sc_highSC_sites,
-                                                              p3_ts_sc_nonsalt_sites))),
+                                                              p3_ts_sc_nonsalt_sites,
+                                                              p3_nwis_site_with_zero_nhd_area))),
   
   # Do the same for Flow data.
   tar_target(p3_attr_q_qualified, 
@@ -56,7 +76,8 @@ p3_targets <- list(
                                                remove_sites = c(p1_nwis_sc_sites_tidal,
                                                                 p3_ts_sc_ag_sites,
                                                                 p3_ts_sc_highSC_sites,
-                                                                p3_ts_sc_nonsalt_sites))),
+                                                                p3_ts_sc_nonsalt_sites,
+                                                                p3_nwis_site_with_zero_nhd_area))),
   
   # The `_qualified` data above go back to `2_Prepare` to continue prepping
   
@@ -69,6 +90,7 @@ p3_targets <- list(
                                              remove_sites = c(p1_nwis_sc_sites_tidal,
                                                               p3_ts_sc_ag_sites,
                                                               p3_ts_sc_highSC_sites,
-                                                              p3_ts_sc_nonsalt_sites)))
+                                                              p3_ts_sc_nonsalt_sites,
+                                                              p3_nwis_site_with_zero_nhd_area)))
   
 )

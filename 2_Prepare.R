@@ -140,6 +140,11 @@ p2_targets <- list(
   # TODO: not all sites are mapped to COMIDs or had catchments available. 
   # We could look at using 5 km radius for site's without catchment polys.
   
+  # Extract the flowline spatial features from the downloaded geopackages. This 
+  # includes ALL COMIDs (even those with 0 drainage areas), but will be filtered later.
+  tar_target(p2_nhdplus_flowlines_ALL_sf, extract_nhdplus_geopackage_layer(p1_nhdplus_catchments_gpkg, 
+                                                                       gpkg_layer = 'NHDFlowline_Network')),
+  
   # Each COMID and site will have a value for salt application for just the
   # individual COMID catchment (`attr_roadSaltPerSqKm`) but also a total including
   # all NHD+ catchments upstream (`attr_roadSaltCumulativePerSqKm`).
@@ -150,28 +155,34 @@ p2_targets <- list(
   tar_target(p2_nhdplus_catchment_salt, aggregate_road_salt_per_poly(road_salt_tif = p1_sb_road_salt_2015_tif, 
                                                                      polys_sf = p2_nhdplus_catchment_sf)),
   
+  # Before summarizing the rest of the data below, the NHD COMID data for what 
+  # is included in the COMID to site crosswalk and the upstream COMIDs was 
+  # filtered in `3_Filter` to only to COMIDs with nonzero drainage areas. The 
+  # catchment area calculations above do not need the filtering because they are 
+  # already missing catchments with 0 drainage areas.
+  
   # Calculate the total area of each catchment & its upstream catchements
   tar_target(p2_attr_basinArea, calculate_catchment_areas(polys_sf = p2_nhdplus_catchment_sf,
-                                                          comid_upstream_tbl = p1_nhdplus_comids_upstream,
-                                                          comid_site_xwalk = p1_nwis_site_nhd_comid_xwalk)),
+                                                          comid_upstream_tbl = p3_nhdplus_comids_upstream,
+                                                          comid_site_xwalk = p3_nwis_site_nhd_comid_xwalk)),
   
   # Then, map salt for each NHD COMID catchment polygon to sites and calculate cumulative road salt
   tar_target(p2_attr_roadSalt, map_catchment_roadSalt_to_site(road_salt_comid = p2_nhdplus_catchment_salt, 
                                                               basin_areas = p2_attr_basinArea,
-                                                              comid_site_xwalk = p1_nwis_site_nhd_comid_xwalk,
-                                                              comid_upstream_tbl = p1_nhdplus_comids_upstream)),
+                                                              comid_site_xwalk = p3_nwis_site_nhd_comid_xwalk,
+                                                              comid_upstream_tbl = p3_nhdplus_comids_upstream)),
   
   ###### ATTR DATA 3: Pivot and link NHD+ attributes to sites ######
   
   tar_target(p2_attr_nhd, prepare_nhd_attributes(p1_nhdplus_attr_vals_tbl,
-                                                 p1_nwis_site_nhd_comid_xwalk)),
+                                                 p3_nwis_site_nhd_comid_xwalk)),
   
   # Isolate the agriculture-specific attribute
   tar_target(p2_ag_attr_nhd, p2_attr_nhd %>% select(site_no, attr_pctAgriculture)),
   
   # TODO: add GW signature? 
   tar_target(p2_attr_depth2wt, prepare_sb_gw_attrs(p1_sb_depth2wt_csv, 
-                                                   p1_nwis_site_nhd_comid_xwalk)),
+                                                   p3_nwis_site_nhd_comid_xwalk)),
   
   ###### ATTR DATA 4: Combine all static attributes into one table ######
   
