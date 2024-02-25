@@ -95,6 +95,23 @@ identify_nonsalt_sites <- function(roadSalt_attrs) {
     pull(site_no)
 }
 
+#' @title Find sites that are missing any attribute
+#' @description Use the attribute table to identify sites that may be missing
+#' one. The random forest models will not work with missing attributes, so these
+#' sites should not qualify.
+#' 
+#' @param static_attrs a tibble with the columns `site_no` and any number of
+#' columns prefixed with `attr_`
+#' 
+#' @return a vector of NWIS site character strings which are missing at least one 
+#' of the gathered static attributes 
+#' 
+identify_missing_attr_sites <- function(static_attrs) {
+  static_attrs %>% 
+    filter(if_any(starts_with('attr_'), is.na)) %>% 
+    pull(site_no)
+}
+
 #' @title Filter data to sites that met certain criteria
 #' @description Using previously identified vectors of NWIS sites, filter the 
 #' data to only those of sites that we want to keep and remove any
@@ -116,7 +133,8 @@ filter_data_to_qualifying_sites <- function(site_data, keep_sites, remove_sites)
 
   message('Removing sites that did not meet temporal criteria: ', 
           sum(!unique(site_data$site_no) %in% keep_sites))
-  message('Removing additional sites that are ag/tidal/highSC/nonsalt/missing NHD+: ',
+  message('Removing additional sites that are ag, tidal, high SpC, nonsalt, 
+          missing NHD+ catchments, or missing attributes: ',
           sum(keep_sites %in% remove_sites))
 
   site_data %>% 

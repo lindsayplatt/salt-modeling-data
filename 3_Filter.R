@@ -67,7 +67,8 @@ p3_targets <- list(
                                                               p3_ts_sc_ag_sites,
                                                               p3_ts_sc_highSC_sites,
                                                               p3_ts_sc_nonsalt_sites,
-                                                              p3_nwis_site_with_zero_nhd_area))),
+                                                              p3_nwis_site_with_zero_nhd_area,
+                                                              p3_attr_missing_sites))),
   
   # Do the same for Flow data.
   tar_target(p3_attr_q_qualified, 
@@ -77,11 +78,15 @@ p3_targets <- list(
                                                                 p3_ts_sc_ag_sites,
                                                                 p3_ts_sc_highSC_sites,
                                                                 p3_ts_sc_nonsalt_sites,
-                                                                p3_nwis_site_with_zero_nhd_area))),
+                                                                p3_nwis_site_with_zero_nhd_area,
+                                                                p3_attr_missing_sites))),
   
   # The `_qualified` data above go back to `2_Prepare` to continue prepping
   
   ##### ATTR FILTERING #####
+  
+  # Remove sites from all data if any of the attributes are missing
+  tar_target(p3_attr_missing_sites, identify_missing_attr_sites(p2_attr_nhd)),
   
   # Filter the final static attribute table to only those sites that qualified.
   tar_target(p3_static_attributes, 
@@ -91,6 +96,7 @@ p3_targets <- list(
                                                               p3_ts_sc_ag_sites,
                                                               p3_ts_sc_highSC_sites,
                                                               p3_ts_sc_nonsalt_sites,
-                                                              p3_nwis_site_with_zero_nhd_area)))
+                                                              p3_nwis_site_with_zero_nhd_area,
+                                                              p3_attr_missing_sites)))
   
 )
