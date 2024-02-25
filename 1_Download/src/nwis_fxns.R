@@ -150,30 +150,35 @@ filter_to_min_data_standards <- function(data_info, min_yrs, min_end_date) {
 #' 
 #' @param data_info a tibble with at least NWIS site numbers and record counts
 #' in columns called `site_no` and `days_count`, respectively
-#' @param max_results the maximum number of records allowed per group to 
-#' optimize download times, defaults to 250000
 #' @param max_sites the maximum number of sites allowed per group to 
 #' optimize download times, defaults to 2000
 #' 
 #' @return a tibble with the columns `site_no` and `task_num` indicating
 #' how to split up the future data download.
 #' 
-add_download_grp <- function(data_info, max_results = 250000, max_sites = 2000) {
+add_download_grp <- function(data_info, max_sites = 2000) {
   data_info %>% 
-    arrange(desc(days_count), .by_group = TRUE) %>%
-    mutate(task_num_by_results = MESS::cumsumbinning(x = days_count, 
-                                                     threshold = max_results, 
-                                                     maxgroupsize = max_sites), 
-           task_num_by_group = cur_group_id()) %>%
-    ungroup() %>% 
-    # Each group from before (which represents a different data type code 
-    # (uv or dv)) will have task numbers that start with "1", so now we create 
-    # a new column called `task_num` to create unique task numbers within
-    # each group and by splitting those based on max desired download sizes
-    group_by(task_num_by_group, task_num_by_results) %>% 
-    mutate(task_num = cur_group_id()) %>% 
-    ungroup() %>% 
-    dplyr::select(site_no, task_num)
+    split(.$query_service) %>% 
+    map(~{
+      # Set `max_results` much lower than default for `uv` because 1 day = 1440 records
+      max_results <- ifelse(unique(.x$query_service) == 'uv', 15000, 250000)
+      .x %>% 
+        arrange(desc(days_count), .by_group = TRUE) %>%
+        mutate(task_num_by_results = MESS::cumsumbinning(x = days_count, 
+                                                         threshold = max_results, 
+                                                         maxgroupsize = max_sites), 
+               task_num_by_group = cur_group_id()) %>%
+        ungroup() %>% 
+        # Each group from before (which represents a different data type code 
+        # (uv or dv)) will have task numbers that start with "1", so now we create 
+        # a new column called `task_num` to create unique task numbers within
+        # each group and by splitting those based on max desired download sizes
+        group_by(task_num_by_group, task_num_by_results) %>% 
+        mutate(task_num = cur_group_id()) %>% 
+        ungroup() %>% 
+        dplyr::select(site_no, query_service, task_num)
+    }) %>% 
+    bind_rows()
 }
 
 #' @title Download data from NWIS
