@@ -46,7 +46,7 @@ find_event_peaks <- function(ts_data, date_colname, param_colname, sb_pk_thresh 
     mutate(event_flag = NA)
   
   # Keeping the event identification code as-is for now.
-  # TODO: update these nested for loops for easier readability?
+  # FUTURE IMPROVEMENT: update these nested for loops for easier readability?
   
   ##-Flag the changes in derivatives, events is the row of single site which have events
   events <- which(ts_data$peak_flag)
