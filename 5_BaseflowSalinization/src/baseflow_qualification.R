@@ -10,7 +10,7 @@ filter_ts_to_baseflow_days <- function(ts_data, ts_bf_days, param_colname) {
 # A site needs a minimum amount of data across different seasons in order for a trend to be calculated.
 apply_baseflow_trend_criteria <- function(ts_data_bf, min_avg_samples_per_season = 2, 
                                           min_years_per_season = 5, min_seasons = 3) {
-  # TODO: consider moving these into 3_Filter.
+  
   # As noted in USGS methods for seasonal kendall, it is OK to use the median to
   # calculate trend if there are "generally two or more samples taken in each season"
   ts_data_bf %>% 
