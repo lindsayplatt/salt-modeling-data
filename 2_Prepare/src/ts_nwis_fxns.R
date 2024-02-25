@@ -168,7 +168,7 @@ read_nwis_file <- function(in_file, param_colname) {
   # For now, just selecting the standard columns and ignoring the other. This
   # will result in more NAs.
   if(!all(grepl(standard_colname_regex, names(data_in)))) {
-    # TODO: Choose the appropriate sensor column for each site and date
+    # FUTURE IMPROVEMENT: Choose the appropriate sensor column for each site and date
     # Some are dropped entirely because they only have the unique column names,
     # e.g. c("01646500", "02323592", "251003080435500", "251209080350100", 
     #        "251241080385300", "251253080320100")
