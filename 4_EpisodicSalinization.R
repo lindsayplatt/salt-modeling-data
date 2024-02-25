@@ -16,7 +16,6 @@ p4_targets <- list(
       map(~find_event_peaks(ts_data = .x,
                             date_colname = 'dateTime',
                             param_colname = 'SpecCond_norm',
-                            # TODO: We could look at adjusting what makes it a "peak"
                             sb_pk_thresh = 0.000005,
                             sf_pk_thresh = 0.1) 
       ) %>% bind_rows()

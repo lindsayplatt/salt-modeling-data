@@ -182,7 +182,6 @@ prepare_nhd_attributes <- function(nhd_attribute_table, comid_site_xwalk) {
                   -nhd_comid, -with_retry) %>% 
     
     # Combine the monthly runoff (in mm) into seasons 
-    # TODO: what if I summed these instead?
     rowwise() %>% 
     mutate(attr_avgRunoffWinter = mean(c(CAT_WB5100_DEC,CAT_WB5100_JAN, CAT_WB5100_FEB, CAT_WB5100_MAR)),
            attr_avgRunoffSpring = mean(c(CAT_WB5100_APR, CAT_WB5100_MAY)),

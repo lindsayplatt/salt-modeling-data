@@ -19,7 +19,7 @@ p1_targets <- list(
   ###### NWIS DATA 0: Set download configs for streamflow (Q) & specific conductivity (SC) ######
   
   tar_target(p1_nwis_start_date, as.Date('1950-01-01')), 
-  tar_target(p1_nwis_end_date, as.Date('2022-12-31')),
+  tar_target(p1_nwis_end_date, as.Date('2023-12-31')), 
   tar_target(p1_nwis_pcode_sc, '00095'), # NWIS specific conductance code
   tar_target(p1_nwis_pcode_q, '00060'), # NWIS streamflow code
   tar_target(p1_nwis_min_years, 10), # Minimum number of years required
@@ -69,97 +69,61 @@ p1_targets <- list(
              pattern = map(p1_nwis_sc_sites_qualified)),
   
   ###### NWIS DATA 5: Prepare to download all the SC data ###### 
-  # Separate by the service and download groups. 
-  # DV = daily data
-  # UV = instantaneous data (downloading only if mean daily values aren't available)
-  tar_target(p1_nwis_sc_sites_query_uv, filter(p1_nwis_sc_sites_query, query_service == 'uv')),
-  tar_target(p1_nwis_sc_sites_query_uv_download_grps,
-             p1_nwis_sc_sites_query_uv %>% 
-               # Set `max_results` much lower than default for `uv` because 1 day = 1440 records
-               add_download_grp(max_results = 15000) %>% 
-               group_by(task_num) %>% 
-               tar_group(),
-             iteration = 'group'),
-  tar_target(p1_nwis_sc_sites_query_dv, filter(p1_nwis_sc_sites_query, query_service == 'dv')),
-  tar_target(p1_nwis_sc_sites_query_dv_download_grps,
-             p1_nwis_sc_sites_query_dv %>% 
+  
+  # Separate download groups by the service and reasonably sized downloads.
+  # dv = daily data
+  # uv = instantaneous data (downloading only if mean daily values aren't available)
+  
+  tar_target(p1_nwis_sc_sites_query_download_grps,
+             p1_nwis_sc_sites_query %>% 
                add_download_grp() %>% 
-               group_by(task_num) %>% 
+               group_by(query_service, task_num) %>% 
                tar_group(),
              iteration = 'group'),
   
   ###### NWIS DATA 6: Download the SC data and save as files in `1_Download/out_nwis` ######
   
-  tar_target(p1_nwis_sc_data_uv_feather,
+  tar_target(p1_nwis_sc_data_feather,
              download_nwis_data(
-               out_file = sprintf('1_Download/out_nwis/sc_uv_%03d.feather',
-                                  unique(p1_nwis_sc_sites_query_uv_download_grps$task_num)),
-               site_numbers = p1_nwis_sc_sites_query_uv_download_grps$site_no,
+               out_file = sprintf('1_Download/out_nwis/sc_%s_%03d.feather',
+                                  unique(p1_nwis_sc_sites_query_download_grps$query_service),
+                                  unique(p1_nwis_sc_sites_query_download_grps$task_num)),
+               site_numbers = p1_nwis_sc_sites_query_download_grps$site_no,
                param_cd = p1_nwis_pcode_sc,
                start_date = p1_nwis_start_date,
                end_date = p1_nwis_end_date,
-               service_cd = 'uv'
+               service_cd = unique(p1_nwis_sc_sites_query_download_grps$query_service)
              ),
-             pattern = map(p1_nwis_sc_sites_query_uv_download_grps),
-             format = 'file'),
-  tar_target(p1_nwis_sc_data_dv_feather, 
-             download_nwis_data(
-               out_file = sprintf('1_Download/out_nwis/sc_dv_%03d.feather', 
-                                  unique(p1_nwis_sc_sites_query_dv_download_grps$task_num)),
-               site_numbers = p1_nwis_sc_sites_query_dv_download_grps$site_no,
-               param_cd = p1_nwis_pcode_sc, 
-               start_date = p1_nwis_start_date,
-               end_date = p1_nwis_end_date,
-               service_cd = 'dv'
-             ),
-             pattern = map(p1_nwis_sc_sites_query_dv_download_grps),
+             pattern = map(p1_nwis_sc_sites_query_download_grps),
              format = 'file'),
   
   ###### NWIS DATA 7: Prepare to download all the Q data ###### 
-  # Separate by the service and download groups.
-  # DV = daily data
-  # UV = instantaneous data (downloading only if mean daily values aren't available
-  # TODO: SOMEHOW HANDLE UV WHEN EMPTY?
-  # tar_target(p1_nwis_q_sites_query_uv, filter(p1_nwis_q_sites_query, query_service == 'uv')),
-  # tar_target(p1_nwis_q_sites_query_uv_download_grps,
-  #            p1_nwis_q_sites_query_uv %>% 
-  #              # Set `max_results` much lower than default for `uv` because 1 day = 1440 records
-  #              add_download_grp(max_results = 15000) %>% 
-  #              group_by(task_num) %>% 
-  #              tar_group(),
-  #            iteration = 'group'),
-  tar_target(p1_nwis_q_sites_query_dv, filter(p1_nwis_q_sites_query, query_service == 'dv')),
-  tar_target(p1_nwis_q_sites_query_dv_download_grps,
-             p1_nwis_q_sites_query_dv %>% 
+  
+  # Separate download groups by the service and reasonably sized downloads.
+  # dv = daily data
+  # uv = instantaneous data (downloading only if mean daily values aren't available)
+  
+  tar_target(p1_nwis_q_sites_query_download_grps,
+             p1_nwis_q_sites_query %>% 
                add_download_grp() %>% 
-               group_by(task_num) %>% 
+               group_by(query_service, task_num) %>% 
                tar_group(),
              iteration = 'group'),
   
   ###### NWIS DATA 8: Download the Q data and save as files in `1_Download/out_nwis` ######
-  # tar_target(p1_nwis_q_data_uv_feather,
-  #            download_nwis_data(
-  #              out_file = sprintf('1_Download/out_nwis/q_uv_%03d.feather',
-  #                                 unique(p1_nwis_q_sites_query_uv_download_grps$task_num)),
-  #              site_numbers = p1_nwis_q_sites_query_uv_download_grps$site_no,
-  #              param_cd = p1_nwis_pcode_q,
-  #              start_date = p1_nwis_start_date,
-  #              end_date = p1_nwis_end_date,
-  #              service_cd = 'uv'
-  #            ),
-  #            pattern = map(p1_nwis_q_sites_query_uv_download_grps),
-  #            format = 'file'),
-  tar_target(p1_nwis_q_data_dv_feather, 
+  
+  tar_target(p1_nwis_q_data_feather, 
              download_nwis_data(
-               out_file = sprintf('1_Download/out_nwis/q_dv_%03d.feather', 
-                                  unique(p1_nwis_q_sites_query_dv_download_grps$task_num)),
-               site_numbers = p1_nwis_q_sites_query_dv_download_grps$site_no,
+               out_file = sprintf('1_Download/out_nwis/q_%s_%03d.feather', 
+                                  unique(p1_nwis_q_sites_query_download_grps$query_service),
+                                  unique(p1_nwis_q_sites_query_download_grps$task_num)),
+               site_numbers = p1_nwis_q_sites_query_download_grps$site_no,
                param_cd = p1_nwis_pcode_q, 
                start_date = p1_nwis_start_date,
                end_date = p1_nwis_end_date,
-               service_cd = 'dv'
+               service_cd = unique(p1_nwis_q_sites_query_download_grps$query_service)
              ),
-             pattern = map(p1_nwis_q_sites_query_dv_download_grps),
+             pattern = map(p1_nwis_q_sites_query_download_grps),
              format = 'file'),
   
   ###### NWIS DATA 9: Download site metadata ######
@@ -170,15 +134,13 @@ p1_targets <- list(
   # Identify which of the sites have tidal influence, which will be used
   # in filtering or grouping later in the pipeline, by querying for sites
   # that may have data for parameter codes that contain `tidally filtered`
-  # discharge, velocity, or gage height, indicating tidal influence
+  # discharge, velocity, or gage height, indicating tidal influence.
+  # Returns empty vector when none of the sites have tidal influence
   tar_target(p1_nwis_sc_sites_tidal, 
-             # TODO: add in method for handling when none of them have tidal influence
-             c()
-             # whatNWISsites(siteNumber = p1_nwis_sc_sites_query$site_no,
-             #               parameterCd = c("72137", "72138", "72139", "72168", 
-             #                               "72169", "72170", "72171")) %>% 
-             #   pull(site_no)
-             ),
+             whatNWISdata(siteNumber = p1_nwis_sc_sites_query$site_no,
+                          parameterCd = c("72137", "72138", "72139", "72168",
+                                          "72169", "72170", "72171")) %>%
+               pull(site_no) %>% unique()),
   
   ##### SCIENCEBASE DATASET DOWNLOADS {< 1 MIN} #####
   
@@ -292,9 +254,6 @@ p1_targets <- list(
   
   # Download NHD+ catchment polygons by groups of COMIDs (should be 500 total branches with 
   # ~1235 COMIDs each). This takes slightly over two hours to download over 600k COMID catchments
-  # TODO: There is still one group erroring:
-  #   p1_nhdplus_catchments_gpkg_a2e1fd07 (transfer closed with outstanding read data remaining; 
-  #   and then Error: _paths_ missing files: 1_Download/out_nhdplus/nhdplus_catchment_468.gpkg)
   tar_target(p1_nhdplus_catchments_gpkg, 
              download_nhdplus_catchments(out_file = sprintf('1_Download/out_nhdplus/nhdplus_catchment_%s.gpkg',
                                                             unique(p1_nhdplus_comids_grp$tar_group)),

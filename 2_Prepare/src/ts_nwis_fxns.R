@@ -1,10 +1,10 @@
 
 #' @title Calculate daily means from instantaneous data
 #' @description Using the downloaded NWIS timeseries data, this function will
-#' collapse instantaneous records to daily means. It assumes that you have 
-#' passed in instantaneous data only.
+#' collapse instantaneous records to daily means. It will skip files that are
+#' named with 'dv' and return the same file path that was passed in.
 #' 
-#' @param out_file a character string indicating a file path to save a feather 
+#' @param out_file_dir a character string indicating a file folder to save a feather 
 #' file of the daily means
 #' @param in_file a character string indicating the file path containing 
 #' instantaneous records with at least the columns `site_no`, `dateTime`,
@@ -19,28 +19,39 @@
 #' @return a feather file containing only daily values for each site; it should have 
 #' the columns `site_no`, `dateTime`, `[PARAM]`, and `[PARAM]_cd`.
 #'
-calculate_dv_from_uv <- function(out_file, in_file, site_tz_xwalk, param_colname) {
+calculate_dv_from_uv <- function(out_file_dir, in_file, site_tz_xwalk, param_colname) {
   
-  data_in <- read_nwis_file(in_file, param_colname)
-  
-  # Stop now if the data passed in does not represent instantaneous data
-  stopifnot(any(grepl('_Inst', names(data_in))))
-  
-  data_in %>%
-    # Rename the data column so that the following code can handle
-    # either SC data or Q data. The name will be reinstated at the end.
-    rename_with(~gsub(param_colname, 'PARAM', .x)) %>% 
-    # Create a column representing the day without the time
-    # using the appropriate timezone per site
-    convert_to_date(site_tz_xwalk) %>%
-    group_by(site_no, dateTime) %>%
-    summarize(PARAM = mean(PARAM_Inst, na.rm=TRUE),
-              PARAM_cd = paste(unique(PARAM_Inst_cd), collapse=';'),
-              .groups = 'drop') %>%
-    # Replace the `PARAM` placeholder column names with the appropriate
-    rename_with(~gsub('PARAM', param_colname, .x)) %>% 
-    # Save the data as a file
-    write_feather(out_file)
+  # All service files (uv + dv) can be passed into this function so that the pipeline 
+  # works even if there aren't any UV files to combine (if we tried isolating just the 
+  # UV files first it will fail when trying to `map` over an empty target).
+  if(grepl('uv', in_file)) {
+    
+    # If the file is a UV file, collapse 15 min data to daily.
+    out_file <- file.path(out_file_dir, gsub('uv', 'uv_to_dv', basename(in_file)))
+    data_in <- read_nwis_file(in_file, param_colname)
+    
+    # Stop now if the data passed in does not represent instantaneous data
+    stopifnot(any(grepl('_Inst', names(data_in))))
+    
+    data_in %>%
+      # Rename the data column so that the following code can handle
+      # either SC data or Q data. The name will be reinstated at the end.
+      rename_with(~gsub(param_colname, 'PARAM', .x)) %>% 
+      # Create a column representing the day without the time
+      # using the appropriate timezone per site
+      convert_to_date(site_tz_xwalk) %>%
+      group_by(site_no, dateTime) %>%
+      summarize(PARAM = mean(PARAM_Inst, na.rm=TRUE),
+                PARAM_cd = paste(unique(PARAM_Inst_cd), collapse=';'),
+                .groups = 'drop') %>%
+      # Replace the `PARAM` placeholder column names with the appropriate
+      rename_with(~gsub('PARAM', param_colname, .x)) %>% 
+      # Save the data as a file
+      write_feather(out_file)
+  } else {
+    # If this is a DV file, just return the existing file path
+    return(in_file)
+  }
   
   return(out_file)
 }
@@ -157,7 +168,7 @@ read_nwis_file <- function(in_file, param_colname) {
   # For now, just selecting the standard columns and ignoring the other. This
   # will result in more NAs.
   if(!all(grepl(standard_colname_regex, names(data_in)))) {
-    # TODO: Choose the appropriate sensor column for each site and date
+    # FUTURE IMPROVEMENT: Choose the appropriate sensor column for each site and date
     # Some are dropped entirely because they only have the unique column names,
     # e.g. c("01646500", "02323592", "251003080435500", "251209080350100", 
     #        "251241080385300", "251253080320100")

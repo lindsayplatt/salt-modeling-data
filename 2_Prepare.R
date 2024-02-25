@@ -18,23 +18,21 @@ p2_targets <- list(
   
   ###### TS DATA 1: Calc daily mean SC from instantaneous data ######
   
-  tar_target(p2_ts_sc_uv_to_dv_feather, 
-             calculate_dv_from_uv(out_file = file.path('2_Prepare/tmp/', 
-                                                       gsub('uv', 'uv_to_dv', 
-                                                            basename(p1_nwis_sc_data_uv_feather))),
-                                  in_file = p1_nwis_sc_data_uv_feather,
+  # Processing UV files by combining instantaneous data into daily data
+  tar_target(p2_ts_sc_all_as_dv_feather, 
+             calculate_dv_from_uv(out_file_dir = '2_Prepare/tmp',
+                                  in_file = p1_nwis_sc_data_feather,
                                   site_tz_xwalk = p1_nwis_sc_sites_metadata,
-                                  param_colname = 'SpecCond'),
-             pattern = map(p1_nwis_sc_data_uv_feather),
+                                  param_colname = 'SpecCond'), 
+             pattern = map(p1_nwis_sc_data_feather),
              format = 'file'),
   
   ###### TS DATA 2: Combine all daily mean SC data ######
   
-  # Also, it replaces values of -999999. 
+  # Combine/format into a single file. Also, it replaces values of -999999. 
   tar_target(p2_ts_sc_dv_feather, 
              combine_all_dv_data(out_file = '2_Prepare/tmp/ts_sc_dv.feather',
-                                 in_files = c(p2_ts_sc_uv_to_dv_feather,
-                                              p1_nwis_sc_data_dv_feather),
+                                 in_files = p2_ts_sc_all_as_dv_feather,
                                  param_colname = 'SpecCond'),
              format = 'file'),
   
@@ -111,22 +109,18 @@ p2_targets <- list(
   ###### ATTR DATA 1: Collapse Q time series to mean Q per site ######
   
   # First, convert instantaneous Q to daily Q
-  # TODO: REINSTATE WHEN WE SOLVE HOW TO HANDLE WHEN THIS RETURNS NOTHING.
-  # tar_target(p2_attr_q_uv_to_dv_feather, 
-  #            calculate_dv_from_uv(out_file = file.path('2_Prepare/tmp/', 
-  #                                                      gsub('uv', 'uv_to_dv', 
-  #                                                           basename(p1_nwis_q_data_uv_feather))),
-  #                                 in_file = p1_nwis_q_data_uv_feather,
-  #                                 site_tz_xwalk = p1_nwis_sc_sites_metadata,
-  #                                 param_colname = 'Flow'),
-  #            pattern = map(p1_nwis_q_data_uv_feather),
-  #            format = 'file'),
+  tar_target(p2_attr_q_all_as_dv_feather,
+             calculate_dv_from_uv(out_file_dir = '2_Prepare/tmp/',
+                                  in_file = p1_nwis_q_data_feather,
+                                  site_tz_xwalk = p1_nwis_sc_sites_metadata,
+                                  param_colname = 'Flow'),
+             pattern = map(p1_nwis_q_data_feather),
+             format = 'file'),
   
-  # Then, combine all daily Q
+  # Then, format and combine all daily Q
   tar_target(p2_attr_q_dv_feather, 
              combine_all_dv_data(out_file = '2_Prepare/tmp/attr_q_dv.feather',
-                                 in_files = c(#p2_attr_q_uv_to_dv_feather,
-                                              p1_nwis_q_data_dv_feather),
+                                 in_files = p2_attr_q_all_as_dv_feather,
                                  param_colname = 'Flow'),
              format = 'file'),
   
@@ -136,9 +130,6 @@ p2_targets <- list(
   tar_target(p2_attr_flow, calculate_q_stats_per_site(p3_attr_q_qualified)),
   
   ###### ATTR DATA 2: Extract road salt application per site ######
-  
-  # TODO: not all sites are mapped to COMIDs or had catchments available. 
-  # We could look at using 5 km radius for site's without catchment polys.
   
   # Extract the flowline spatial features from the downloaded geopackages. This 
   # includes ALL COMIDs (even those with 0 drainage areas), but will be filtered later.
@@ -180,7 +171,6 @@ p2_targets <- list(
   # Isolate the agriculture-specific attribute
   tar_target(p2_ag_attr_nhd, p2_attr_nhd %>% select(site_no, attr_pctAgriculture)),
   
-  # TODO: add GW signature? 
   tar_target(p2_attr_depth2wt, prepare_sb_gw_attrs(p1_sb_depth2wt_csv, 
                                                    p3_nwis_site_nhd_comid_xwalk)),
   
