@@ -292,9 +292,6 @@ p1_targets <- list(
   
   # Download NHD+ catchment polygons by groups of COMIDs (should be 500 total branches with 
   # ~1235 COMIDs each). This takes slightly over two hours to download over 600k COMID catchments
-  # TODO: There is still one group erroring:
-  #   p1_nhdplus_catchments_gpkg_a2e1fd07 (transfer closed with outstanding read data remaining; 
-  #   and then Error: _paths_ missing files: 1_Download/out_nhdplus/nhdplus_catchment_468.gpkg)
   tar_target(p1_nhdplus_catchments_gpkg, 
              download_nhdplus_catchments(out_file = sprintf('1_Download/out_nhdplus/nhdplus_catchment_%s.gpkg',
                                                             unique(p1_nhdplus_comids_grp$tar_group)),

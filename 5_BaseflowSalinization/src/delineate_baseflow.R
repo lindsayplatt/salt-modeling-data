@@ -9,13 +9,6 @@ delineate_baseflow <- function(ts_q, site_bfi_data) {
     mutate(bfi = attr_baseFlowInd/100) %>% 
     pull(bfi)
   
-  # Some of the sites don't have an NHD+ BFI, if that is the
-  # case, assume BFI is the average for the sites in this dataset ...
-  # TODO: BETTER ASSUMPTION HERE
-  if(is.na(bfi)) {
-    bfi <- mean(site_bfi_data$attr_baseFlowInd, na.rm=T)/100
-  }
-  
   # Use a constant for alpha as suggested by Eckhardt 2012 for perennial stream
   alpha <- 0.970 
   

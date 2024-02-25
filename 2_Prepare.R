@@ -137,9 +137,6 @@ p2_targets <- list(
   
   ###### ATTR DATA 2: Extract road salt application per site ######
   
-  # TODO: not all sites are mapped to COMIDs or had catchments available. 
-  # We could look at using 5 km radius for site's without catchment polys.
-  
   # Extract the flowline spatial features from the downloaded geopackages. This 
   # includes ALL COMIDs (even those with 0 drainage areas), but will be filtered later.
   tar_target(p2_nhdplus_flowlines_ALL_sf, extract_nhdplus_geopackage_layer(p1_nhdplus_catchments_gpkg, 

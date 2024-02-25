@@ -53,7 +53,6 @@ calculate_attr_importance <- function(rf_model) {
 
 # TODO: DOCUMENTATION
 visualize_attr_importance <- function(rf_model_importance) {
-  # TODO: save as file
   
   data_to_plot <- rf_model_importance %>% 
     # Order the attributes based on importance values *within* each site category
@@ -85,8 +84,6 @@ calculate_partial_dependence <- function(rf_model, site_attr_data) {
   rf_classes <- rf_model$classes
   
   numeric_attrs <- rf_model$importance %>% rownames()
-  # TODO: figure out how to evaluate dependence/importance of trends?
-  numeric_attrs <- numeric_attrs[!grepl('Trend', numeric_attrs)]
   
   combos <- expand.grid(
     attribute = numeric_attrs, 
