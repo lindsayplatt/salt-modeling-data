@@ -5,12 +5,9 @@ library(tarchetypes)
 options(tidyverse.quiet = TRUE)
 tar_option_set(
   packages = c(
-    'archive',
     'arrow',
     'dataRetrieval',
-    'EGRET',
     'EnvStats',
-    'feasts',
     'FlowScreen',
     'nhdplusTools',
     'qs',
@@ -18,8 +15,7 @@ tar_option_set(
     'raster',
     'sbtools',
     'sf',
-    'tidyverse',
-    'tsibble'
+    'tidyverse'
   ), 
   format =  'qs',
   workspace_on_error = TRUE
