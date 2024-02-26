@@ -52,3 +52,27 @@ prep_attr_randomforest <- function(site_attr_data, sites_episodic = NULL, site_b
     rename_with(~gsub("attr_", "", .x))
   
 }
+
+#' @title Log transform specific attributes for plotting purposes
+#' @description Some of the variables will be better suited to visualize on a log
+#' scale. Given the faceting steps, it was complex to add a log y scale to specfic
+#' factets, so we are first transforming the data and renaming the attributes to 
+#' signify that they have been logged. The attributes currently coded to be logged 
+#' are `areaCumulativeSqKm` and `medianFlow`. If more should be logged, they will
+#' need to be manually added to this function.
+#' 
+#' @param site_attr_data a tibble with the columns `site_category`, `attribute`,
+#' and `attr_val`. Note that the values in `attribute` do not have the prefix `attr_`
+#' 
+#' @returns a tibble of the same row x column dimensions but with different values
+#' and names (prefixed with `log_`) for any attribute that is currently coded to
+#' have a log scale within the function.
+#' 
+log_transform_to_select_attributes <- function(site_attr_data) {
+  attributes_to_log <- c('areaCumulativeSqKm', 'medianFlow')
+  
+  site_attr_data %>% 
+    rowwise() %>% 
+    mutate(attr_val = ifelse(attribute %in% attributes_to_log, log(attr_val), attr_val),
+           attribute = ifelse(attribute %in% attributes_to_log, paste0('log_', attribute), attribute))
+}

@@ -112,10 +112,15 @@ visualize_partial_dependence <- function(pdp_data, real_attribute_values) {
   # maybe just artifacts of a lack of input data.
   real_attribute_values_to_plot <- real_attribute_values %>% 
     pivot_longer(-site_category_fact, names_to = 'attribute', values_to = 'attr_val') %>% 
+    # Log scale appropriate attributes for visual purposes
+    log_transform_to_select_attributes() %>%
     rename(site_category = site_category_fact) %>% 
     filter(attribute %in% unique(pdp_data$attribute))
-    
-  ggplot(pdp_data, aes(x = attr_val, color = site_category)) +
+  # TODO: the logged values are not showing up in the rug plot
+  pdp_data %>% 
+    # Log scale appropriate attributes for visual purposes
+    log_transform_to_select_attributes() %>%
+    ggplot(aes(x = attr_val, color = site_category)) +
     facet_wrap(vars(attribute), scales = 'free_x') +
     scico::scale_color_scico_d(begin = 0, end = 0.75) +
     geom_line(aes(y = attr_partdep), linewidth = 1) +
