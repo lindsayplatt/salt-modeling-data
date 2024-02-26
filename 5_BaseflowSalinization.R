@@ -30,8 +30,7 @@ p5_targets <- list(
   # Filter data so that trend is only calculated for site-seasons that meets our criteria 
   # and has enough non-winter baseflow days that justifies a trend calc.
   tar_target(p5_sc_baseflow_qualified_info, apply_baseflow_trend_criteria(p5_sc_baseflow)),
-  tar_target(p5_sc_baseflow_qualified_site_months, identify_trend_site_seasons(p5_sc_baseflow_qualified_info)),
-  tar_target(p5_sc_baseflow_qualified, filter_ts_to_qualified_site_seasons(p5_sc_baseflow, p5_sc_baseflow_qualified_site_months)),
+  tar_target(p5_sc_baseflow_qualified, filter_ts_to_qualified_site_seasons(p5_sc_baseflow, p5_sc_baseflow_qualified_info)),
   
   # Calculate SC trends for non-winter baseflow days
   # If a site is not in this target, we were not able to calculate the trend

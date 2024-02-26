@@ -33,16 +33,12 @@ apply_baseflow_trend_criteria <- function(ts_data_bf, min_avg_samples_per_season
 
 # Filter to sites who met our qualification criteria
 # TODO: docs!
-identify_trend_site_seasons <- function(site_season_bf_qualified) {
-  site_season_bf_qualified %>% 
+filter_ts_to_qualified_site_seasons <- function(ts_data_bf, site_season_bf_qualified) {
+  site_season_qualified <- site_season_bf_qualified %>% 
     filter(site_bf_qualified & site_season_bf_qualified) %>% 
     select(site_no, month) %>% 
     distinct()
-}
-
-# Only keep sites and seasons that met the criteria for calculating a trend
-# TODO: docs!
-filter_ts_to_qualified_site_seasons <- function(ts_data_bf, site_season_qualified) {
+  
   ts_data_bf %>% 
     mutate(month = month(dateTime)) %>%
     right_join(site_season_qualified, by = c('site_no', 'month'))
