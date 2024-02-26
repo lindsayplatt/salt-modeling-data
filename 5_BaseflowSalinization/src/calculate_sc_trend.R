@@ -34,9 +34,6 @@ apply_SeasonalKendall <- function(ts_data, max_pval) {
   #   different seasons (e.g., months) of the year. For example, a monotonic upward trend may exist over years 
   #   for January but not for June." AND a "monotonic upward (downward) trend means that the variable consistently 
   #   increases (decreases) over time, but the trend may or may not be linear."
-  # Use MK when "seasonality is not expected to be present or when trends occur in different directions 
-  #   (up or down) in different seasons." If there is seasonality but trends might be in different directions,
-  #   looks like you might be able to "de-seasonalize" first?? See examples in `?Kendall::MannKendall`
   # While I think that the trends may be different by season, I'm not sure we can apply the blanket statement 
   # that they will all either be going up or down. I think there may be instances where winter seasons are going
   # up but summer are going down?
