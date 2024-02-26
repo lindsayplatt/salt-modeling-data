@@ -2,9 +2,6 @@
 # site selection in this analysis
 
 source('2_Prepare/src/ts_nwis_fxns.R')
-source('2_Prepare/src/ts_gap_fxns.R')
-source('2_Prepare/src/ts_detrend_fxns.R')
-source('2_Prepare/src/ts_finalize_fxns.R')
 source('2_Prepare/src/attr_prep_fxns.R')
 source('2_Prepare/src/attr_combine_all.R')
 source('2_Prepare/src/extract_nhdplus_geopackage_layer.R')
@@ -37,70 +34,6 @@ p2_targets <- list(
              format = 'file'),
   
   # Then this SC data is filtered to only qualifying sites and data in `3_Filter`
-  
-  ###### TS DATA 3: Fill in missing SC values ######
-  
-  # First, we need to identify sites that should be gap-filled. Since WRTDS takes
-  # a lot of time to run per site, I don't want to waste resources running it
-  # for sites that we won't use anyways. So, this means that before we gap-fill,
-  # we have ...
-  #   1. Filtered to sites that meet our criteria. See the targets  that create 
-  #      `p3_attr_q_qualified` and `p3_ts_sc_qualified` in `3_Filter`.
-  #   2. Remove sites that have negative flows (WRTDS does NOT play nice with 
-  #      negatives). TODO: Later look into what to do with negative flows.
-  #   3. Remove sites that don't actually have any missing SC values on dates where
-  #      there is a flow value (we can't gap-fill with WRTDS where Q is missing).
-  
-  tar_target(p2_ts_sc_to_gapfill, 
-             prep_data_for_wrtds(
-               p3_attr_q_qualified, p3_ts_sc_qualified,
-               param_colname = 'SpecCond',
-               # Skipping a couple of sites that I can't figure out
-               # TODO: Maybe return to this in the future with an EGRET dev help
-               #  05055400: finishes survival regression in `modelEstimation()` but 
-               #    then errors with "replacement has 3428 rows, data has 4486"
-               sites_that_crash = c('05055400')
-             ) %>% 
-               group_by(site_no) %>% 
-               tar_group(),
-             iteration = 'group'),
-  
-  # Run WRTDS to produce complete time series of SC data per site
-  # Note that this step will be lengthy. 
-  # Nov 24-25, 2023: This took 21 hours for 331 sites (avg of 4 min per site)!!!
-  tar_target(p2_ts_sc_WRTDS, 
-             apply_wrtds(data_q_param = p2_ts_sc_to_gapfill,
-                         param_colname = 'SpecCond',
-                         param_nwis_cd = p1_nwis_pcode_sc),
-             pattern = map(p2_ts_sc_to_gapfill)),
-  
-  # Now use the WRTDS outputs to fill in gaps where there is an NA and WRTDS is 
-  # available (this pulls in any site data that was not eligible for `apply_wrtds()`)
-  tar_target(p2_ts_sc_gapFilled, fill_ts_gaps_wrtds(p3_ts_sc_qualified, 
-                                                    p2_ts_sc_WRTDS,
-                                                    param_colname = 'SpecCond')),
-  
-  # Now summarize the time series that were saved by the gap-filling
-  tar_target(p2_ts_sc_gapSummary, 
-             summarize_gap_fixes(p2_ts_sc_gapFilled, param_colname = 'SpecCond')),
-  
-  # Summarizing the WRTDS output with a boxplot of standard errors
-  tar_target(p2_ts_sc_wrtds_errors_ggplot, 
-             summarize_wrtds_error(p2_ts_sc_gapFilled, p2_ts_sc_WRTDS, 'SpecCond')),
-
-  ###### TS DATA 4: Detrend the SC timeseries ######
-  
-  # Detrend the SC timeseries since we are using trend as a static attr
-  # Detrend only works for sites without any NAs in their time series
-  # TODO: can anything be done? The requirement to have no NAs in the 
-  #   full time series drops 56 sites
-  tar_target(p2_ts_sc_detrend_sites, identify_sites_to_detrend(p2_ts_sc_gapFilled, 'SpecCond')),
-  tar_target(p2_ts_sc_dv_detrend, 
-             detrend_ts_data(p2_ts_sc_gapFilled, p2_ts_sc_detrend_sites, 'SpecCond')),
-  
-  ###### TS DATA 5: Finalize the SC time series for modeling ######
-  
-  tar_target(p2_ts_sc, finalize_ts_modeling(p2_ts_sc_dv_detrend, 'SpecCond', '_detrend')),
   
   ##### STATIC ATTRIBTUES PREP #####
   
