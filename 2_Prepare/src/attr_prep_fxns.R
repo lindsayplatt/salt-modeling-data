@@ -225,7 +225,17 @@ prepare_nhd_attributes <- function(nhd_attribute_table, comid_site_xwalk) {
   
 }
 
-# TODO: DOCUMENTATION IF WE USE THIS
+#' @title Prepare the attributes from Zell and Sanford 2020
+#' @description Load in the CSVs from Zell and Sanford 2020 and reformat to be
+#' merged with the other static attribute data. Currently includes just the 
+#' depth to the water table.
+#' 
+#' @param depth2wt_csv a string specifying the filepath to the CSV downloaded from
+#' ScienceBase with the Zell and Sanford 2020 data release.
+#' @param comid_site_xwalk a tibble with the columns `site_no`, `nhd_comid`, `with_retry`
+#' 
+#' @return tibble with the columns `site_no` and `attr_zellSanfordDepthToWT`
+#' 
 prepare_sb_gw_attrs <- function(depth2wt_csv, comid_site_xwalk) {
   
   dtw <- read_csv(depth2wt_csv, show_col_types = FALSE) %>% 

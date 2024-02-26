@@ -1,5 +1,26 @@
 
-# TODO: documentation
+#' @title Join attribute data with site categorization
+#' @description Takes all site attributes and adds data about how each site is 
+#' classified. Depending on the data passed it, this will show site categories 
+#' for 1) episodic or not episodic, 2) baseflow trend positive or negative or 
+#' none, 3) or a combination of both (episodic, baseflow positive trend, both,
+#' or neither). The output can be passed to a random forest.
+#' 
+#' @param site_attr_data a tibble with one row per site and any number of columns
+#' giving different attributes; needs the columns `site_no` and `attr_[attribute]`
+#' @param sites_episodic a character vector giving site numbers that met criteria
+#' for being an "episodic site". See targets in `4_EpisodicSalinization`. When this
+#' parameter is specified with `site_baseflow_trend_info` being NULL, the random
+#' forest will only use whether a site was episodic or not to assess static attributes.
+#' @param site_baseflow_trend_info a tibble specifying the baseflow trend found
+#' for each site; should have a row per site and the columns `site_no` and
+#' `baseflowTrend`. When this is specified with `sites_episodic` being NULL, the
+#' random forest will only use the baseflow trends (positive, none, or negative)
+#' to assess static attributes.
+#' 
+#' @returns a tibble with the columns `site_no`, `site_category_fact`, and any 
+#' number of columns that give static attributes but are NO LONGER prefixed `attr_`
+#' 
 prep_attr_randomforest <- function(site_attr_data, sites_episodic = NULL, site_baseflow_trend_info = NULL) {
   
   if(!is.null(sites_episodic) & !is.null(site_baseflow_trend_info)) {
@@ -51,4 +72,28 @@ prep_attr_randomforest <- function(site_attr_data, sites_episodic = NULL, site_b
     # Drop the `attr_` prefix so that the results are cleaner
     rename_with(~gsub("attr_", "", .x))
   
+}
+
+#' @title Log transform specific attributes for plotting purposes
+#' @description Some of the variables will be better suited to visualize on a log
+#' scale. Given the faceting steps, it was complex to add a log y scale to specfic
+#' factets, so we are first transforming the data and renaming the attributes to 
+#' signify that they have been logged. The attributes currently coded to be logged 
+#' are `areaCumulativeSqKm` and `medianFlow`. If more should be logged, they will
+#' need to be manually added to this function.
+#' 
+#' @param site_attr_data a tibble with the columns `site_category`, `attribute`,
+#' and `attr_val`. Note that the values in `attribute` do not have the prefix `attr_`
+#' 
+#' @returns a tibble of the same row x column dimensions but with different values
+#' and names (prefixed with `log_`) for any attribute that is currently coded to
+#' have a log scale within the function.
+#' 
+log_transform_to_select_attributes <- function(site_attr_data) {
+  attributes_to_log <- c('areaCumulativeSqKm', 'medianFlow')
+  
+  site_attr_data %>% 
+    rowwise() %>% 
+    mutate(attr_val = ifelse(attribute %in% attributes_to_log, log(attr_val), attr_val),
+           attribute = ifelse(attribute %in% attributes_to_log, paste0('log_', attribute), attribute))
 }
