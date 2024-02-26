@@ -30,6 +30,7 @@ _targets/*
 !*/tmp/.placeholder
 !*/out/.placeholder
 !1_Download/out_nwis/.placeholder
+!1_Download/out_nhdplus/.placeholder
 
 ##### PRE-PROPOSAL ITEMS TO GITIGNORE #####
 
