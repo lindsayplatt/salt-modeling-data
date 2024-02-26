@@ -5,17 +5,29 @@ library(tarchetypes)
 options(tidyverse.quiet = TRUE)
 tar_option_set(
   packages = c(
+    'accelerometry',
     'arrow',
+    'cowplot',
     'dataRetrieval',
     'EnvStats',
+    'exactextractr',
     'FlowScreen',
+    'httr',
+    'MESS',
     'nhdplusTools',
+    'pdp',
     'qs',
     'randomForest',
     'raster',
     'sbtools',
+    'scico',
     'sf',
-    'tidyverse'
+    'tidytext',
+    'tidyverse',
+    'units',
+    'usmap',
+    'yaml',
+    'zip'
   ), 
   format =  'qs',
   workspace_on_error = TRUE
