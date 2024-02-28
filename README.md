@@ -70,8 +70,6 @@ This will build the pipeline in the background, so that your RStudio session can
 
 ### Pipeline outputs
 
-Many of the pipeline's artifacts are "object targets" but there are some files created.
-
-As of 2/27/2024, the best way to see how the pipeline and analysis ran is to open the file `6_DefineCharacteristics/out/random_forest_results.pdf`. This will only have built if all the other pipeline steps were successfully run.
+Many of the pipeline's artifacts are "object targets" but there are some files created. As of 2/27/2024, the best way to see how the pipeline and analysis ran is to open the file `6_DefineCharacteristics/out/random_forest_results.pdf`. This will only have built if all the other pipeline steps were successfully run.
 
 TODO: Add more info about pipeline output.
