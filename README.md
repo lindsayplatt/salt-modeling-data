@@ -4,7 +4,7 @@ This repository contains reproducible code for downloading, processing, and mode
 
 ## Associated publications and resources
 
-The code supports the analysis for Lindsay Platt's ([@lindsayplatt](https://github.com/lindsa%5D(https://github.com/lindsayplatt)) Master's Thesis, *Basin characteristics modulate signatures of river salinization*.
+The code supports the analysis for Lindsay Platt's ([@lindsayplatt](https://github.com/lindsa%5D(https://github.com/lindsayplatt))) Master's Thesis, *Basin characteristics modulate signatures of river salinization*.
 
 The code and data will be published in Zenodo.
 
