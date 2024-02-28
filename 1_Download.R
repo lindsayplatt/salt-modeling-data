@@ -8,9 +8,7 @@ source('1_Download/src/retry_fxns.R')
 p1_targets <- list(
   
   # Define target listing the state abbreviations within the Contiguous United States (CONUS)
-  tar_target(p1_conus_state_cds, c("CT", "DE", "IL", "IN", "IA", "KY", "ME", "MD", 
-                                   "MA", "MI", "MN", "MO", "NH", "NJ", "NY", "OH", 
-                                   "PA", "RI", "VT", "VA", "WV", "WI")), 
+  tar_target(p1_conus_state_cds, c("MN", "WI")), 
   
   ##### NWIS DATA: Download SC and Q {75 MIN} #####
   
@@ -18,7 +16,7 @@ p1_targets <- list(
   
   ###### NWIS DATA 0: Set download configs for streamflow (Q) & specific conductivity (SC) ######
   
-  tar_target(p1_nwis_start_date, as.Date('1950-01-01')), 
+  tar_target(p1_nwis_start_date, as.Date('1990-01-01')), 
   tar_target(p1_nwis_end_date, as.Date('2023-12-31')), 
   tar_target(p1_nwis_pcode_sc, '00095'), # NWIS specific conductance code
   tar_target(p1_nwis_pcode_q, '00060'), # NWIS streamflow code
