@@ -49,10 +49,7 @@ visualize_numeric_attrs <- function(site_attr_data) {
 add_state_basemap <- function(states_to_include) {
   states_sf <- usmap::us_map(include = states_to_include) %>% 
     st_as_sf(coords = c('x', 'y'), 
-             crs = usmap::usmap_crs()) %>% 
-    group_by(group, abbr) %>% 
-    summarise(geometry = st_combine(geometry), .groups="keep") %>%
-    st_cast("POLYGON")
+             crs = usmap::usmap_crs())
   
   geom_sf(data=states_sf, fill = 'white', color = 'darkgrey')
 }
