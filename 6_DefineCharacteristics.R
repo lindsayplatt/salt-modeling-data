@@ -6,6 +6,7 @@ source('6_DefineCharacteristics/src/prep_attr_randomforest.R')
 source('6_DefineCharacteristics/src/apply_randomforest.R')
 source('6_DefineCharacteristics/src/evaluate_randomforest.R')
 source('6_DefineCharacteristics/src/visualize_attribute_distributions.R')
+source('6_DefineCharacteristics/src/visualize_results.R')
 
 p6_targets <- list(
   
@@ -127,40 +128,32 @@ p6_targets <- list(
   tar_target(p6c_attrs_num_viz, visualize_numeric_attrs(p6c_site_attr_rf_optimal)),
   tar_target(p6c_category_map, visualize_catgory_sites_map(p6c_site_attr, p1_nwis_sc_sites_sf, p1_conus_state_cds)),
   
-  ##### Save PDF of all resulting RF #####
+  ##### Save resulting RF outputs as PNGs #####
   
-  tar_target(p6_rf_results_pdf, {
-    out_file <- '6_DefineCharacteristics/out/random_forest_results.pdf'
-    
-    # Prep plot views for each type
-    both_rf_plots <- list(
-      p6_rf_attr_partdep_viz,
-      p6_attrs_num_viz,
-      p6_rf_attr_importance_viz,
-      p6_category_map
-    )
-    
-    episodic_rf_plots <- list(
-      p6b_rf_attr_partdep_viz,
-      p6b_attrs_num_viz, 
-      p6b_rf_attr_importance_viz,
-      p6b_category_map
-    )
-    
-    baseflow_rf_plots <- list(
-      p6c_rf_attr_partdep_viz,
-      p6c_attrs_num_viz, 
-      p6c_rf_attr_importance_viz,
-      p6c_category_map
-    )
-    
-    pdf(out_file, width = 30, height = 15) # Good monitor size
-    # pdf(out_file, width = 24, height = 17) # Printer aspect ratio
-    print(cowplot::plot_grid(plotlist = both_rf_plots, nrow=2, rel_heights = c(0.60, 0.40), rel_widths = c(0.60, 0.40)))
-    print(cowplot::plot_grid(plotlist = episodic_rf_plots, nrow=2, rel_heights = c(0.60, 0.40), rel_widths = c(0.60, 0.40)))
-    print(cowplot::plot_grid(plotlist = baseflow_rf_plots, nrow=2, rel_heights = c(0.60, 0.40), rel_widths = c(0.60, 0.40)))
-    dev.off()
-    return(out_file)
-  }, format = 'file')
+  # Saving in the `log/` folder and committing so that we can git compare future versions
+  
+  tar_target(p6_rf_results_png, create_summary_view(
+    '6_DefineCharacteristics/log/random_forest_results_combined.png',
+    p6_rf_attr_partdep_viz,
+    p6_attrs_num_viz,
+    p6_rf_attr_importance_viz,
+    p6_category_map
+  ), format='file'), 
+  
+  tar_target(p6b_rf_results_png, create_summary_view(
+    '6_DefineCharacteristics/log/random_forest_results_episodic.png',
+    p6b_rf_attr_partdep_viz,
+    p6b_attrs_num_viz, 
+    p6b_rf_attr_importance_viz,
+    p6b_category_map
+  ), format='file'), 
+  
+  tar_target(p6c_rf_results_png, create_summary_view(
+    '6_DefineCharacteristics/log/random_forest_results_baseflow.png',
+    p6c_rf_attr_partdep_viz,
+    p6c_attrs_num_viz, 
+    p6c_rf_attr_importance_viz,
+    p6c_category_map
+  ), format='file')
   
 )
