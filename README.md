@@ -62,7 +62,7 @@ install.packages(c(
 To build this pipeline (after running the setup section), you should 
 
 1. Open the `run_pipeline.R` script.
-1. Click on the `Background Jobs` tab in RStudio.
+1. Click on the `Background Jobs` tab in RStudio (next to `Console` and `Terminal`).
 1. Choose `Start Background Job` and make sure the `run_pipeline.R` script is selected.
 1. Accept the defaults and click `Start` to kick off the pipeline build.
 
