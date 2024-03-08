@@ -205,11 +205,18 @@ prepare_nhd_attributes <- function(nhd_attribute_table, comid_site_xwalk) {
     # Calculate snow (in mm) from precip total
     mutate(attr_avgSnow = CAT_PPT7100_ANN*CAT_PRSNOW/100) %>% 
     
+    # Calculate average winter air temperature from monthly averages
+    mutate(attr_avgWinterAirTemp = mean(c(CAT_TAV7100_DEC, CAT_TAV7100_JAN,
+                                          CAT_TAV7100_FEB, CAT_TAV7100_MAR))) %>% 
+    
+    # Calculate average "winter" duration by using first/last freeze days. Last 
+    # freeze day were always in Jan/Feb/March so technically the next year. Need to
+    # count the days knowing that Jan 1 = day 1.
+    mutate(attr_avgWinterDuration = (365 - CAT_FSTFZ6190) + CAT_LSTFZ6190) %>% 
+    
     # Rename the columns whose values are used as-is
     rename(any_of(c(
       attr_annualPrecip = 'CAT_PPT7100_ANN', # in mm
-      attr_freezeDayFirst = 'CAT_FSTFZ6190', # day of year
-      attr_freezeDayLast = 'CAT_LSTFZ6190', # day of year
       attr_baseFlowInd = 'CAT_BFI', # % total flow
       attr_subsurfaceContact = 'CAT_CONTACT', # days
       attr_avgDepth2WT = 'CAT_EWT', # in meters
