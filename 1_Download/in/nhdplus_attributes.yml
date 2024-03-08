@@ -10,8 +10,10 @@
 
 # library(tidyverse)
 # library(nhdplusTools)
-# nhdplus_descriptions <- get_characteristics_metadata() %>% 
-#   split(.$themeLabel) %>% 
+# # Get around the issue I logged at https://github.com/DOI-USGS/nhdplusTools/issues/365
+# nhdplusTools::nhdplusTools_data_dir(tools::R_user_dir("nhdplusTools"))
+# nhdplus_descriptions <- get_characteristics_metadata() %>%
+#   split(.$themeLabel) %>%
 #   map(~{
 #     # CAT = catchment
 #     # ACC = accumulated using divergent routing
