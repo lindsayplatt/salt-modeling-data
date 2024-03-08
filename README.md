@@ -27,6 +27,8 @@ The pipeline is broken into 6 different phases:
 
 Run the following command to make sure you have all the necessary packages before trying to build the pipeline.
 
+# TODO: mac install issues.
+
 ``` r
 install.packages(c(
     'targets', 
