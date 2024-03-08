@@ -97,8 +97,8 @@ p2_targets <- list(
                                                               comid_upstream_tbl = p3_nhdplus_comids_upstream)),
   
   # Now keep only the salt and catchment area attributes of interest in the final model
-  tar_target(p2_attr_basinArea_forModel, select(p2_attr_basinArea, attr_areaCumulativeSqKm)),
-  tar_target(p2_attr_roadSalt_forModel, select(p2_attr_roadSalt, attr_roadSaltPerSqKm)),
+  tar_target(p2_attr_basinArea_forModel, p2_attr_basinArea %>% select(site_no, attr_areaCumulativeSqKm)),
+  tar_target(p2_attr_roadSalt_forModel, p2_attr_roadSalt %>% select(site_no, attr_roadSaltPerSqKm)),
   
   ###### ATTR DATA 3: Pivot and link NHD+ attributes to sites ######
   
