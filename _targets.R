@@ -12,6 +12,7 @@ tar_option_set(
     'EnvStats',
     'exactextractr',
     'FlowScreen',
+    'GGally', # Needed for `ggcorr()`
     'httr',
     'MESS',
     'nhdplusTools',
