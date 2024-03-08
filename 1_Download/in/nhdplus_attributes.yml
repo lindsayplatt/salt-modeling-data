@@ -43,9 +43,7 @@ Climate:
   - CAT_TAV7100_MAR # mean March air temp, mm (1971-2000)
 
 Climate and Water Balance:
-  # Attributes per reach/catchment
-  - CAT_WBM_PPT # avg precip from WBM (used to calculate runoff-precip ratio)
-  - CAT_WBM_RUN # avg runoff from WBM 2000-2014 (used to calculate runoff-precip ratio)
+  # NONE
 
 Climate Water Balance:
   # NONE

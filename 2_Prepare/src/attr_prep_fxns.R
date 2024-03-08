@@ -181,9 +181,6 @@ prepare_nhd_attributes <- function(nhd_attribute_table, comid_site_xwalk) {
     dplyr::select(site_no, everything(), 
                   -nhd_comid, -with_retry) %>% 
     
-    # Calculate runoff-precip ratio (unitless)
-    mutate(attr_runoffPrecipRatio = CAT_WBM_RUN/CAT_WBM_PPT) %>% 
-    
     # Combine some of the land-use categories (in % catchment area)
     mutate(
       # Forested = deciduous forest + evergreen forest + mixed forest
