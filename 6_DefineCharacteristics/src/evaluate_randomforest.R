@@ -49,15 +49,13 @@ calculate_attr_importance <- function(rf_model) {
               by = c('attribute', 'site_category')) %>% 
     dplyr::select(attribute, site_category, everything()) %>% 
     mutate(attribute_grp = case_when(
-      attribute %in% c('annualPrecip', 'avgSnow', 'freezeDayFirst', 'freezeDayLast') ~ 'meteo',
-      attribute %in% c('roadSaltPerSqKm', 'roadSaltCumulativePerSqKm', 'roadSaltRatio') ~ 'salt',
-      attribute %in% c('avgDepth2WT', 'avgGWRecharge', 'baseFlowInd',
-                       'soilPerm', 'subsurfaceContact', 'zellSanfordDepthToWT') ~ 'gw',
+      attribute %in% c('annualPrecip', 'annualSnow', 'winterAirTemp') ~ 'meteo',
+      attribute %in% c('roadSaltPerSqKm') ~ 'salt',
+      attribute %in% c('baseFlowInd', 'gwRecharge', 'depthToWT', 
+                       'subsurfaceContact', 'transmissivity') ~ 'gw',
       attribute %in% c('pctAgriculture', 'pctDeveloped', 'pctForested', 
-                       'pctOpenWater', 'pctWetland', 'roadDensity') ~ 'landcover',
-      grepl('Runoff', attribute) ~ 'basin',
-      attribute %in% c('areaCumulativeSqKm', 'areaRatio', 'areaSqKm',
-                       'avgBasinSlope', 'medianFlow', 'runoffPrecipRatio') ~ 'basin',
+                       'pctOpenWater', 'pctWetland') ~ 'landcover',
+      attribute %in% c('basinSlope', 'medianFlow') ~ 'basin',
       .default = NA_character_
     ))
   
@@ -176,6 +174,41 @@ visualize_partial_dependence <- function(pdp_data, real_attribute_values) {
     geom_rug(data=real_attribute_values_to_plot, sides='b') +
     theme_bw() +
     theme(strip.background = element_blank())
+}
+
+#' @title Visualize attribute correlations
+#' @description Check attributes for potential autocorrelation to
+#' improve the model. This calculates correlation between every attribute
+#' used in the model using Spearman Rank Correlation. We must use this output
+#' along with our knowledge of the ecological relationships between variables
+#' to assess attributes for autocorrelation.
+#' 
+#' @param out_file a filepath specifying where to save the image output as a PNG
+#' @param site_attr_data a tibble with the columns `site_category_fact` and any
+#' number of columns that give static attributes (not prefixed with `attr_`)
+#' 
+#' @results a character string giving the location of the saved figure file
+#' 
+visualize_attr_correlation <- function(out_file, site_attr_data) {
+  p <- ggcorr(data = select(site_attr_data, -site_category_fact), 
+              method = c("everything", "spearman"),
+              nbreaks = 5,
+              low = "darkred",
+              mid = "white",
+              high = "seagreen4",
+              label = TRUE,
+              label_round = 2,
+              hjust = 0.5, nudge_x = -0.40,
+              size = 3) +
+    coord_equal(clip = "off") +
+    theme(plot.margin=grid::unit(c(0,0,0,2),"cm")) +
+    ggtitle('Spearman Rank Correlation for all attributes')
+  
+  png(out_file, width = 1000, height = 1000, units = 'px',res = 100)
+  print(p)
+  dev.off()
+  
+  return(out_file)
 }
 
 # TODO: SHAP eval???

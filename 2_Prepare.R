@@ -96,6 +96,9 @@ p2_targets <- list(
                                                               comid_site_xwalk = p3_nwis_site_nhd_comid_xwalk,
                                                               comid_upstream_tbl = p3_nhdplus_comids_upstream)),
   
+  # Now keep only the salt attributes of interest in the final model
+  tar_target(p2_attr_roadSalt_forModel, p2_attr_roadSalt %>% select(site_no, attr_roadSaltPerSqKm)),
+  
   ###### ATTR DATA 3: Pivot and link NHD+ attributes to sites ######
   
   tar_target(p2_attr_nhd, prepare_nhd_attributes(p1_nhdplus_attr_vals_tbl,
@@ -104,15 +107,16 @@ p2_targets <- list(
   # Isolate the agriculture-specific attribute
   tar_target(p2_ag_attr_nhd, p2_attr_nhd %>% select(site_no, attr_pctAgriculture)),
   
-  tar_target(p2_attr_depth2wt, prepare_sb_gw_attrs(p1_sb_depth2wt_csv, 
-                                                   p3_nwis_site_nhd_comid_xwalk)),
+  # Prepare the attributes from Zell and Sanford 2020 which are based on NHD+ COMIDs
+  tar_target(p2_attr_depth2wt_trnmsv, prepare_sb_gw_attrs(p1_sb_depth2wt_csv, 
+                                                          p1_sb_transmissivity_csv,
+                                                          p3_nwis_site_nhd_comid_xwalk)),
   
   ###### ATTR DATA 4: Combine all static attributes into one table ######
   
   tar_target(p2_attr_all, combine_static_attributes(p2_attr_flow,
-                                                    p2_attr_basinArea, 
-                                                    p2_attr_roadSalt,
+                                                    p2_attr_roadSalt_forModel,
                                                     p2_attr_nhd,
-                                                    p2_attr_depth2wt))
+                                                    p2_attr_depth2wt_trnmsv))
   
 )

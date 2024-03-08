@@ -183,6 +183,12 @@ p1_targets <- list(
                                 destinations = '1_Download/out/depth2wt.csv'), 
              format = 'file'),
   
+  tar_target(p1_sb_transmissivity_csv, 
+             item_file_download(sb_id = '60be54f6d34e86b9389117f9',
+                                names = 'trans.csv',
+                                destinations = '1_Download/out/transmissivity.csv'), 
+             format = 'file'),
+  
   ##### ADDITIONAL DATASETS ONLINE {< 1 MIN} #####
   
   # Hare, D. K., Helton, A. M., Johnson, Z. C., Lane, J. W., and Briggs, M. A. (2021). 

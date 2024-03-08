@@ -10,8 +10,10 @@
 
 # library(tidyverse)
 # library(nhdplusTools)
-# nhdplus_descriptions <- get_characteristics_metadata() %>% 
-#   split(.$themeLabel) %>% 
+# # Get around the issue I logged at https://github.com/DOI-USGS/nhdplusTools/issues/365
+# nhdplusTools::nhdplusTools_data_dir(tools::R_user_dir("nhdplusTools"))
+# nhdplus_descriptions <- get_characteristics_metadata() %>%
+#   split(.$themeLabel) %>%
 #   map(~{
 #     # CAT = catchment
 #     # ACC = accumulated using divergent routing
@@ -30,29 +32,15 @@ Chemical:
 
 Climate:
   # NONE
-  # TODO: Could look at adding seasonal precip/temperature & should maybe use snow from here rather than WBM?
-  - CAT_FSTFZ6190 # Mean first freeze day of year
-  - CAT_LSTFZ6190 # Mean last freeze day of year
   - CAT_PPT7100_ANN # mean annual precip, mm (1971-2000)
   - CAT_PRSNOW # Snow percent of total precipitation estimate, mean for period 1901-2000.
+  - CAT_TAV7100_DEC # mean December air temp, mm (1971-2000)
+  - CAT_TAV7100_JAN # mean January air temp, mm (1971-2000)
+  - CAT_TAV7100_FEB # mean February air temp, mm (1971-2000)
+  - CAT_TAV7100_MAR # mean March air temp, mm (1971-2000)
 
 Climate and Water Balance:
-  # Attributes per reach/catchment
-  - CAT_WBM_PPT # avg precip from WBM (used to calculate runoff-precip ratio)
-  - CAT_WBM_RUN # avg runoff from WBM 2000-2014 (used to calculate runoff-precip ratio)
-  - CAT_WBM_STO # avg soil moisture storage from WBM 2000-2014
-  - CAT_WB5100_JAN # Monthly avg runoff
-  - CAT_WB5100_FEB
-  - CAT_WB5100_MAR
-  - CAT_WB5100_APR
-  - CAT_WB5100_MAY
-  - CAT_WB5100_JUN
-  - CAT_WB5100_JUL
-  - CAT_WB5100_AUG
-  - CAT_WB5100_SEP
-  - CAT_WB5100_OCT
-  - CAT_WB5100_NOV
-  - CAT_WB5100_DEC
+  # NONE
 
 Climate Water Balance:
   # NONE
@@ -68,7 +56,6 @@ Geology:
 Hydrologic:
   - CAT_BFI # baseflow index, % of baseflow to total streamflow
   - CAT_CONTACT # number of days that infiltrated water resides in the saturated subsurface zone of the basin before discharging into the stream)
-  - CAT_EWT # avg depth to water table relative to land surface; if we use this, we should drop the other depth2wt value)
   - CAT_RECHG # mean annual GW recharge
 
 Hydrologic Modifications:
@@ -97,12 +84,10 @@ Regions:
   # NONE
 
 Soils:
-  # Soil characteristics of interest
-  - CAT_PERMAVE # soil permeability, inches/hour
+  # NONE
 
 Topographic:
   - CAT_BASIN_SLOPE # avg basin slope, %
-  - CAT_TOTAL_ROAD_DENS # road density
 
 Water Use:
   # NONE

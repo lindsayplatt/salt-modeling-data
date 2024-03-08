@@ -181,15 +181,8 @@ prepare_nhd_attributes <- function(nhd_attribute_table, comid_site_xwalk) {
     dplyr::select(site_no, everything(), 
                   -nhd_comid, -with_retry) %>% 
     
-    # Combine the monthly runoff (in mm) into seasons 
+    # Operate the following sums/means/etc by row
     rowwise() %>% 
-    mutate(attr_avgRunoffWinter = mean(c(CAT_WB5100_DEC,CAT_WB5100_JAN, CAT_WB5100_FEB, CAT_WB5100_MAR)),
-           attr_avgRunoffSpring = mean(c(CAT_WB5100_APR, CAT_WB5100_MAY)),
-           attr_avgRunoffSummer = mean(c(CAT_WB5100_JUN, CAT_WB5100_JUL, CAT_WB5100_AUG)),
-           attr_avgRunoffFall = mean(c(CAT_WB5100_SEP, CAT_WB5100_OCT, CAT_WB5100_NOV))) %>% 
-    
-    # Calculate runoff-precip ratio (unitless)
-    mutate(attr_runoffPrecipRatio = CAT_WBM_RUN/CAT_WBM_PPT) %>% 
     
     # Combine some of the land-use categories (in % catchment area)
     mutate(
@@ -203,21 +196,20 @@ prepare_nhd_attributes <- function(nhd_attribute_table, comid_site_xwalk) {
       attr_pctDeveloped = CAT_NLCD19_21 + CAT_NLCD19_22 + CAT_NLCD19_23 + CAT_NLCD19_24) %>% 
     
     # Calculate snow (in mm) from precip total
-    mutate(attr_avgSnow = CAT_PPT7100_ANN*CAT_PRSNOW/100) %>% 
+    mutate(attr_annualSnow = CAT_PPT7100_ANN*CAT_PRSNOW/100) %>% 
+    
+    # Calculate average winter air temperature from monthly averages
+    mutate(attr_winterAirTemp = mean(c(CAT_TAV7100_DEC, CAT_TAV7100_JAN,
+                                          CAT_TAV7100_FEB, CAT_TAV7100_MAR))) %>% 
     
     # Rename the columns whose values are used as-is
     rename(any_of(c(
       attr_annualPrecip = 'CAT_PPT7100_ANN', # in mm
-      attr_freezeDayFirst = 'CAT_FSTFZ6190', # day of year
-      attr_freezeDayLast = 'CAT_LSTFZ6190', # day of year
       attr_baseFlowInd = 'CAT_BFI', # % total flow
       attr_subsurfaceContact = 'CAT_CONTACT', # days
-      attr_avgDepth2WT = 'CAT_EWT', # in meters
-      attr_avgGWRecharge = 'CAT_RECHG', # in mm/year
+      attr_gwRecharge = 'CAT_RECHG', # in mm/year
       attr_pctOpenWater = 'CAT_NLCD19_11', # % catchment area
-      attr_soilPerm = 'CAT_PERMAVE', # inches per hour
-      attr_avgBasinSlope = 'CAT_BASIN_SLOPE', # % rise
-      attr_roadDensity = 'CAT_TOTAL_ROAD_DENS' # kilometer of roads per square kilometer
+      attr_basinSlope = 'CAT_BASIN_SLOPE' # % rise
     ))) %>% 
     
     # Select only the final attributes, which are those prefixed with `attr_`
@@ -231,18 +223,26 @@ prepare_nhd_attributes <- function(nhd_attribute_table, comid_site_xwalk) {
 #' depth to the water table.
 #' 
 #' @param depth2wt_csv a string specifying the filepath to the CSV downloaded from
-#' ScienceBase with the Zell and Sanford 2020 data release.
+#' ScienceBase with the Zell and Sanford 2020 data release for depth to water table.
+#' @param transmissivity_csv a string specifying the filepath to the CSV downloaded from
+#' ScienceBase with the Zell and Sanford 2020 data release for transmissivity.
 #' @param comid_site_xwalk a tibble with the columns `site_no`, `nhd_comid`, `with_retry`
 #' 
-#' @return tibble with the columns `site_no` and `attr_zellSanfordDepthToWT`
+#' @return tibble with the columns `site_no`, `attr_zellSanfordDepthToWT`, and
+#' `attr_transmissivity.`
 #' 
-prepare_sb_gw_attrs <- function(depth2wt_csv, comid_site_xwalk) {
+prepare_sb_gw_attrs <- function(depth2wt_csv, transmissivity_csv, comid_site_xwalk) {
   
   dtw <- read_csv(depth2wt_csv, show_col_types = FALSE) %>% 
     mutate(nhd_comid = comid) %>% 
-    select(nhd_comid, attr_zellSanfordDepthToWT = dtw250)
+    select(nhd_comid, attr_depthToWT = dtw250)
+  
+  trnmsv <- read_csv(transmissivity_csv, show_col_types = FALSE) %>% 
+    mutate(nhd_comid = comid) %>% 
+    select(nhd_comid, attr_transmissivity = trans250)
   
   comid_site_xwalk %>% 
     left_join(dtw, by = 'nhd_comid') %>% 
+    left_join(trnmsv, by = 'nhd_comid') %>% 
     select(site_no, starts_with('attr_'))
 }
