@@ -181,13 +181,6 @@ prepare_nhd_attributes <- function(nhd_attribute_table, comid_site_xwalk) {
     dplyr::select(site_no, everything(), 
                   -nhd_comid, -with_retry) %>% 
     
-    # Combine the monthly runoff (in mm) into seasons 
-    rowwise() %>% 
-    mutate(attr_avgRunoffWinter = mean(c(CAT_WB5100_DEC,CAT_WB5100_JAN, CAT_WB5100_FEB, CAT_WB5100_MAR)),
-           attr_avgRunoffSpring = mean(c(CAT_WB5100_APR, CAT_WB5100_MAY)),
-           attr_avgRunoffSummer = mean(c(CAT_WB5100_JUN, CAT_WB5100_JUL, CAT_WB5100_AUG)),
-           attr_avgRunoffFall = mean(c(CAT_WB5100_SEP, CAT_WB5100_OCT, CAT_WB5100_NOV))) %>% 
-    
     # Calculate runoff-precip ratio (unitless)
     mutate(attr_runoffPrecipRatio = CAT_WBM_RUN/CAT_WBM_PPT) %>% 
     
