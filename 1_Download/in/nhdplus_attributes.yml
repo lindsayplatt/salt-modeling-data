@@ -33,8 +33,6 @@ Chemical:
 Climate:
   # NONE
   # TODO: Could look at adding seasonal precip/temperature & should maybe use snow from here rather than WBM?
-  - CAT_FSTFZ6190 # Mean first freeze day of year
-  - CAT_LSTFZ6190 # Mean last freeze day of year
   - CAT_PPT7100_ANN # mean annual precip, mm (1971-2000)
   - CAT_PRSNOW # Snow percent of total precipitation estimate, mean for period 1901-2000.
   - CAT_TAV7100_DEC # mean December air temp, mm (1971-2000)
