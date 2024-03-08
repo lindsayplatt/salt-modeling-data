@@ -181,6 +181,9 @@ prepare_nhd_attributes <- function(nhd_attribute_table, comid_site_xwalk) {
     dplyr::select(site_no, everything(), 
                   -nhd_comid, -with_retry) %>% 
     
+    # Operate the following sums/means/etc by row
+    rowwise() %>% 
+    
     # Combine some of the land-use categories (in % catchment area)
     mutate(
       # Forested = deciduous forest + evergreen forest + mixed forest
