@@ -51,7 +51,7 @@ calculate_attr_importance <- function(rf_model) {
     mutate(attribute_grp = case_when(
       attribute %in% c('annualPrecip', 'annualSnow', 'winterAirTemp') ~ 'meteo',
       attribute %in% c('roadSaltPerSqKm') ~ 'salt',
-      attribute %in% c('baseFlowInd', 'GWRecharge', 'depthToWT', 
+      attribute %in% c('baseFlowInd', 'gwRecharge', 'depthToWT', 
                        'subsurfaceContact', 'transmissivity') ~ 'gw',
       attribute %in% c('pctAgriculture', 'pctDeveloped', 'pctForested', 
                        'pctOpenWater', 'pctWetland') ~ 'landcover',
