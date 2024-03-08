@@ -96,6 +96,10 @@ p2_targets <- list(
                                                               comid_site_xwalk = p3_nwis_site_nhd_comid_xwalk,
                                                               comid_upstream_tbl = p3_nhdplus_comids_upstream)),
   
+  # Now keep only the salt and catchment area attributes of interest in the final model
+  tar_target(p2_attr_basinArea_forModel, select(p2_attr_basinArea, attr_areaCumulativeSqKm)),
+  tar_target(p2_attr_roadSalt_forModel, select(p2_attr_roadSalt, attr_roadSaltPerSqKm)),
+  
   ###### ATTR DATA 3: Pivot and link NHD+ attributes to sites ######
   
   tar_target(p2_attr_nhd, prepare_nhd_attributes(p1_nhdplus_attr_vals_tbl,
@@ -110,8 +114,8 @@ p2_targets <- list(
   ###### ATTR DATA 4: Combine all static attributes into one table ######
   
   tar_target(p2_attr_all, combine_static_attributes(p2_attr_flow,
-                                                    p2_attr_basinArea, 
-                                                    p2_attr_roadSalt,
+                                                    p2_attr_basinArea_forModel, 
+                                                    p2_attr_roadSalt_forModel,
                                                     p2_attr_nhd,
                                                     p2_attr_depth2wt))
   
