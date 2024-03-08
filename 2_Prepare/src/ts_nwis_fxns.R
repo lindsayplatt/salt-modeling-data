@@ -127,9 +127,12 @@ combine_all_dv_data <- function(out_file, in_files, param_colname) {
     bind_rows() %>% 
     # Arrange so that site's data are together and ordered chronologically
     arrange(site_no, dateTime) %>% {
-      # For SC data, replace the -999999 code with NAs before counting & filling gaps
       if(param_colname == 'SpecCond')
+        # For SC data, replace the -999999 code with NAs before counting & filling gaps
         mutate(., SpecCond = na_if(SpecCond, -999999))
+      else if(param_colname == 'Flow')
+        # Convert Flow from cfs (ft3/s) to m3/s
+        mutate(., Flow = Flow/(3.28^3))
       else .
     } %>% 
     # Save the data as a file
