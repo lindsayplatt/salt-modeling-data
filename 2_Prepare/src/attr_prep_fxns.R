@@ -196,10 +196,10 @@ prepare_nhd_attributes <- function(nhd_attribute_table, comid_site_xwalk) {
       attr_pctDeveloped = CAT_NLCD19_21 + CAT_NLCD19_22 + CAT_NLCD19_23 + CAT_NLCD19_24) %>% 
     
     # Calculate snow (in mm) from precip total
-    mutate(attr_avgSnow = CAT_PPT7100_ANN*CAT_PRSNOW/100) %>% 
+    mutate(attr_annualSnow = CAT_PPT7100_ANN*CAT_PRSNOW/100) %>% 
     
     # Calculate average winter air temperature from monthly averages
-    mutate(attr_avgWinterAirTemp = mean(c(CAT_TAV7100_DEC, CAT_TAV7100_JAN,
+    mutate(attr_winterAirTemp = mean(c(CAT_TAV7100_DEC, CAT_TAV7100_JAN,
                                           CAT_TAV7100_FEB, CAT_TAV7100_MAR))) %>% 
     
     # Rename the columns whose values are used as-is
@@ -207,9 +207,9 @@ prepare_nhd_attributes <- function(nhd_attribute_table, comid_site_xwalk) {
       attr_annualPrecip = 'CAT_PPT7100_ANN', # in mm
       attr_baseFlowInd = 'CAT_BFI', # % total flow
       attr_subsurfaceContact = 'CAT_CONTACT', # days
-      attr_avgGWRecharge = 'CAT_RECHG', # in mm/year
+      attr_gwRecharge = 'CAT_RECHG', # in mm/year
       attr_pctOpenWater = 'CAT_NLCD19_11', # % catchment area
-      attr_avgBasinSlope = 'CAT_BASIN_SLOPE' # % rise
+      attr_basinSlope = 'CAT_BASIN_SLOPE' # % rise
     ))) %>% 
     
     # Select only the final attributes, which are those prefixed with `attr_`
@@ -235,7 +235,7 @@ prepare_sb_gw_attrs <- function(depth2wt_csv, transmissivity_csv, comid_site_xwa
   
   dtw <- read_csv(depth2wt_csv, show_col_types = FALSE) %>% 
     mutate(nhd_comid = comid) %>% 
-    select(nhd_comid, attr_zellSanfordDepthToWT = dtw250)
+    select(nhd_comid, attr_depthToWT = dtw250)
   
   trnmsv <- read_csv(transmissivity_csv, show_col_types = FALSE) %>% 
     mutate(nhd_comid = comid) %>% 
