@@ -96,7 +96,6 @@ Soils:
 
 Topographic:
   - CAT_BASIN_SLOPE # avg basin slope, %
-  - CAT_TOTAL_ROAD_DENS # road density
 
 Water Use:
   # NONE

@@ -216,8 +216,7 @@ prepare_nhd_attributes <- function(nhd_attribute_table, comid_site_xwalk) {
       attr_avgGWRecharge = 'CAT_RECHG', # in mm/year
       attr_pctOpenWater = 'CAT_NLCD19_11', # % catchment area
       attr_soilPerm = 'CAT_PERMAVE', # inches per hour
-      attr_avgBasinSlope = 'CAT_BASIN_SLOPE', # % rise
-      attr_roadDensity = 'CAT_TOTAL_ROAD_DENS' # kilometer of roads per square kilometer
+      attr_avgBasinSlope = 'CAT_BASIN_SLOPE' # % rise
     ))) %>% 
     
     # Select only the final attributes, which are those prefixed with `attr_`
