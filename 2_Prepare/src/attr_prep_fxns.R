@@ -209,7 +209,6 @@ prepare_nhd_attributes <- function(nhd_attribute_table, comid_site_xwalk) {
       attr_annualPrecip = 'CAT_PPT7100_ANN', # in mm
       attr_baseFlowInd = 'CAT_BFI', # % total flow
       attr_subsurfaceContact = 'CAT_CONTACT', # days
-      attr_avgDepth2WT = 'CAT_EWT', # in meters
       attr_avgGWRecharge = 'CAT_RECHG', # in mm/year
       attr_pctOpenWater = 'CAT_NLCD19_11', # % catchment area
       attr_avgBasinSlope = 'CAT_BASIN_SLOPE' # % rise

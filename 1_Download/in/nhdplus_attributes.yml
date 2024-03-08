@@ -59,7 +59,6 @@ Geology:
 Hydrologic:
   - CAT_BFI # baseflow index, % of baseflow to total streamflow
   - CAT_CONTACT # number of days that infiltrated water resides in the saturated subsurface zone of the basin before discharging into the stream)
-  - CAT_EWT # avg depth to water table relative to land surface; if we use this, we should drop the other depth2wt value)
   - CAT_RECHG # mean annual GW recharge
 
 Hydrologic Modifications:
