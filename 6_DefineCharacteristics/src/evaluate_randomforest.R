@@ -154,11 +154,11 @@ visualize_partial_dependence <- function(pdp_data, real_attribute_values) {
   real_attribute_values_to_plot <- real_attribute_values %>% 
     # Reshape the data
     pivot_longer(-site_category_fact, names_to = 'attribute', values_to = 'attr_val') %>% 
+    filter(attribute %in% unique(pdp_data$attribute)) %>% 
     # Log scale appropriate attributes for visual purposes
     log_transform_to_select_attributes() %>%
-    rename(site_category = site_category_fact) %>% 
-    filter(attribute %in% unique(pdp_data$attribute))
-  # TODO: the logged values are not showing up in the rug plot
+    rename(site_category = site_category_fact) 
+  
   pdp_data %>% 
     # Log scale appropriate attributes for visual purposes
     log_transform_to_select_attributes() %>%
