@@ -49,7 +49,8 @@ p6_targets <- list(
   tar_target(p6a_rf_attr_importance, calculate_attr_importance(p6a_rf_model_optimized)),
   tar_target(p6a_rf_attr_importance_viz, visualize_attr_importance(p6a_rf_attr_importance)),
   tar_target(p6a_rf_attr_partdep, calculate_partial_dependence(p6a_rf_model_optimized, 
-                                                              p6a_site_attr_rf_optimal)),
+                                                              p6a_site_attr_rf_optimal,
+                                                              focus_class = "Both")),
   tar_target(p6a_rf_attr_partdep_viz, visualize_partial_dependence(p6a_rf_attr_partdep, p6a_site_attr_rf_optimal)),
   
   ###### Visualize site category attribute distributions ######
@@ -93,7 +94,8 @@ p6_targets <- list(
   tar_target(p6b_rf_attr_importance, calculate_attr_importance(p6b_rf_model_optimized)),
   tar_target(p6b_rf_attr_importance_viz, visualize_attr_importance(p6b_rf_attr_importance)),
   tar_target(p6b_rf_attr_partdep, calculate_partial_dependence(p6b_rf_model_optimized, 
-                                                               p6b_site_attr_rf_optimal)),
+                                                               p6b_site_attr_rf_optimal,
+                                                               focus_class = "Episodic")),
   tar_target(p6b_rf_attr_partdep_viz, visualize_partial_dependence(p6b_rf_attr_partdep, p6b_site_attr_rf_optimal)),
   
   ###### Visualize site category attribute distributions ######
@@ -136,7 +138,8 @@ p6_targets <- list(
   tar_target(p6c_rf_attr_importance, calculate_attr_importance(p6c_rf_model_optimized)),
   tar_target(p6c_rf_attr_importance_viz, visualize_attr_importance(p6c_rf_attr_importance)),
   tar_target(p6c_rf_attr_partdep, calculate_partial_dependence(p6c_rf_model_optimized, 
-                                                               p6c_site_attr_rf_optimal)),
+                                                               p6c_site_attr_rf_optimal,
+                                                               focus_class = "positive")),
   tar_target(p6c_rf_attr_partdep_viz, visualize_partial_dependence(p6c_rf_attr_partdep, p6c_site_attr_rf_optimal)),
   
   ###### Visualize site category attribute distributions ######

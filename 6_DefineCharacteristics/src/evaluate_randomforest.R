@@ -109,32 +109,27 @@ visualize_attr_importance <- function(rf_model_importance) {
 #' returned from `apply_randomforest()`
 #' @param site_attr_data a tibble with the columns `site_category_fact` and any
 #' number of columns that give static attributes (not prefixed with `attr_`)
+#' @param focus_class a character string corresponding to one of the classes in
+#' the model and data that will be used as the focus of the partial dependence line.
 #' 
 #' @returns a data.frame of partial dependence with the columns `attribute`, 
 #' `site_category`, `attr_val`, and `attr_partdep`.
 #' 
-calculate_partial_dependence <- function(rf_model, site_attr_data) {
-  rf_classes <- rf_model$classes
+calculate_partial_dependence <- function(rf_model, site_attr_data, focus_class) {
   
   numeric_attrs <- rf_model$importance %>% rownames()
-  
-  combos <- expand.grid(
-    attribute = numeric_attrs, 
-    site_category = rf_classes, 
-    stringsAsFactors = FALSE)
-  
-  # TODO: revisit how this is calculated
-  var_partials <- combos %>% 
-    pmap(~{
-      pdp::partial(
-        rf_model,
-        pred.var = .x, 
-        which.class = .y,
-        train = site_attr_data
-      ) %>% setNames(c('attr_val', 'attr_partdep')) %>% 
-        mutate(attribute = .x, 
-               site_category = .y, .before='attr_val')
-    }) %>% 
+
+  var_partials <- map(numeric_attrs, ~{
+    pdp::partial(
+      rf_model,
+      pred.var = .x, 
+      prob = TRUE, 
+      which.class = focus_class,
+      train = site_attr_data
+    ) %>% setNames(c('attr_val', 'attr_partdep')) %>% 
+      mutate(attribute = .x, 
+             site_category = focus_class, .before='attr_val')
+  }) %>% 
     bind_rows()
 }
 
