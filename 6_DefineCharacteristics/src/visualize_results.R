@@ -18,7 +18,7 @@ create_summary_view <- function(out_file, partial_dep_ggplot, attributes_boxes_g
   
   rf_plots <- list(partial_dep_ggplot, attributes_boxes_ggplot, 
                    rf_importance_ggplot, rf_category_map)
-  png(out_file, width = 30, height = 15, res = 100, units = 'in')
+  png(out_file, width = 22, height = 17, res = 100, units = 'in')
   print(cowplot::plot_grid(plotlist = rf_plots, nrow=2, 
                      rel_heights = c(0.60, 0.40), 
                      rel_widths = c(0.60, 0.40)))
