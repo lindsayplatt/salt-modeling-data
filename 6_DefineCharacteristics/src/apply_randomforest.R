@@ -8,14 +8,17 @@
 #' @param mtry the number of variables randomly sampled as candidates at each 
 #' split; by default it will use the square root of the number of attributes.
 #' @param ntree the number of trees to try in the random forest; defaults to 500.
+#' @param seed a numeric value to use in `set.seed()` to ensure reproducibility; 
+#' defaults to 24
 #' 
 #' @returns an list object of class randomForest, see `?randomForest::randomForest`
 #' 
-apply_randomforest <- function(site_attr_data, mtry = NULL, ntree = NULL) {
+apply_randomforest <- function(site_attr_data, mtry = NULL, ntree = NULL, seed = 24) {
   
   # Use the default for mtry in `randomForest()` if passed in as NULL here
   if(is.null(mtry)) mtry <- floor(sqrt(ncol(site_attr_data) - 1))
   
+  set.seed(seed)
   randomForest(
     site_category_fact ~ .,
     data = site_attr_data,
