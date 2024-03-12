@@ -34,6 +34,13 @@ p5_targets <- list(
   
   # Calculate SC trends for non-winter baseflow days
   # If a site is not in this target, we were not able to calculate the trend
-  tar_target(p5_sc_baseflow_trend, calculate_sc_trend(p5_sc_baseflow_qualified, max_pval = 0.05))
+  tar_target(p5_sc_baseflow_trend, calculate_sc_trend(p5_sc_baseflow_qualified, max_pval = 0.05)),
+ 
+  # Save the trends as a log file to compare future versions
+  tar_target(p5_sc_baseflow_trend_csv, {
+    file_out <- '5_BaseflowSalinization/log/baseflow_trends.csv'
+    write_csv(p5_sc_baseflow_trend, file_out)
+    return(file_out)
+  }, format = 'file')
   
 )
