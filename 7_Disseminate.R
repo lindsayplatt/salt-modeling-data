@@ -15,6 +15,8 @@ p7_targets <- list(
   tar_target(p7_site_categories, bind_rows(p7_site_categories_episodic, p7_site_categories_baseflow)),
   
   # Boxplot of roadsalt showing that sites across all the categories had similar amounts
-  tar_target(p7_roadsalt_boxes_ggplot, create_roadSalt_boxplot(p3_static_attributes, p7_site_categories))
+  tar_target(p7_roadsalt_boxes_png, 
+             create_roadSalt_boxplot('7_Disseminate/out/roadSalt_boxes.png', p3_static_attributes, p7_site_categories),
+             format = 'file')
   
 )
