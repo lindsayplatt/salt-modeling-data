@@ -52,3 +52,50 @@ create_roadSalt_boxplot <- function(out_file, site_attr_data, all_site_categorie
   ggsave(out_file, p_boxes, width = 6.5, height = 6.5, dpi = 500)
   return(out_file)
 }
+
+
+#' @title Create a boxplot of road salt attributes by site model category
+#' @description Show how road salt may differ in distribution between the episodic
+#' classification, the baseflow classification, and the overall distribution.
+#' 
+#' @param out_file a filepath specifying where to save the image output as a PNG
+#' @param site_attr_data a tibble with one row per site and any number of columns
+#' giving different attributes; needs the columns `site_no` and `attr_[attribute]`
+#' @param all_site_categories a tibble with one row per site per model to visualize.
+#' Expects the columns `site_no`, `model`, `site_category`.
+#' 
+#' @returns a character string giving the location of the saved figure file
+#' 
+create_roadSalt_site_map <- function(out_file, site_attr_data, sites_sf, states_to_include) {
+  
+  # Calculate the 25th, 75th, and max values in the road salt data
+  quants_these_sites <- quantile(site_attr_data$attr_roadSaltPerSqKm, probs = c(0.25, 0.75, 1))
+  quants_these_sites <- quants_these_sites * c(1,1,1.01) # Ensure that the maximum value is actually included
+  
+  sites_w_roadSalt <- sites_sf %>% 
+    # First filter to only the sites we modeled with
+    filter(site_no %in% unique(site_attr_data$site_no)) %>% 
+    # Then join road attribute data and categorize road salt
+    left_join(select(site_attr_data, site_no, attr_roadSaltPerSqKm), by = 'site_no') %>% 
+    mutate(roadSalt_cat = cut(attr_roadSaltPerSqKm, 
+                              breaks = c(0,quants_these_sites), 
+                              labels = c('Low', 'Medium', 'High'), 
+                              right = TRUE))
+  
+  p_sitemap <- ggplot() +
+    add_state_basemap(states_to_include) +
+    geom_sf(data=sites_w_roadSalt, aes(fill = roadSalt_cat),
+            alpha=0.75, shape=24, size=3) +
+    scico::scale_fill_scico_d(palette = 'batlow', 
+                              name = expression(atop('Road salt applied',' per'~km^2~'(kg)'))) +
+    theme_void() +
+    theme(plot.background = element_rect(fill = 'white', color = 'white'),
+          legend.title = element_text(size = 14),
+          legend.text = element_text(size = 12),
+          legend.title.position = "left",
+          legend.position = "bottom",
+          legend.direction = "vertical")
+  
+  ggsave(out_file, p_sitemap, width = 6.5, height = 6.5, dpi = 500)
+  return(out_file)
+}
