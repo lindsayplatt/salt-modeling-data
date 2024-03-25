@@ -12,69 +12,59 @@ calculate_sc_trend <- function(ts_data, max_pval = 0.05) {
   ts_data %>% 
     split(.$site_no) %>% 
     map(~{tibble(
-      baseflowTrend = apply_SeasonalKendall(.x, max_pval = 0.05)
+      baseflowTrend = apply_MannKendall(.x, max_pval = 0.05)
     )}) %>%
     bind_rows(.id = 'site_no')
 }
 
-#' @title Find a trend in SC using a Seasonal Kendall test
-#' @description Calculate a trend for SC data using `EnvStats::kendallSeasonalTrendTest()`
+#' @title Find a trend in SC using a Mann-Kendall test
+#' @description Calculate a trend for SC data using `EnvStats::kendallTrendTest()`
 #' 
 #' @param ts_data a tibble of SC timeseries data for a single site with at least
 #' the columns `dateTime` and `SpecCond`.
 #' @param max_pval numeric value indicating the maximum p-value that is
-#' allowed to declare a trend significant. Passed on to `extract_sk_trend()`
+#' allowed to declare a trend significant. Passed on to `extract_mk_trend()`
 #' 
 #' @return a character string indicating the trend as "none", "positive", or "negative"
 #' 
-apply_SeasonalKendall <- function(ts_data, max_pval) {
+apply_MannKendall <- function(ts_data, max_pval) {
   
-  # According to PNNL: https://vsp.pnnl.gov/help/Vsample/Design_Trend_Seasonal_Kendall.htm
-  # Use seasonal MK when the "presence of seasonality implies that the data have different distributions for 
-  #   different seasons (e.g., months) of the year. For example, a monotonic upward trend may exist over years 
-  #   for January but not for June." AND a "monotonic upward (downward) trend means that the variable consistently 
-  #   increases (decreases) over time, but the trend may or may not be linear."
-  # While I think that the trends may be different by season, I'm not sure we can apply the blanket statement 
-  # that they will all either be going up or down. I think there may be instances where winter seasons are going
-  # up but summer are going down?
-  
-  # To use a Seasonal Kendall, first transform the data into monthly medians
-  ts_data_monthly <- ts_data %>% 
-    mutate(year = lubridate::year(dateTime),
-           month = as.numeric(lubridate::month(dateTime))) %>% 
-    group_by(year, month) %>% 
-    summarize(SpecCond_med = median(SpecCond), .groups="keep") %>% 
+  # To use Mann-Kendall, first transform the data into annual medians
+  ts_data_annual <- ts_data %>%
+    mutate(year = lubridate::year(dateTime)) %>%
+    group_by(year) %>%
+    summarize(SpecCond_med = median(SpecCond), .groups="keep") %>%
     ungroup()
   
-  # Run the Seasonal Kendall test and extract the trend result
-  EnvStats::kendallSeasonalTrendTest(SpecCond_med ~ month + year, 
-                                       data = ts_data_monthly) %>% 
-    extract_sk_trend(max_pval = max_pval)
+  # Run the Mann-Kendall test and extract the trend result
+  EnvStats::kendallTrendTest(SpecCond_med ~ year,
+                             data = ts_data_annual) %>%
+    extract_mk_trend(max_pval = max_pval)
   
 }
 
-#' @title Extract the trend from Seasonal Kendall (SK output)
-#' @description Use the output from a `EnvStats::kendallSeasonalTrendTest()` 
+#' @title Extract the trend from Mann-Kendall (MK) output
+#' @description Use the output from a `EnvStats::kendallTrendTest()` 
 #' to categorize the trend as either `none`, `positive`, or `negative`. 
 #' 
-#' @param sk_output a model object of the class `htestEnvStats` from running 
-#' `EnvStats::kendallSeasonalTrendTest()`.
+#' @param mk_output a model object of the class `htest` from running 
+#' `EnvStats::kendallTrendTest()`.
 #' @param max_pval numeric value indicating the maximum p-value that is
 #' allowed to declare a trend significant. Any model output with a p-value
 #' above this value will have return "none" for the trend. Defaults to 0.05.
 #' 
 #' @return a character string indicating the trend as "none", "positive", or "negative"
 #' 
-extract_sk_trend <- function(sk_output, max_pval = 0.05) {
+extract_mk_trend <- function(mk_output, max_pval = 0.05) {
   
   # Extract the pvalue
-  pval <- sk_output$p.value[['z (Trend)']]
+  pval <- mk_output$p.value[['z']]
   
   # Extract the slope 
-  slope <- sk_output$estimate[['slope']]
+  slope <- mk_output$estimate[['slope']]
   
   # Return the appropriate trend name based on the
-  # Seasonal Kendall slope but only if the
+  # Mann-Kendall slope but only if the
   # p-value was below `max_pval`.
   if(pval >= max_pval | slope == 0) {
     trend <- "none"
