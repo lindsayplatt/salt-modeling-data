@@ -3,6 +3,7 @@
 source('7_Disseminate/src/roadSalt_figs.R')
 source('7_Disseminate/src/partialDependence_figs.R')
 source('7_Disseminate/src/importance_figs.R')
+source('7_Disseminate/src/attribute_boxplot_figs.R')
 source('7_Disseminate/src/category_map_figs.R')
 
 p7_targets <- list(
@@ -82,6 +83,21 @@ p7_targets <- list(
              visualize_attr_importance('7_Disseminate/out/importance_baseflow.png', 
                                        p7_overall_attr_importance_baseflow,
                                        p7_attr_name_xwalk, scico_palette = 'lajolla')),
+  
+  ##### Boxplots of attributes by model/category #####
+  
+  tar_target(p7_attr_episodic_boxplots_png, 
+             create_attribute_boxplots('7_Disseminate/out/attributes_boxes_episodic.png',
+                                       p6b_site_attr_rf_optimal,
+                                       p7_overall_attr_importance_episodic$attribute,
+                                       p7_attr_name_xwalk, 
+                                       c(Episodic='#0b5394', `Not episodic` = 'grey40'))),
+  tar_target(p7_attr_baseflow_boxplots_png, 
+             create_attribute_boxplots('7_Disseminate/out/attributes_boxes_baseflow.png',
+                                       p6c_site_attr_rf_optimal,
+                                       p7_overall_attr_importance_baseflow$attribute,
+                                       p7_attr_name_xwalk, 
+                                       c(positive='#b45f06', none='grey40', negative='#663329'))),
   
   ##### Map of sites by category #####
   
