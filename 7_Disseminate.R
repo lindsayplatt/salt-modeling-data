@@ -3,6 +3,7 @@
 source('7_Disseminate/src/roadSalt_figs.R')
 source('7_Disseminate/src/partialDependence_figs.R')
 source('7_Disseminate/src/importance_figs.R')
+source('7_Disseminate/src/category_map_figs.R')
 
 p7_targets <- list(
   
@@ -80,6 +81,15 @@ p7_targets <- list(
   tar_target(p7_importance_baseflow_png, 
              visualize_attr_importance('7_Disseminate/out/importance_baseflow.png', 
                                        p7_overall_attr_importance_baseflow,
-                                       p7_attr_name_xwalk, scico_palette = 'lajolla'))
+                                       p7_attr_name_xwalk, scico_palette = 'lajolla')),
+  
+  ##### Map of sites by category #####
+  
+  tar_target(p7_episodic_sitemap_png, 
+             create_episodic_site_map('7_Disseminate/out/episodic_sitemap.png', p1_nwis_sc_sites_sf, 
+                                      p7_site_categories, p1_conus_state_cds)),
+  tar_target(p7_baseflow_sitemap_png, 
+             create_baseflow_site_map('7_Disseminate/out/baseflow_sitemap.png', p1_nwis_sc_sites_sf, 
+                                      p7_site_categories, p1_conus_state_cds))
   
 )
