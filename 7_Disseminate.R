@@ -5,6 +5,7 @@ source('7_Disseminate/src/partialDependence_figs.R')
 source('7_Disseminate/src/importance_figs.R')
 source('7_Disseminate/src/attribute_boxplot_figs.R')
 source('7_Disseminate/src/category_map_figs.R')
+source('7_Disseminate/src/baseflowTrend_figs.R')
 
 p7_targets <- list(
   
@@ -106,6 +107,14 @@ p7_targets <- list(
                                       p7_site_categories, p1_conus_state_cds)),
   tar_target(p7_baseflow_sitemap_png, 
              create_baseflow_site_map('7_Disseminate/out/baseflow_sitemap.png', p1_nwis_sc_sites_sf, 
-                                      p7_site_categories, p1_conus_state_cds))
+                                      p7_site_categories, p1_conus_state_cds)),
+  
+  ##### Save plots of baseflow trends for each site #####
+  
+  tar_target(p7_baseflow_trends_plotlist, create_baseflow_trend_plotlist(p5_sc_baseflow_qualified, p5_sc_baseflow_trend)),
+  tar_target(p7_baseflow_trends_png, 
+             ggsave(filename = sprintf('7_Disseminate/out/baseflow_trends_grp%s.png', names(p7_baseflow_trends_plotlist)), 
+                    plot = p7_baseflow_trends_plotlist[[1]], height = 8, width = 10, dpi = 500), 
+             format = 'file', pattern = map(p7_baseflow_trends_plotlist))
   
 )
