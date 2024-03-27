@@ -40,7 +40,7 @@ create_partialDependence_miniPlots_figure <- function(out_file, pdp_data, real_a
     # log_transform_to_select_attributes() %>%
     rename(site_category = site_category_fact) %>% 
     mutate(attr_fact = attribute_as_factor(attribute, attribute_order, display_name_in_order))
-  
+  # TODO: REVISIT LOGGED SCALE
   p_pdp <- pdp_data %>% 
     mutate(attr_fact = attribute_as_factor(attribute, attribute_order, display_name_in_order)) %>% 
     # Log scale appropriate attributes for visual purposes
@@ -51,12 +51,16 @@ create_partialDependence_miniPlots_figure <- function(out_file, pdp_data, real_a
     geom_line(aes(y = attr_partdep), color = line_color, linewidth = 1.5) +
     geom_rug(data=real_attribute_values_to_plot, sides='b') +
     theme_bw() +
-    theme(text = element_text(size=14), 
+    theme(text = element_text(size=12), 
+          axis.text = element_text(size=10),
+          axis.title.y = element_text(vjust = 1.5),
           strip.background = element_blank(),
-          strip.text = element_text(size = 12, face = 'bold')) +
+          strip.text = element_text(size = 12, face = 'bold'),
+          strip.clip = "off",
+          panel.spacing = unit(0.75, "lines"),
+          plot.margin = unit(c(0.5,1,0,0.5), 'lines')) +
     ylab('Probability') + xlab('')
   
   ggsave(out_file, p_pdp, width = 6.5, height = 6.5, dpi = 500)
   return(out_file)
 }
-
