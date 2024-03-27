@@ -21,11 +21,11 @@ p7_targets <- list(
   tar_target(p7_overall_attr_importance_episodic, p6b_rf_attr_importance %>% 
                filter(site_category == 'Overall mean') %>% 
                arrange(desc(importance))),
-  tar_target(p7_oob_error_episodic, p6b_rf_oob),
+  tar_target(p7_oob_error_episodic, round(p6b_rf_oob*100, digits=1)),
   tar_target(p7_overall_attr_importance_baseflow, p6c_rf_attr_importance %>% 
                filter(site_category == 'Overall mean') %>% 
                arrange(desc(importance))),
-  tar_target(p7_oob_error_baseflow, p6c_rf_oob),
+  tar_target(p7_oob_error_baseflow, round(p6c_rf_oob*100, digits=1)),
   
   # Create a single dataset that collapses all categorization data of baseflow
   # and episodic into a single data.frame (so each site should appear twice)
