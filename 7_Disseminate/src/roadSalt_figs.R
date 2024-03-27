@@ -53,16 +53,16 @@ create_roadSalt_boxplot <- function(out_file, site_attr_data, all_site_categorie
   return(out_file)
 }
 
-
-#' @title Create a boxplot of road salt attributes by site model category
-#' @description Show how road salt may differ in distribution between the episodic
-#' classification, the baseflow classification, and the overall distribution.
+#' @title Create a map of sites with road salt values categorized as low, high, medium
+#' @description Show how road salt is distributed spatially
 #' 
 #' @param out_file a filepath specifying where to save the image output as a PNG
 #' @param site_attr_data a tibble with one row per site and any number of columns
 #' giving different attributes; needs the columns `site_no` and `attr_[attribute]`
-#' @param all_site_categories a tibble with one row per site per model to visualize.
-#' Expects the columns `site_no`, `model`, `site_category`.
+#' @param sites_sf a spatial data frame with locations for NWIS sites. Needs
+#' at least a `site_no` and `geometry` column.
+#' @param states_to_include a vector of state two-letter abbreviation codes to
+#' create the map object using `usmap` package fxns.
 #' 
 #' @returns a character string giving the location of the saved figure file
 #' 
