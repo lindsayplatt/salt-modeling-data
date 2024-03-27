@@ -46,6 +46,11 @@ p7_targets <- list(
              create_roadSalt_site_map('7_Disseminate/out/roadSalt_sitemap.png', p3_static_attributes, p1_nwis_sc_sites_sf, p1_conus_state_cds),
              format = 'file'),
   
+  # Map of gridded roadsalt 
+  tar_target(p7_roadsalt_gridmap_png, 
+             create_roadSalt_map('7_Disseminate/out/roadSalt_gridmap.png', p1_sb_road_salt_2015_tif, p1_conus_state_cds),
+             format = 'file'),
+  
   # Partial dependence plots showing how probability varies by attribute value
   tar_target(p7_partDep_episodic_png, 
              create_partialDependence_miniPlots_figure('7_Disseminate/out/partDep_episodic.png', 

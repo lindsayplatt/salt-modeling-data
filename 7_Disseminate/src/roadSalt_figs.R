@@ -99,3 +99,59 @@ create_roadSalt_site_map <- function(out_file, site_attr_data, sites_sf, states_
   ggsave(out_file, p_sitemap, width = 6.5, height = 6.5, dpi = 500)
   return(out_file)
 }
+
+#' @title Create a map of gridded road salt data
+#' @description Show how road salt may differ in distribution between the episodic
+#' classification, the baseflow classification, and the overall distribution.
+#' 
+#' @param out_file a filepath specifying where to save the image output as a PNG
+#' @param road_salt_tif filepath to the road salt tif file
+#' @param states_to_include a vector of state two-letter abbreviation codes to
+#' create the map object using `usmap` package fxns.
+#' 
+#' @returns a character string giving the location of the saved figure file
+#' 
+create_roadSalt_map <- function(out_file, road_salt_tif, states_to_include) {
+  
+  # Create state polygons to crop raster
+  states_sf <- usmap::us_map(include = states_to_include) %>% 
+    st_as_sf(coords = c('x', 'y'), 
+             crs = usmap::usmap_crs())
+  
+  # Prepare road salt raster data
+  road_salt_rast <- raster::raster(road_salt_tif) %>% 
+    # Reproject the road salt raster data
+    raster::projectRaster(., crs = usmap::usmap_crs()$input) %>% 
+    # Crop to the exact states polygons
+    crop(., extent(states_sf)) %>% 
+    mask(., states_sf)
+  
+  # Calculate quantiles for this region of road salt
+  salt_quants <- quantile(road_salt_rast, probs = c(0.25, 0.75, 1))
+  salt_quants <- salt_quants * c(1,1,1.01) # Ensure that the maximum value is actually included
+  
+  # Prepare road salt grids for plotting - only those above 0 and in categories
+  road_salt_tbl <- road_salt_rast %>% 
+    as.data.frame(., xy=TRUE) %>% 
+    filter(road_salt_2015 > 0) %>% 
+    mutate(roadSalt_cat = cut(road_salt_2015, 
+                              breaks = c(0,salt_quants), 
+                              labels = c('Low (< 25%ile)', 'Medium', 'High (> 75%ile)'), 
+                              right = TRUE))
+  
+  p_saltmap <- ggplot() +
+    add_state_basemap(states_to_include) +
+    geom_raster(data = road_salt_tbl, aes(x=x, y=y, fill = roadSalt_cat)) +
+    scico::scale_fill_scico_d(palette = 'bilbao', direction = -1, end = 0.75,
+                            name = expression(atop('Road salt applied',' per'~km^2~'(kg)'))) +
+    theme_void() +
+    theme(plot.background = element_rect(fill = 'white', color = 'white'),
+          legend.title = element_text(size = 14),
+          legend.text = element_text(size = 12),
+          legend.title.position = "left",
+          legend.position = "bottom",
+          legend.direction = "vertical")
+  
+  ggsave(out_file, p_saltmap, width = 6.5, height = 6.5, dpi = 500)
+  return(out_file)
+}
