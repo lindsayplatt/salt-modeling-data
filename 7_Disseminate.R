@@ -13,7 +13,7 @@ p7_targets <- list(
                   "pctForested", "pctWetland", "pctAgriculture", "pctDeveloped", 
                   "annualSnow", "winterAirTemp", "depthToWT", "transmissivity"),
     display_name = c("Median Flow (m3/s)", "Road Salt / SqKm (kg)", "Precip (mm/yr)", "Baseflow Index",
-                     "Subsurface Contact (days)", "GW Recharge (mm/yr)", "Open Water (%)", "Basin Slope (%)",
+                     "Subsurface Contact (days)", "GW Recharge (mm/yr)", "Open Water (% area)", "Basin Slope (%)",
                      "Forested (% area)", "Wetland (% area)", "Agriculture (% area)", "Developed (% area)", 
                      "Snow (mm/yr)", "Winter Air Temp (°C)", "Depth to WT (m)", "Transmissivity (m2/day)"))),
   
