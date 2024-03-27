@@ -2,6 +2,7 @@
 
 source('7_Disseminate/src/roadSalt_figs.R')
 source('7_Disseminate/src/partialDependence_figs.R')
+source('7_Disseminate/src/importance_figs.R')
 
 p7_targets <- list(
   
@@ -63,6 +64,16 @@ p7_targets <- list(
                                                        p6c_rf_attr_partdep, p6c_site_attr_rf_optimal,
                                                        p7_overall_attr_importance_baseflow$attribute,
                                                        p7_attr_name_xwalk, '#b45f06'),
-             format = 'file')
+             format = 'file'),
+  
+  tar_target(p7_importance_episodic_png, 
+             visualize_attr_importance('7_Disseminate/out/importance_episodic.png', 
+                                       p7_overall_attr_importance_episodic,
+                                       p7_attr_name_xwalk, scico_palette = 'lapaz')),
+  
+  tar_target(p7_importance_baseflow_png, 
+             visualize_attr_importance('7_Disseminate/out/importance_baseflow.png', 
+                                       p7_overall_attr_importance_baseflow,
+                                       p7_attr_name_xwalk, scico_palette = 'lajolla'))
   
 )
