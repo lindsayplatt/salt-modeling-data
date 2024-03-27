@@ -37,6 +37,8 @@ p7_targets <- list(
                select(site_no, model, site_category = site_category_fact)),
   tar_target(p7_site_categories, bind_rows(p7_site_categories_episodic, p7_site_categories_baseflow)),
   
+  ##### Road salt figures #####
+  
   # Boxplot of roadsalt showing that sites across all the categories had similar amounts
   tar_target(p7_roadsalt_boxes_png, 
              create_roadSalt_boxplot('7_Disseminate/out/roadSalt_boxes.png', p3_static_attributes, p7_site_categories),
@@ -52,6 +54,8 @@ p7_targets <- list(
              create_roadSalt_map('7_Disseminate/out/roadSalt_gridmap.png', p1_sb_road_salt_2015_tif, p1_conus_state_cds),
              format = 'file'),
   
+  ##### Partial dependence plots #####
+  
   # Partial dependence plots showing how probability varies by attribute value
   tar_target(p7_partDep_episodic_png, 
              create_partialDependence_miniPlots_figure('7_Disseminate/out/partDep_episodic.png', 
@@ -65,6 +69,8 @@ p7_targets <- list(
                                                        p7_overall_attr_importance_baseflow$attribute,
                                                        p7_attr_name_xwalk, '#b45f06'),
              format = 'file'),
+  
+  ##### Attribute importance figures #####
   
   tar_target(p7_importance_episodic_png, 
              visualize_attr_importance('7_Disseminate/out/importance_episodic.png', 
