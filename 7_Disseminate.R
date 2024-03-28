@@ -6,6 +6,7 @@ source('7_Disseminate/src/importance_figs.R')
 source('7_Disseminate/src/attribute_boxplot_figs.R')
 source('7_Disseminate/src/category_map_figs.R')
 source('7_Disseminate/src/baseflowTrend_figs.R')
+source('7_Disseminate/src/episodic_detection_figs.R')
 
 p7_targets <- list(
   
@@ -115,6 +116,14 @@ p7_targets <- list(
   tar_target(p7_baseflow_trends_png, 
              ggsave(filename = sprintf('7_Disseminate/out/baseflow_trends_grp%s.png', names(p7_baseflow_trends_plotlist)), 
                     plot = p7_baseflow_trends_plotlist[[1]], height = 8, width = 10, dpi = 500), 
-             format = 'file', pattern = map(p7_baseflow_trends_plotlist))
+             format = 'file', pattern = map(p7_baseflow_trends_plotlist)),
+  
+  ##### Save plots of episodic behavior for each site #####
+  
+  tar_target(p7_episodic_plotlist, create_episodic_plotlist(p3_ts_sc_qualified, p4_episodic_sites)),
+  tar_target(p7_episodic_png, 
+             ggsave(filename = sprintf('7_Disseminate/out/episodic_grp%s.png', names(p7_episodic_plotlist)), 
+                    plot = p7_episodic_plotlist[[1]], height = 8, width = 10, dpi = 500), 
+             format = 'file', pattern = map(p7_episodic_plotlist))
   
 )
