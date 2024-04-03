@@ -110,6 +110,10 @@ p7_targets <- list(
              create_baseflow_site_map('7_Disseminate/out/baseflow_sitemap.png', p1_nwis_sc_sites_sf, 
                                       p7_site_categories, p1_conus_state_cds)),
   
+  tar_target(p7_overlap_sitemap_png, 
+             create_overlap_site_map('7_Disseminate/out/overlap_sitemap.png', p1_nwis_sc_sites_sf, 
+                                      p7_site_categories, p1_conus_state_cds)),
+  
   ##### Save plots of baseflow trends for each site #####
   
   tar_target(p7_baseflow_trends_plotlist, create_baseflow_trend_plotlist(p5_sc_baseflow_qualified, p5_sc_baseflow_trend)),

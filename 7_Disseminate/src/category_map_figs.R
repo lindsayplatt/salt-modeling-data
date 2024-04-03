@@ -94,3 +94,32 @@ create_baseflow_site_map <- function(out_file, sites_sf, site_category_data, sta
   
   return(out_file)
 }
+
+#' @title Create a figure with maps of sites categorized with the overlap between baseflow/episodic
+#' @description Maps either the sites that are both baseflow and episodic salinization.
+#' 
+#' @param out_file a filepath specifying where to save the image output as a PNG
+#' @param sites_sf a spatial data frame with locations for NWIS sites. Needs
+#' at least a `site_no` and `geometry` column.
+#' @param all_site_categories a tibble with one row per site per model to visualize.
+#' Expects the columns `site_no`, `model`, `site_category`.
+#' @param states_to_include a vector of state two-letter abbreviation codes to
+#' create the map object using `usmap` package fxns.
+#' 
+#' @returns a character string giving the location of the saved figure file
+#' 
+create_overlap_site_map <- function(out_file, sites_sf, site_category_data, states_to_include) {
+  
+  both_sites <- site_category_data %>% 
+    pivot_wider(names_from = 'model', values_from = 'site_category') %>% 
+    filter(episodic == 'Episodic', baseflow == 'positive') %>% 
+    pull(site_no)
+  p_both <- map_category_sites(sites_sf, both_sites, states_to_include, 'grey20', 
+                               'Both positive baseflow trend & episodic sites')
+  
+  png(out_file, width = 3.25, height = 3.25, units='in', res=500)
+  print(p_both)
+  dev.off()
+  
+  return(out_file)
+}
