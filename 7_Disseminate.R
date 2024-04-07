@@ -79,12 +79,14 @@ p7_targets <- list(
   tar_target(p7_importance_episodic_png, 
              visualize_attr_importance('7_Disseminate/out/importance_episodic.png', 
                                        p7_overall_attr_importance_episodic,
-                                       p7_attr_name_xwalk, scico_palette = 'lapaz')),
+                                       p7_attr_name_xwalk, scico_palette = 'lapaz'), 
+             format='file'),
   
   tar_target(p7_importance_baseflow_png, 
              visualize_attr_importance('7_Disseminate/out/importance_baseflow.png', 
                                        p7_overall_attr_importance_baseflow,
-                                       p7_attr_name_xwalk, scico_palette = 'lajolla')),
+                                       p7_attr_name_xwalk, scico_palette = 'lajolla'), 
+             format='file'),
   
   ##### Boxplots of attributes by model/category #####
   
@@ -93,13 +95,15 @@ p7_targets <- list(
                                        p6b_site_attr_rf_optimal,
                                        p7_overall_attr_importance_episodic$attribute,
                                        p7_attr_name_xwalk, 
-                                       c(Episodic='#0b5394', `Not episodic` = 'grey40'))),
+                                       c(Episodic='#0b5394', `Not episodic` = 'grey40')), 
+             format='file'),
   tar_target(p7_attr_baseflow_boxplots_png, 
              create_attribute_boxplots('7_Disseminate/out/attributes_boxes_baseflow.png',
                                        p6c_site_attr_rf_optimal,
                                        p7_overall_attr_importance_baseflow$attribute,
                                        p7_attr_name_xwalk, 
-                                       c(positive='#b45f06', none='grey40', negative='#663329'))),
+                                       c(positive='#b45f06', none='grey40', negative='#663329')), 
+             format='file'),
   
   ##### Map of sites by category #####
   
@@ -109,18 +113,21 @@ p7_targets <- list(
                                 site_color = 'grey30', map_title = 'Qualified sites')
     ggsave(out_file, p_map, width = 3.25, height = 3.25, dpi = 500, bg='white')
     return(out_file)
-  }),
+  }, format='file'),
   
   tar_target(p7_episodic_sitemap_png, 
              create_episodic_site_map('7_Disseminate/out/episodic_sitemap.png', p1_nwis_sc_sites_sf, 
-                                      p7_site_categories, p1_conus_state_cds)),
+                                      p7_site_categories, p1_conus_state_cds), 
+             format='file'),
   tar_target(p7_baseflow_sitemap_png, 
              create_baseflow_site_map('7_Disseminate/out/baseflow_sitemap.png', p1_nwis_sc_sites_sf, 
-                                      p7_site_categories, p1_conus_state_cds)),
+                                      p7_site_categories, p1_conus_state_cds), 
+             format='file'),
   
   tar_target(p7_overlap_sitemap_png, 
              create_overlap_site_map('7_Disseminate/out/overlap_sitemap.png', p1_nwis_sc_sites_sf, 
-                                      p7_site_categories, p1_conus_state_cds)),
+                                      p7_site_categories, p1_conus_state_cds), 
+             format='file'),
   
   ##### Save plots of baseflow trends for each site #####
   
