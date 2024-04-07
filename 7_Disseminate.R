@@ -103,6 +103,14 @@ p7_targets <- list(
   
   ##### Map of sites by category #####
   
+  tar_target(p7_all_sitemap_png, {
+    out_file <- '7_Disseminate/out/2.2_sitemap_all_qualified.png'
+    p_map <- map_category_sites(p1_nwis_sc_sites_sf, p3_static_attributes$site_no, p1_conus_state_cds, 
+                                site_color = 'grey30', map_title = 'Qualified sites')
+    ggsave(out_file, p_map, width = 3.25, height = 3.25, dpi = 500, bg='white')
+    return(out_file)
+  }),
+  
   tar_target(p7_episodic_sitemap_png, 
              create_episodic_site_map('7_Disseminate/out/episodic_sitemap.png', p1_nwis_sc_sites_sf, 
                                       p7_site_categories, p1_conus_state_cds)),
