@@ -14,6 +14,7 @@ tar_option_set(
     'FlowScreen',
     'GGally', # Needed for `ggcorr()`
     'httr',
+    'magick', # Needed for 7_Disseminate and `cowplot::draw_image()`
     'MESS',
     'nhdplusTools',
     'pdp',
