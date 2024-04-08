@@ -121,6 +121,19 @@ p7_targets <- list(
     return(out_file)
   }, format='file'),
   
+  tar_target(p7_rf_results_baseflow_png, {
+    out_file <- '7_Disseminate/out/3.2_baseflow_rf_results.png'
+    fig_importance <- cowplot::ggdraw() + cowplot::draw_image(p7_importance_baseflow_png)
+    fig_partDep <- cowplot::ggdraw() + cowplot::draw_image(p7_partDep_baseflow_png)
+    fig_boxes <- cowplot::ggdraw() + cowplot::draw_image(p7_attr_baseflow_boxplots_png)
+    png(out_file, width = 6.5, height = 3.25, units = 'in', res = 500)
+    print(cowplot::plot_grid(fig_importance, fig_partDep, fig_boxes, 
+                             nrow=1, label_size=10,
+                             labels=sprintf('(%s)', letters[1:3])))
+    dev.off()
+    return(out_file)
+  }, format='file'),
+  
   ##### Map of sites by category #####
   
   tar_target(p7_all_sitemap_png, {
