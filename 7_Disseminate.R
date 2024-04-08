@@ -143,6 +143,20 @@ p7_targets <- list(
   tar_target(p7_episodic_png, 
              ggsave(filename = sprintf('7_Disseminate/out/episodic_grp%s.png', names(p7_episodic_plotlist)), 
                     plot = p7_episodic_plotlist[[1]], height = 8, width = 10, dpi = 500), 
-             format = 'file', pattern = map(p7_episodic_plotlist))
+             format = 'file', pattern = map(p7_episodic_plotlist)),
+  tar_target(p7_episodic_examples_plot, {
+    example_episodic_sites <- c('02042500', '01481500', '04166500') # Richmond, Wilmington, Detroit
+    example_not_episodic_sites <- c('01481000', '03183500', '04176500') # NW of Wilmington, SE of Philly, West Virginia, S of Detroit
+    p3_ts_sc_qualified %>% 
+      filter(site_no %in% c(example_episodic_sites, example_not_episodic_sites)) %>%
+      create_episodic_plotlist(example_episodic_sites, nrow=2) 
+  }),
+  tar_target(p7_episodic_examples_png, {
+    out_file <- '7_Disseminate/out/3.1_episodic_ts.png'
+    png(out_file, width = 13, height = 6.5, units='in', res=500)
+    print(p7_episodic_examples_plot)
+    dev.off()
+    return(out_file)
+  }, format='file')
   
 )

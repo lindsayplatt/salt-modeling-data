@@ -9,10 +9,11 @@
 #' for being an "episodic site". See targets in `4_EpisodicSalinization`. 
 #' @param winter_months a numeric vector indicating which months should be 
 #' considered "winter"; defaults to `c(12,1,2,3)` or Dec, Jan, Feb, and Mar.
+#' @param nrow numeric value indicating the number of rows of facets to plot; defaults to 5
 #' 
 #' @returns a list of ggplots
 #' 
-create_episodic_plotlist <- function(ts_sc, sites_episodic, winter_months = c(12,1,2,3)) {
+create_episodic_plotlist <- function(ts_sc, sites_episodic, winter_months = c(12,1,2,3), nrow=5) {
   
   # Prepare information for ordering sites and adding horizontal lines to each plot
   site_category <- ts_sc %>% 
@@ -53,7 +54,7 @@ create_episodic_plotlist <- function(ts_sc, sites_episodic, winter_months = c(12
       scale_color_manual(values = c(`Winter date (episodic site)` = '#0b5394', 
                                     `Winter date (not episodic site)` = 'grey15',
                                     `Non-winter date` = 'grey70')) +
-      facet_wrap(vars(site_no_ord), scales='free', nrow=5) +
+      facet_wrap(vars(site_no_ord), scales='free', nrow=nrow) +
       geom_hline(data = ts_sc_info, aes(yintercept = SpC75), linetype = 'dashed') + 
       ylab('Specific conductance, µS/cm at 25°C') + 
       theme_bw() +
