@@ -116,11 +116,11 @@ p7_targets <- list(
   }, format='file'),
   
   tar_target(p7_episodic_sitemap_png, 
-             create_episodic_site_map('7_Disseminate/out/episodic_sitemap.png', p1_nwis_sc_sites_sf, 
+             create_episodic_site_map('7_Disseminate/out/3.1_episodic_sitemap.png', p1_nwis_sc_sites_sf, 
                                       p7_site_categories, p1_conus_state_cds), 
              format='file'),
   tar_target(p7_baseflow_sitemap_png, 
-             create_baseflow_site_map('7_Disseminate/out/baseflow_sitemap.png', p1_nwis_sc_sites_sf, 
+             create_baseflow_site_map('7_Disseminate/out/3.2_baseflow_sitemap.png', p1_nwis_sc_sites_sf, 
                                       p7_site_categories, p1_conus_state_cds), 
              format='file'),
   

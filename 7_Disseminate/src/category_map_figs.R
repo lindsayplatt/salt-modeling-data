@@ -55,7 +55,7 @@ create_episodic_site_map <- function(out_file, sites_sf, all_site_categories, st
   p_notepisodic <- map_category_sites(sites_sf, notepisodic_sites, states_to_include, 'grey30', 'Not episodic sites')
   
   png(out_file, width = 6.5, height = 3.25, units='in', res=500)
-  print(cowplot::plot_grid(p_episodic, p_notepisodic, nrow=1))
+  print(cowplot::plot_grid(p_episodic, p_notepisodic, nrow=1, labels=c("(a)", "(b)"), label_size = 10))
   dev.off()
   
   return(out_file)
@@ -87,9 +87,10 @@ create_baseflow_site_map <- function(out_file, sites_sf, site_category_data, sta
   p_negative <- map_category_sites(sites_sf, negative_sites, states_to_include, '#663329', 'Negative baseflow trend sites',
                                    point_title_subtitle_sizes = c(1, 12, 10))
   
-  p_nonenegative <- cowplot::plot_grid(p_none, p_negative, ncol=1)
+  p_nonenegative <- cowplot::plot_grid(p_none, p_negative, ncol=1, labels=c("(b)", "(c)"), label_size = 10)
   png(out_file, width = 6.5, height = 3.25, units='in', res=500)
-  print(cowplot::plot_grid(p_positive, p_nonenegative, nrow=1, rel_heights = c(0.5, 1)))
+  print(cowplot::plot_grid(p_positive, p_nonenegative, nrow=1, rel_heights = c(0.5, 1), 
+                           labels = c("(a)", ""), label_size = 10))
   dev.off()
   
   return(out_file)
