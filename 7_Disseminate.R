@@ -154,7 +154,7 @@ p7_targets <- list(
              format='file'),
   
   tar_target(p7_overlap_sitemap_png, 
-             create_overlap_site_map('7_Disseminate/out/overlap_sitemap.png', p1_nwis_sc_sites_sf, 
+             create_overlap_site_map('7_Disseminate/out/4_sitemap_overlap.png', p1_nwis_sc_sites_sf, 
                                       p7_site_categories, p1_conus_state_cds), 
              format='file'),
   

@@ -116,7 +116,7 @@ create_overlap_site_map <- function(out_file, sites_sf, site_category_data, stat
     filter(episodic == 'Episodic', baseflow == 'positive') %>% 
     pull(site_no)
   p_both <- map_category_sites(sites_sf, both_sites, states_to_include, 'grey20', 
-                               'Both positive baseflow trend & episodic sites')
+                               'Positive baseflow trend\nand episodic sites')
   
   png(out_file, width = 3.25, height = 3.25, units='in', res=500)
   print(p_both)
