@@ -45,7 +45,7 @@ p7_targets <- list(
   
   # Boxplot of roadsalt showing that sites across all the categories had similar amounts
   tar_target(p7_roadsalt_boxes_png, 
-             create_roadSalt_boxplot('7_Disseminate/out/roadSalt_boxes.png', p3_static_attributes, p7_site_categories),
+             create_roadSalt_boxplot('7_Disseminate/out/4_roadSalt_boxes.png', p3_static_attributes, p7_site_categories),
              format = 'file'),
   
   # Map of roadsalt per site showing that sites don't completely follow a gradient from south --> north
