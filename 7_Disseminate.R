@@ -100,6 +100,22 @@ p7_targets <- list(
   
   ##### Boxplots of attributes by model/category #####
   
+  tar_target(p7_attr_all_boxplots_png, 
+             create_attribute_boxplots('7_Disseminate/out/3_attributes_boxes_all.png',
+                                       mutate(p6a_site_attr_rf, site_category_fact = 'ALL'),
+                                       # Same order as the table
+                                       c('medianFlow', 'basinSlope', 'pctAgriculture',
+                                         'pctDeveloped', 'pctForested', 'pctOpenWater',
+                                         'pctWetland', 'annualPrecip', 'annualSnow',
+                                         'winterAirTemp', 'baseFlowInd', 'gwRecharge',
+                                         'subsurfaceContact', 'depthToWT', 
+                                         'transmissivity', 'roadSaltPerSqKm'),
+                                       p7_attr_name_xwalk, 
+                                       c(ALL='#868b8e'),
+                                       legend_position = "none",
+                                       attribute_text_size = 9), 
+             format='file'),
+  
   tar_target(p7_attr_episodic_boxplots_png, 
              create_attribute_boxplots('7_Disseminate/out/attributes_boxes_episodic.png',
                                        p6b_site_attr_rf_optimal,

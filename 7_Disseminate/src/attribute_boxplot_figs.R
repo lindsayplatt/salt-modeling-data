@@ -13,10 +13,16 @@
 #' @param attribute_name_xwalk tibble with the columns `attribute` and `display_name`
 #' @param box_colors a named vector of character strings indicating what color to 
 #' give the boxes; names should match the site categories exactly
+#' @param legend_position character string indicating where to put the legend, see 
+#' options in `?ggplot2::theme`; defaults to `bottom`, use `none` to skip.
+#' @param attribute_text_size numeric value indicating the font size to use for the attribute
+#' facet labels; defaults to 12.
 #' 
 #' @returns a character string giving the location of the saved figure file
 #' 
-create_attribute_boxplots <- function(out_file, site_attr_data, attribute_order, attribute_name_xwalk, box_colors) {
+create_attribute_boxplots <- function(out_file, site_attr_data, attribute_order, attribute_name_xwalk, 
+                                      box_colors, legend_position = 'bottom',
+                                      attribute_text_size = 12) {
   
   display_name_in_order <- tibble(attribute = attribute_order) %>% 
     left_join(attribute_name_xwalk, by = 'attribute') %>% 
@@ -40,15 +46,16 @@ create_attribute_boxplots <- function(out_file, site_attr_data, attribute_order,
     geom_boxplot(aes(fill = site_category_fact)) + 
     facet_wrap(vars(attr_fact), scales = 'free_y') +
     theme_bw() +
+    scale_y_continuous(labels = scales::comma) +
     scale_fill_manual(values = box_colors) +
     theme(axis.text = element_text(size=10),
-          strip.text = element_text(size = 12, face = 'bold'),
+          strip.text = element_text(size = attribute_text_size, face = 'bold'),
           strip.background = element_rect(fill = 'white', color = 'transparent'),
           axis.title.x = element_blank(),
           axis.title.y = element_blank(), 
           axis.text.x = element_blank(),
           legend.title = element_blank(),
-          legend.position = "bottom", 
+          legend.position = legend_position, 
           strip.clip = "off",
           panel.spacing = unit(0.75, "lines"),
           plot.margin = unit(c(0.5,1,0,0.5), 'lines'))
