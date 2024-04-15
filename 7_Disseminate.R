@@ -105,6 +105,53 @@ p7_targets <- list(
                                        c(positive='#b45f06', none='grey40', negative='#663329')), 
              format='file'),
   
+  tar_target(p7_attr_overlap_boxplots_png, {
+    
+    # Identify which sites are episodic only, positive baseflow only, or both
+    category_info <- p7_site_categories %>%
+      pivot_wider(names_from = 'model', values_from = 'site_category')
+    sites_both <- category_info %>%
+      filter(episodic == 'Episodic', baseflow == 'positive') %>%
+      pull(site_no)
+    sites_only_episodic <- category_info %>%
+      filter(episodic == 'Episodic', baseflow != 'positive') %>%
+      pull(site_no)
+    sites_only_posbaseflow <- category_info %>%
+      filter(episodic != 'Episodic', baseflow == 'positive') %>%
+      pull(site_no)
+    
+    # Prep some data for visualizing episodic only, positive baseflow only, and 
+    # sites that are both as separate categories
+    site_attr_data_both <-  p3_static_attributes %>% 
+      mutate(site_category = case_when(
+        site_no %in% sites_both ~ "Both signatures",
+        site_no %in% sites_only_episodic ~ "Only episodic",
+        site_no %in% sites_only_posbaseflow ~ "Only positive baseflow",
+        TRUE ~ 'NONE')) %>% 
+      filter(site_category != 'NONE') %>% 
+      mutate(site_category_fact = factor(site_category, 
+                                         levels = c('Only episodic', 'Both signatures', 
+                                                    'Only positive baseflow'))) %>% 
+      # Drop the `attr_` prefix so that the results are cleaner
+      rename_with(~gsub("attr_", "", .x)) %>% 
+      # Only use the 7 attributes discussed across the two models
+      select(site_category_fact, depthToWT, medianFlow, pctDeveloped, winterAirTemp, 
+             annualSnow, annualPrecip, pctForested)
+    
+    # In order of their Gini index of importance from the two models.
+    importance_order <- c('depthToWT', 'medianFlow', 'pctDeveloped', 'winterAirTemp', 
+                          'annualSnow', 'annualPrecip', 'pctForested')
+    
+    # Now make a boxplots of the attribute distributions
+    create_attribute_boxplots('7_Disseminate/out/4_attribute_boxplots_overlap.png',
+                              site_attr_data_both,
+                              importance_order,
+                              p7_attr_name_xwalk, 
+                              c(`Both signatures` = '#5e5a4d', 
+                                `Only episodic` = '#0b5394', 
+                                `Only positive baseflow` = '#b45f06'))
+  }, format='file'),
+  
   ##### Combine random forest output into a single figure #####
   
   # Note that `cowplot::draw_image()` requires that you have `magick`
