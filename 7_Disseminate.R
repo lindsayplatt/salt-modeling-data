@@ -166,6 +166,23 @@ p7_targets <- list(
                     plot = p7_baseflow_trends_plotlist[[1]], height = 8, width = 10, dpi = 500), 
              format = 'file', pattern = map(p7_baseflow_trends_plotlist)),
   
+  tar_target(p7_baseflow_trends_examples_plot, {
+    example_posbaseflow_sites <- c('040871488', '01645762') # Milwaukee, DC (Vienna)
+    example_nobaseflow_sites <- c('03067510', '04166500') # West Virginia, Detroit
+    example_negbaseflow_sites <- c('01104415', '03072655') # Massachusetts, SW Pennsylvania
+    p5_sc_baseflow_qualified %>% 
+      filter(site_no %in% c(example_posbaseflow_sites, example_nobaseflow_sites,
+                            example_negbaseflow_sites)) %>%
+      create_baseflow_trend_plotlist(p5_sc_baseflow_trend, nrow=2, dir="v") 
+  }),
+  tar_target(p7_baseflow_trends_examples_png, {
+    out_file <- '7_Disseminate/out/3.2_baseflow_ts.png'
+    png(out_file, width = 13, height = 6.5, units='in', res=500)
+    print(p7_baseflow_trends_examples_plot)
+    dev.off()
+    return(out_file)
+  }, format='file'),
+  
   ##### Save plots of episodic behavior for each site #####
   
   tar_target(p7_episodic_plotlist, create_episodic_plotlist(p3_ts_sc_qualified, p4_episodic_sites)),
@@ -173,6 +190,7 @@ p7_targets <- list(
              ggsave(filename = sprintf('7_Disseminate/out/episodic_grp%s.png', names(p7_episodic_plotlist)), 
                     plot = p7_episodic_plotlist[[1]], height = 8, width = 10, dpi = 500), 
              format = 'file', pattern = map(p7_episodic_plotlist)),
+  
   tar_target(p7_episodic_examples_plot, {
     example_episodic_sites <- c('02042500', '01481500', '04166500') # Richmond, Wilmington, Detroit
     example_not_episodic_sites <- c('01481000', '03183500', '04176500') # NW of Wilmington, SE of Philly, West Virginia, S of Detroit

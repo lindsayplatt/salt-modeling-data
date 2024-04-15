@@ -9,12 +9,15 @@
 #' `site_no`, `dateTime`, `SpecCond`.
 #' @param trends_sc a tibble with the baseflow trend calculated for each site
 #' with the columns `site_no` and `baseflowTrend` ("none", "positive", or "negative")
+#' @param nrow numeric value indicating the number of rows of facets to plot; defaults to 5
+#' @param dir character value (either `h` or `v`) to pass to `facet_wrap()` to 
+#' indicate whether it should fill by row or by column; defaults to `h`.
 #' 
 #' @returns a list of ggplots
 #' 
-create_baseflow_trend_plotlist <- function(ts_sc_bf, trends_sc) {
+create_baseflow_trend_plotlist <- function(ts_sc_bf, trends_sc, nrow = 5, dir = "h") {
   # Order trends to prep order of facets
-  trends_sc <- trends_sc %>% arrange(baseflowTrend, site_no)
+  trends_sc <- trends_sc %>% arrange(desc(baseflowTrend), site_no)
   
   ts_sc_bf_trends <- ts_sc_bf %>% 
     left_join(trends_sc, by = 'site_no') %>% 
@@ -42,7 +45,7 @@ create_baseflow_trend_plotlist <- function(ts_sc_bf, trends_sc) {
     ggplot(ts_sc_bf, aes(x = dateTime, y = SpecCond, color = baseflowTrend)) +
       geom_point(alpha = 0.25, shape=21, size=0.5) +
       geom_point(data = annual_sc_bf, size=1.5) +
-      facet_wrap(vars(site_no_ord), scales='free', nrow=5) +
+      facet_wrap(vars(site_no_ord), scales='free', nrow=nrow, dir=dir) +
       scale_color_manual(values = c(positive = '#b45f06', none = 'grey30', negative = '#663329'),
                          name = '') +
       ylab('Specific conductance, µS/cm at 25°C') + 
