@@ -1,5 +1,6 @@
 # Targets for creating paper and slidedeck visualizations
 
+source('7_Disseminate/src/attribute_correlations.R')
 source('7_Disseminate/src/roadSalt_figs.R')
 source('7_Disseminate/src/partialDependence_figs.R')
 source('7_Disseminate/src/importance_figs.R')
@@ -40,6 +41,15 @@ p7_targets <- list(
                mutate(model = 'baseflow') %>% 
                select(site_no, model, site_category = site_category_fact)),
   tar_target(p7_site_categories, bind_rows(p7_site_categories_episodic, p7_site_categories_baseflow)),
+  
+  ##### Attribute correlation figure #####
+  
+  # Saving attribute correlations as a file
+  tar_target(p7_attribute_correlations_png, 
+             visualize_attr_correlation('7_Disseminate/out/3_attribute_correlations.png',
+                                        p6a_site_attr_rf,
+                                        p7_attr_name_xwalk), 
+             format='file'),
   
   ##### Road salt figures #####
   
