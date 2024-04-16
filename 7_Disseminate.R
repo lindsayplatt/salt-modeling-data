@@ -169,7 +169,7 @@ p7_targets <- list(
                           'annualSnow', 'annualPrecip', 'pctForested')
     
     # Now make a boxplots of the attribute distributions
-    create_attribute_boxplots('7_Disseminate/out/4_attribute_boxplots_overlap.png',
+    create_attribute_boxplots('7_Disseminate/out/3.3_attribute_boxplots_overlap.png',
                               site_attr_data_both,
                               importance_order,
                               p7_attr_name_xwalk, 
@@ -227,7 +227,7 @@ p7_targets <- list(
              format='file'),
   
   tar_target(p7_overlap_sitemap_png, 
-             create_overlap_site_map('7_Disseminate/out/4_sitemap_overlap.png', p1_nwis_sc_sites_sf, 
+             create_overlap_site_map('7_Disseminate/out/3.3_sitemap_overlap.png', p1_nwis_sc_sites_sf, 
                                       p7_site_categories, p1_conus_state_cds), 
              format='file'),
   
