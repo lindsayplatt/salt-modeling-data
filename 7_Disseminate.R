@@ -235,7 +235,7 @@ p7_targets <- list(
   
   tar_target(p7_baseflow_trends_plotlist, create_baseflow_trend_plotlist(p5_sc_baseflow_qualified, p5_sc_baseflow_trend)),
   tar_target(p7_baseflow_trends_png, 
-             ggsave(filename = sprintf('7_Disseminate/out/baseflow_trends_grp%s.png', names(p7_baseflow_trends_plotlist)), 
+             ggsave(filename = sprintf('7_Disseminate/out/SI_baseflow_trends_grp%s.png', names(p7_baseflow_trends_plotlist)), 
                     plot = p7_baseflow_trends_plotlist[[1]], height = 8, width = 10, dpi = 500), 
              format = 'file', pattern = map(p7_baseflow_trends_plotlist)),
   
@@ -260,7 +260,7 @@ p7_targets <- list(
   
   tar_target(p7_episodic_plotlist, create_episodic_plotlist(p3_ts_sc_qualified, p4_episodic_sites)),
   tar_target(p7_episodic_png, 
-             ggsave(filename = sprintf('7_Disseminate/out/episodic_grp%s.png', names(p7_episodic_plotlist)), 
+             ggsave(filename = sprintf('7_Disseminate/out/SI_episodic_grp%s.png', names(p7_episodic_plotlist)), 
                     plot = p7_episodic_plotlist[[1]], height = 8, width = 10, dpi = 500), 
              format = 'file', pattern = map(p7_episodic_plotlist)),
   
