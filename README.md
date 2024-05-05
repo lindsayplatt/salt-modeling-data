@@ -40,6 +40,7 @@ install.packages(c(
     'EnvStats',
     'exactextractr',
     'FlowScreen',
+    'GGally', 
     'httr',
     'MESS',
     'nhdplusTools',
