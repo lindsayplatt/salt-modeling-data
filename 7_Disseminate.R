@@ -89,13 +89,13 @@ p7_targets <- list(
   tar_target(p7_importance_episodic_png, 
              visualize_attr_importance('7_Disseminate/out/importance_episodic.png', 
                                        p7_overall_attr_importance_episodic,
-                                       p7_attr_name_xwalk, scico_palette = 'lapaz'), 
+                                       p7_attr_name_xwalk, geom_color = 'grey15'), 
              format='file'),
   
   tar_target(p7_importance_baseflow_png, 
              visualize_attr_importance('7_Disseminate/out/importance_baseflow.png', 
                                        p7_overall_attr_importance_baseflow,
-                                       p7_attr_name_xwalk, scico_palette = 'lajolla'), 
+                                       p7_attr_name_xwalk, geom_color = 'grey15'), 
              format='file'),
   
   ##### Boxplots of attributes by model/category #####
