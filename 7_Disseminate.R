@@ -301,6 +301,29 @@ p7_targets <- list(
     print(p7_episodic_examples_plot)
     dev.off()
     return(out_file)
-  }, format='file')
+  }, format='file'),
   
+  ##### Save and export output data for publication #####
+  
+  # Export final sites and their attributes
+  tar_target(p7_site_attributes_csv, {
+    out_file <- '7_Disseminate/out/site_attributes.csv'
+    p6a_site_attr %>% 
+      select(-site_category_fact) %>% 
+      write_csv(file = out_file)
+    return(out_file)
+  }, format = 'file'),
+  
+  # Export final classification results
+  tar_target(p7_site_classifications_csv, {
+    out_file <- '7_Disseminate/out/site_classifications.csv'
+    episodic_site_classes <- p7_site_categories_episodic %>% 
+      rename(Classification_Episodic = site_category) %>% select(-model)
+    baseflow_site_classes <- p7_site_categories_baseflow %>% 
+      rename(Classification_Baseflow = site_category) %>% select(-model)
+    episodic_site_classes %>% 
+      left_join(baseflow_site_classes, by = 'site_no') %>% 
+      write_csv(file = out_file)
+    return(out_file)
+  }, format = 'file')
 )
