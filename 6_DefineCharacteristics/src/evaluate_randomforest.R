@@ -171,41 +171,6 @@ visualize_partial_dependence <- function(pdp_data, real_attribute_values) {
     theme(strip.background = element_blank())
 }
 
-#' @title Visualize attribute correlations
-#' @description Check attributes for potential autocorrelation to
-#' improve the model. This calculates correlation between every attribute
-#' used in the model using Spearman Rank Correlation. We must use this output
-#' along with our knowledge of the ecological relationships between variables
-#' to assess attributes for autocorrelation.
-#' 
-#' @param out_file a filepath specifying where to save the image output as a PNG
-#' @param site_attr_data a tibble with the columns `site_category_fact` and any
-#' number of columns that give static attributes (not prefixed with `attr_`)
-#' 
-#' @results a character string giving the location of the saved figure file
-#' 
-visualize_attr_correlation <- function(out_file, site_attr_data) {
-  p <- ggcorr(data = select(site_attr_data, -site_category_fact), 
-              method = c("everything", "spearman"),
-              nbreaks = 5,
-              low = "darkred",
-              mid = "white",
-              high = "seagreen4",
-              label = TRUE,
-              label_round = 2,
-              hjust = 0.5, nudge_x = -0.40,
-              size = 3) +
-    coord_equal(clip = "off") +
-    theme(plot.margin=grid::unit(c(0,0,0,2),"cm")) +
-    ggtitle('Spearman Rank Correlation for all attributes')
-  
-  png(out_file, width = 1000, height = 1000, units = 'px',res = 100)
-  print(p)
-  dev.off()
-  
-  return(out_file)
-}
-
 # TODO: SHAP eval???
 # library(kernelshap)
 # library(shapviz)

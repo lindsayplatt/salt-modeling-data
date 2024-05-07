@@ -173,12 +173,6 @@ p6_targets <- list(
     p6c_attrs_num_viz, 
     p6c_rf_attr_importance_viz,
     p6c_category_map
-  ), format='file'),
-  
-  # Saving attribute correlations as a file
-  tar_target(p6_attr_correlations_png, 
-             visualize_attr_correlation('6_DefineCharacteristics/log/attr_correlations.png',
-                                        p6a_site_attr_rf), 
-             format='file')
+  ), format='file')
   
 )
