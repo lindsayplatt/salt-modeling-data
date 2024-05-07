@@ -12,15 +12,41 @@ source('7_Disseminate/src/episodic_detection_figs.R')
 p7_targets <- list(
   
   # Create a manual crosswalk between attribute names and display names
-  tar_target(p7_attr_name_xwalk, tibble(
-    attribute = c("medianFlow", "roadSaltPerSqKm", "annualPrecip", "baseFlowInd", 
-                  "subsurfaceContact", "gwRecharge", "pctOpenWater", "basinSlope", 
-                  "pctForested", "pctWetland", "pctAgriculture", "pctDeveloped", 
-                  "annualSnow", "winterAirTemp", "depthToWT", "transmissivity"),
-    display_name = c("Median Flow (m3/s)", "Road Salt / SqKm (kg)", "Precip (mm/yr)", "Baseflow Index",
-                     "Subsurface Contact (days)", "GW Recharge (mm/yr)", "Open Water (% area)", "Basin Slope (%)",
-                     "Forested (% area)", "Wetland (% area)", "Agriculture (% area)", "Developed (% area)", 
-                     "Snow (mm/yr)", "Winter Air Temp (°C)", "Depth to WT (m)", "Transmissivity (m2/day)"))),
+  tar_target(p7_attribute_details, tibble(
+    attribute = c("medianFlow", "basinSlope", "pctAgriculture", "pctDeveloped",
+                  "pctForested", "pctOpenWater", "pctWetland", "annualPrecip",
+                  "annualSnow", "winterAirTemp", "baseFlowInd", "gwRecharge",
+                  "subsurfaceContact", "depthToWT", "transmissivity", "roadSaltPerSqKm"),
+    display_name = c("Median Flow (m3/s)", "Basin Slope (%)", "Agriculture (% area)", "Developed (% area)",
+                     "Forested (% area)", "Open Water (% area)", "Wetland (% area)", "Precipitation (mm/year)",
+                     "Snowfall (mm/year)", "Winter Air Temperature (°C)", "Baseflow Index (% total flow)",
+                     "Groundwater Recharge (mm/year)", "Subsurface Contact (days)", "Depth to Water Table (m)",
+                     "Transmissivity (m2/day)", "Road Salt (kg/km^2)"),
+    definition = c(
+      "Median streamflow derived from daily streamflow time series",
+      "Average topographic slope to indicate basin steepness; uses the NHDPlus attribute CAT_BASIN_SLOPE",
+      "Percent of basin area that is agriculture; sum of the NHDPlus attribute categories CAT_NLCD19_81 (pasture/hay) and CAT_NLCD19_82 (cropland)",
+      "Percent of basin area that is developed; sum of the NHDPlus attribute categories CAT_NLCD19_22 (open development, < 20% impervious), CAT_NLCD19_23 (low development, 20-49% impervious), CAT_NLCD19_24 (medium development, 50-79% impervious), and CAT_NLCD19_25 (high development, 80-100% impervious)",
+      "Percent of basin area that is forested; sum of the NHDPlus attribute categories CAT_NLCD19_41 (deciduous), CAT_NLCD19_42 (evergreen), and CAT_NLCD19_43 (mixed)",
+      "Percent of basin area that is open water (lakes, rivers, etc); uses the NHDPlus category CAT_NLCD19_11",
+      "Percent of basin area that is wetland; sum of the NHDPlus attribute categories CAT_NLCD19_90 (woody wetlands) and CAT_NLCD19_95 (herbaceous wetlands)",
+      "Total annual precipitation; uses the NHDPlus attribute CAT_PPT7100_ANN",
+      "Total annual snowfall; calculated by multiplying total annual precipitation (CAT_PPT7100_ANN) by the NHDPlus attribute CAT_PRSNOW (percent of precipitation that is snow)",
+      "Average winter air temperature; calculated by averaging the NHDPlus attributes CAT_TAV7100_DEC, CAT_TAV7100_JAN, CAT_TAV7100_FEB, and CAT_TAV7100_MAR",
+      "Average percent of the total streamflow that is baseflow; uses the NHDPlus attribute CAT_BFI",
+      "Amount of water added to the water table per year; uses the NHDPlus attribute CAT_RECHG",
+      "Number of days that water resides in the saturated subsurface before entering a stream; uses the NHDPlus attribute CAT_CONTACT",
+      "Modeled parameter estimating the depth below the surface where the subsurface is saturated",
+      "Modeled parameter estimating how easily water is transmitted through shallow subsurface",
+      "Estimated weight of road deicing salt applied by area"
+    ),
+    source = c(
+      "USGS NWIS",
+      rep("NHDPlus", 12),
+      rep("Zell and Sanford, 2020", 2),
+      "Falcone et al., 2023"
+    ))),
+  tar_target(p7_attr_name_xwalk, select(p7_attribute_details, attribute, display_name)),
   
   # Isolate overall importance and out-of-bag errors
   tar_target(p7_overall_attr_importance_episodic, p6b_rf_attr_importance %>% 
@@ -311,6 +337,15 @@ p7_targets <- list(
     p6a_site_attr %>% 
       select(-site_category_fact) %>% 
       write_csv(file = out_file)
+    return(out_file)
+  }, format = 'file'),
+  
+  # Export full names and units for each of the attributes
+  tar_target(p7_attr_name_details_csv, {
+    out_file <- '7_Disseminate/out/site_attribute_details.csv'
+    p7_attribute_details %>% 
+      rename(name_units = display_name) %>% 
+      write_csv(file = out_file, quote='all')
     return(out_file)
   }, format = 'file'),
   
