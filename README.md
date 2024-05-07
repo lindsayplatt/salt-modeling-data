@@ -4,7 +4,9 @@ This repository contains reproducible code for downloading, processing, and mode
 
 ## Associated publications and resources
 
-The code supports the analysis for Lindsay Platt's ([@lindsayplatt](https://github.com/lindsa%5D(https://github.com/lindsayplatt))) Master's Thesis, *Basin characteristics modulate signatures of river salinization*.
+The code supports the analysis for Lindsay Platt's ([@lindsayplatt](https://github.com/lindsa%5D(https://github.com/lindsayplatt))) Master's Thesis:
+
+> Platt, L. (2024). *Basins modulate signatures of river salinization* (Master's thesis). University of Wisconsin-Madison, Freshwater and Marine Sciences.
 
 ## Running the code 
 
@@ -18,7 +20,7 @@ The pipeline is broken into 6 different phases:
 * `4_EpisodicSalinization` applies an algorithm that has been used to identify storms by finding steep peaks in a hydrograph to the specific conductance time series in order to identify winter storms where road salts are washed into streams and cause sharp peaks (similar to storm hydrographs). In the end, this phase identifies sites with specific conductance data that exhibit this episodic behavior.
 * `5_BaseflowSalinization` is doing two different things: applying a baseflow separation algorithm to extract only the days in the specific conductance time series that occurred on a baseflow day, and then using a seasonal Mann-Kendall to evaluate whether the baseflow specific conductance is experiencing any sort of trend. In the end, this returns a table with each site and what the salinization trend was for the baseflow days (either `positive`, `none`, or `negative`).
 * `6_DefineCharacteristics` uses the information gathered in `4_EpisodicSalinization` and `5_BaseflowSalinization` to categorize the sites based on whether they exhibit episodic salinization and/or they have positive trends in baseflow specific conductance. Then, it applies random forest models to these categorizations with the collection of static attributes prepared and filtered in `2_Prepare` and `3_Filter` to define the attributes and values that are important for determining a site's category.
-* `7_Disseminate` takes all of the model input output to generate figures and explain the results. The figures generated in this phase were all used in the manuscript. Two datasets are also saved in this step and represent the final salinization signature classifications for each site and values for all 16 static attributes. These two datasets were used by the random forest models to create final results explaining which characteristics were important for each of the salinization signatures.
+* `7_Disseminate` takes all of the model input output to generate figures and explain the results. The figures generated in this phase were all used in the manuscript. Three datasets are also saved in this step and represent the final salinization signature classifications for each site, values for all 16 static attributes, and metadata for all 16 attribtues. The first two datasets were used by the random forest models to create final results explaining which characteristics were important for each of the salinization signatures.
 
 ### Pipeline setup
 
@@ -55,9 +57,37 @@ install.packages(c(
 ))
 ```
 
-The following package versions were used during the original pipeline build. You shouldn't need to install these versions specifically, but if there are errors cropping up, you could try installing these specific versions.
+The following package versions were used during the original pipeline build. You shouldn't need to install these versions specifically, but if there are errors cropping up, you could try installing these specific versions and see if you can get past the issue.
 
-|Package       |Version  | |:-------------|:--------| |targets       |1.5.1    | |tarchetypes   |0.7.12   | |accelerometry |3.1.2    | |arrow         |14.0.2.1 | |cowplot       |1.1.3    | |dataRetrieval |2.7.15   | |EnvStats      |2.8.1    | |exactextractr |0.10.0   | |FlowScreen    |1.2.6    | |GGally        |2.2.1    | |httr          |1.4.7    | |MESS          |0.5.12   | |nhdplusTools  |1.0.0    | |pdp           |0.8.1    | |qs            |0.25.7   | |randomForest  |4.7.1.1  | |raster        |3.6.26   | |sbtools       |1.3.1    | |scico         |1.5.0    | |sf            |1.0.15   | |tidytext      |0.4.1    | |tidyverse     |2.0.0    | |units         |0.8.5    | |usmap         |0.7.0    | |yaml          |2.3.8    | |zip           |2.3.1    |
+|Package       |Version  | 
+|:-------------|:--------| 
+|targets       |1.5.1    | 
+|tarchetypes   |0.7.12   | 
+|accelerometry |3.1.2    | 
+|arrow         |14.0.2.1 | 
+|cowplot       |1.1.3    | 
+|dataRetrieval |2.7.15   | 
+|EnvStats      |2.8.1    | 
+|exactextractr |0.10.0   | 
+|FlowScreen    |1.2.6    | 
+|GGally        |2.2.1    | 
+|httr          |1.4.7    | 
+|MESS          |0.5.12   | 
+|nhdplusTools  |1.0.0    | 
+|pdp           |0.8.1    | 
+|qs            |0.25.7   | 
+|randomForest  |4.7.1.1  | 
+|raster        |3.6.26   | 
+|sbtools       |1.3.1    | 
+|scico         |1.5.0    | 
+|sf            |1.0.15   | 
+|tidytext      |0.4.1    | 
+|tidyverse     |2.0.0    | 
+|units         |0.8.5    | 
+|usmap         |0.7.0    | 
+|yaml          |2.3.8    | 
+|zip           |2.3.1    |
+||| 
 
 ### Pipeline build
 
