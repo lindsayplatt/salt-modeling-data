@@ -73,7 +73,6 @@ p3_targets <- list(
                                                remove_sites = c(p1_nwis_sc_sites_tidal,
                                                                 p3_ts_sc_ag_sites,
                                                                 p3_ts_sc_highSC_sites,
-                                                                p3_ts_sc_nonsalt_sites,
                                                                 p3_nwis_site_with_zero_nhd_area,
                                                                 p3_attr_missing_sites))),
   
@@ -91,7 +90,6 @@ p3_targets <- list(
                                              remove_sites = c(p1_nwis_sc_sites_tidal,
                                                               p3_ts_sc_ag_sites,
                                                               p3_ts_sc_highSC_sites,
-                                                              p3_ts_sc_nonsalt_sites,
                                                               p3_nwis_site_with_zero_nhd_area,
                                                               p3_attr_missing_sites)))
   
