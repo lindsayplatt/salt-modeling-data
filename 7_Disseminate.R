@@ -18,9 +18,9 @@ p7_targets <- list(
                   "annualSnow", "winterAirTemp", "baseFlowInd", "gwRecharge",
                   "subsurfaceContact", "depthToWT", "transmissivity", "roadSaltPerSqKm"),
     display_name = c("Median Flow (m3/s)", "Basin Slope (%)", "Agriculture (% area)", "Developed (% area)",
-                     "Forested (% area)", "Open Water (% area)", "Wetland (% area)", "Precipitation (mm/year)",
-                     "Snowfall (mm/year)", "Winter Air Temperature (°C)", "Baseflow Index (% total flow)",
-                     "Groundwater Recharge (mm/year)", "Subsurface Contact (days)", "Depth to Water Table (m)",
+                     "Forested (% area)", "Open Water (% area)", "Wetland (% area)", "Precip (mm/year)",
+                     "Snow (mm/year)", "Winter Air Temp (°C)", "Baseflow Index",
+                     "GW Recharge (mm/year)", "Subsurface Contact (days)", "Depth to WT (m)",
                      "Transmissivity (m2/day)", "Road Salt (kg/km^2)"),
     definition = c(
       "Median streamflow derived from daily streamflow time series",
