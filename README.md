@@ -87,7 +87,6 @@ The following package versions were used during the original pipeline build. You
 |usmap         |0.7.0    | 
 |yaml          |2.3.8    | 
 |zip           |2.3.1    |
-||| 
 
 ### Pipeline build
 
