@@ -51,6 +51,25 @@ p7_targets <- list(
                                         p7_attr_name_xwalk), 
              format='file'),
   
+  ##### Additional attribute explanations #####
+  
+  # Figure showing baseflow days are higher for smaller rivers
+  tar_target(p7_bfdays_vs_flow_png, 
+             create_bf_vs_q_scatterplot('7_Disseminate/out/5_baseflowdays_vs_medianflow.png', 
+                                        p3_ts_sc_qualified, p5_sc_baseflow_qualified,
+                                        p3_static_attributes),
+             format = 'file'),
+  
+  # Relationship between developed and forested percents
+  tar_target(p7_dev_vs_forest_png, 
+             create_dev_vs_forest_scatters('7_Disseminate/out/4_developed_vs_pctforested.png', p6c_site_attr),
+             format = 'file'),
+  
+  # Figure showing the feature space for the episodic classification criteria
+  tar_target(p7_episodic_feature_space_png,
+             generate_episodic_feature_space_figure('7_Disseminate/out/2.3_episodic_feature_space.png', p4_ts_sc_peak_summary),
+             format = 'file'),
+  
   ##### Road salt figures #####
   
   # Boxplot of roadsalt showing that sites across all the categories had similar amounts
@@ -66,6 +85,11 @@ p7_targets <- list(
   # Map of gridded roadsalt 
   tar_target(p7_roadsalt_gridmap_png, 
              create_roadSalt_map('7_Disseminate/out/2.2_roadSalt_gridmap.png', p1_sb_road_salt_2015_tif, p1_conus_state_cds),
+             format = 'file'),
+  
+  # Figure showing road salt vs pct forested
+  tar_target(p7_roadsalt_forest_png, 
+             create_roadSalt_vs_forested('7_Disseminate/out/4_roadsalt_vs_pctforested.png', p3_static_attributes),
              format = 'file'),
   
   ##### Partial dependence plots #####

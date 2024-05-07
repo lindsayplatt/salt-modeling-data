@@ -155,3 +155,54 @@ create_roadSalt_map <- function(out_file, road_salt_tif, states_to_include) {
   ggsave(out_file, p_saltmap, width = 6.5, height = 6.5, dpi = 500)
   return(out_file)
 }
+
+#' @title Create a plot showing how road salt varies with forested areas
+#' @description Show how higher forested areas have lower road salt applications
+#' 
+#' @param out_file a filepath specifying where to save the image output as a PNG
+#' @param site_attr_data a tibble with one row per site and any number of columns
+#' giving different attributes; needs the columns `site_no`, `attr_pctForested`,
+#' and `attr_roadSaltPerSqKm`.
+#' 
+#' @returns a character string giving the location of the saved figure file
+#' 
+create_roadSalt_vs_forested <- function(out_file, site_attr_data) {
+  
+  # Calculate the mean road salt for sites with less than 50% and more than 50% forested area
+  mean_below_50 <- site_attr_data %>% filter(attr_pctForested < 50) %>% 
+    pull(attr_roadSaltPerSqKm) %>% mean()
+  mean_above_50 <- site_attr_data %>% filter(attr_pctForested >= 50) %>% 
+    pull(attr_roadSaltPerSqKm) %>% mean()
+  roadsalt_means <- tibble(type = c('Mean road salt for sites < 50% forested', 
+                                    'Mean road salt for sites >= 50% forested'),
+                           x = c(0, 50), xend = c(50, 100),
+                           y = c(mean_below_50, mean_above_50),
+                           yend = c(mean_below_50, mean_above_50))
+  
+  p_roadsalt_v_forested <- ggplot(site_attr_data, 
+                                  aes(x = attr_pctForested, y = attr_roadSaltPerSqKm)) +
+    geom_point(size=0.75) +
+    scale_y_continuous(labels = scales::comma) +
+    geom_segment(data=roadsalt_means, aes(x=x, xend=xend, y=y, yend=yend, 
+                                          color = type), linewidth=2) +
+    scale_color_manual(values = c('#80bc79', '#366131')) +
+    ylab('Road Salt / SqKm (kg)') +
+    xlab('Forested (% area)') +
+    theme_bw() +
+    theme(axis.title.y = element_text(size=8, margin = ggplot2::margin(0,0.5,0,0,'line')),
+          axis.title.x = element_text(size=8, vjust=-1),
+          axis.text = element_text(size=6),
+          panel.grid = element_blank(),
+          legend.position = "inside",
+          legend.position.inside = c(0.65,0.90),
+          legend.text = element_text(size=5),
+          legend.title = element_blank(),
+          legend.box.background = element_rect(color = 'black'),
+          legend.margin = ggplot2::margin(0,0.05,0,0, "cm"),
+          legend.spacing.y = unit(-0.2, 'cm'),
+          legend.key.spacing.y = unit(-0.2, 'cm'))
+  
+  ggsave(out_file, p_roadsalt_v_forested,
+         width = 3.25, height = 3.25, units = 'in', dpi = 500)
+  return(out_file)
+}
