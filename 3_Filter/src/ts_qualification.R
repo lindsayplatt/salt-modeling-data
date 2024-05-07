@@ -79,22 +79,6 @@ identify_highSC_sites <- function(ts_data) {
     pull(site_no)
 }
 
-#' @title Find sites that have zero road salt
-#' @description Use the road salt attribute data per site (summarizing road salt
-#' applied within the NHD+ catchment, see `aggregate_road_salt_per_poly()`) to keep 
-#' only those sites that had some road salt within their catchment.
-#' 
-#' @param roadSalt_attrs a tibble with the columns `site_no`, and `attr_roadSaltPerSqKm`
-#' 
-#' @return a vector of NWIS site character strings which do not have road salt 
-#' applied within their catchment and should be removed.
-#' 
-identify_nonsalt_sites <- function(roadSalt_attrs) {
-  roadSalt_attrs %>% 
-    filter(attr_roadSaltPerSqKm == 0) %>% 
-    pull(site_no)
-}
-
 #' @title Find sites that are missing any attribute
 #' @description Use the attribute table to identify sites that may be missing
 #' one. The random forest models will not work with missing attributes, so these
