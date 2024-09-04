@@ -6,7 +6,7 @@ This repository contains reproducible code for downloading, processing, and mode
 
 The code supports the analysis for Lindsay Platt's ([@lindsayplatt](https://github.com/lindsa%5D(https://github.com/lindsayplatt))) Master's Thesis:
 
-> Platt, L. (2024). *Basins modulate signatures of river salinization* (Master's thesis). University of Wisconsin-Madison, Freshwater and Marine Sciences.
+> Platt, L. (2024). Basins modulate signatures of river salinization (Master's thesis). University of Wisconsin-Madison, Freshwater and Marine Sciences. Platt, L. (2024). Source code: Basins modulate signatures of river salinization (v1.0.0). Zenodo. https://doi.org/10.5281/zenodo.11130548
 
 ## Running the code 
 
